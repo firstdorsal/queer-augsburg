@@ -1,0 +1,63 @@
+dev: true
+
+reverseProxy:
+    create: true
+    network: rp
+
+tls: false
+routing: local
+
+qa:
+    web:
+        build:
+            enabled: true
+            path: ../../web/
+            dockerfile: Dockerfile
+        publicHostname:
+            domain: queer-augsburg.de
+            subdomain: web
+    server:
+        build:
+            enabled: true
+            path: ../../server/
+            dockerfile: Dockerfile
+        publicHostname:
+            domain: queer-augsburg.de
+            subdomain: api
+    db:
+        exposeToLocalhost: true
+        port: 27018
+
+interossea:
+    server:
+        allowNewUsers: false
+        createUsers: [mail@queer-augsburg.de]
+        makeUsersAdmin: [mail@queer-augsburg.de]
+        create: true
+        internalHostname: qa-interossea-server
+        publicHostname:
+            domain: queer-augsburg.de
+            subdomain: accounts-server
+        build:
+            enabled: true
+            path: /home/paul/Documents/interossea/server/
+            dockerfile: Dockerfile
+        mail:
+            username: no-reply@queer-augsburg.de
+            smtpServer: mx.vindelicum.eu
+            fromName: Interossea Login
+            fromAddress: no-reply@queer-augsburg.de
+            userAgent: Sugar-Free-Mail-2023
+            replyTo: mail@queer-augsburg.de
+        db:
+            exposeToLocalhost: true
+            port: 27019
+    web:
+        create: true
+        publicHostname:
+            domain: queer-augsburg.de
+            subdomain: accounts
+        build:
+            enabled: true
+            path: /home/paul/Documents/interossea/web/
+            dockerfile: Dockerfile

@@ -1,0 +1,1 @@
+docker compose -p qa --project-directory results/ down

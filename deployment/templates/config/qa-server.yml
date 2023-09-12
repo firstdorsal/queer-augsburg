@@ -1,0 +1,23 @@
+{{- $config :=  yamlFile "../../config.yml" -}}
+{{- $qaWebHostname := joindomain $config.qa.web.publicHostname.subdomain (ternary "localhost" $config.qa.web.publicHostname.domain (eq $config.routing "local")) -}}
+variablePrefix: "$"
+http:
+    internalAddress: "[::]:80"
+
+db:
+    url: mongodb://root:$MONGO_INITDB_ROOT_PASSWORD@qadb.localhost:{{ $config.qa.db.port }}
+dev:
+    insecureSkipInterossea: false
+    importOldMeetings: false
+
+services:
+    - id: qa
+      allowedOrigins: [{{ ternary "https://" "http://" $config.tls true }}{{ $qaWebHostname}}]
+
+serviceId: qa
+
+interossea:
+    url: http://$INTEROSSEA_INTERNAL_URL
+    assertionValiditySeconds: 600
+
+uiOrigin: {{ ternary "https://" "http://" $config.tls true }}{{ $qaWebHostname}}

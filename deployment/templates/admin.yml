@@ -1,0 +1,11 @@
+{{- $config :=  yamlFile "../config.yml" -}}
+{{- $env := envFile "../results/.env" -}}
+# TREAT THESE URIS LIKE PASSWORDS AS THEY CONTAIN THEM
+{{- if eq $config.qa.db.exposeToLocalhost true}}
+qa-db-uri: mongodb://root:{{ $env.MONGO_INITDB_ROOT_PASSWORD_QA }}@qadb.localhost:{{ $config.qa.db.port }}/?replicaSet=rs0
+{{- end }}
+
+{{- if eq $config.interossea.server.db.exposeToLocalhost true}}
+interossea-db-uri: mongodb://root:{{ $env.MONGO_INITDB_ROOT_PASSWORD_INTEROSSEA }}@qainterosseadb.localhost:{{ $config.interossea.server.db.port }}/?replicaSet=rs0
+{{- end }}
+

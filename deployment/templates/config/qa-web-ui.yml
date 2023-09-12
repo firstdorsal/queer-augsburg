@@ -1,0 +1,12 @@
+{{- $config :=  yamlFile "../../config.yml" -}}
+
+{{- $interosseaServerHostname := joindomain $config.interossea.server.publicHostname.subdomain (ternary "localhost" $config.interossea.server.publicHostname.domain (eq $config.routing "local")) -}}
+
+{{- $qaServerHostname := joindomain $config.qa.server.publicHostname.subdomain (ternary "localhost" $config.qa.server.publicHostname.domain (eq $config.routing "local")) -}}
+
+{{- $interosseaWebHostname := joindomain $config.interossea.web.publicHostname.subdomain (ternary "localhost" $config.interossea.web.publicHostname.domain (eq $config.routing "local")) -}}
+
+qaServerAddress: {{ ternary "https://" "http://" $config.tls true }}{{ $qaServerHostname}}
+interosseaServerAddress: {{ ternary "https://" "http://" $config.tls true }}{{ $interosseaServerHostname}}
+interosseaWebAddress: {{ ternary "https://" "http://" $config.tls true }}{{ $interosseaWebHostname}}
+skipInterossea: false

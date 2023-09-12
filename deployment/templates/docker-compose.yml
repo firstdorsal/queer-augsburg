@@ -1,0 +1,252 @@
+{{- $config :=  yamlFile "../config.yml" -}}
+
+{{- $interosseaServerHostname := joindomain $config.interossea.server.publicHostname.subdomain (ternary "localhost" $config.interossea.server.publicHostname.domain (eq $config.routing "local")) -}}
+
+{{- $interosseaWebHostname := joindomain $config.interossea.web.publicHostname.subdomain (ternary "localhost" $config.interossea.web.publicHostname.domain (eq $config.routing "local")) -}}
+
+{{- $qaWebHostname := joindomain $config.qa.web.publicHostname.subdomain (ternary "localhost" $config.qa.web.publicHostname.domain (eq $config.routing "local")) -}}
+
+{{- $qaServerHostname := joindomain $config.qa.server.publicHostname.subdomain (ternary "localhost" $config.qa.server.publicHostname.domain (eq $config.routing "local")) -}}
+
+version: "3.9"
+
+services:
+    qa-web:
+        {{- if eq $config.qa.web.build.enabled true }}
+        build:
+            context: {{ $config.qa.web.build.path }}
+            dockerfile: {{ $config.qa.web.build.dockerfile }}
+        {{- end }}
+        image: firstdorsal/queer-augsburg-web
+        container_name: qa-web
+        restart: always
+        networks:
+            - {{ $config.reverseProxy.network }}
+        volumes:
+            - ./config/qa-web.yml:/config.yml:ro
+            - ./config/qa-web-ui.json:/public/config.json:ro
+        environment:
+            CSP_CONNECT_SRC: {{ ternary "https://" "http://" $config.tls true }}{{ $interosseaServerHostname}} {{ ternary "https://" "http://" $config.tls true }}{{ $qaServerHostname}}
+        labels:
+            traefik:
+                docker:
+                    network: {{ $config.reverseProxy.network }}
+                enable: true
+                http:
+                    routers:
+                        qa-web:
+                            rule: "Host(`{{ $qaWebHostname }}`)"
+                            entrypoints: {{ ternary "websecure" "web" $config.tls }}
+                            service: qa-web
+                            tls: {{ $config.tls }}
+                    services:
+                        qa-web:
+                            loadbalancer:
+                                server:
+                                    port: 80
+    qa-server:
+        {{- if eq $config.qa.server.build.enabled true }}
+        build:
+            context: {{ $config.qa.server.build.path }}
+            dockerfile: {{ $config.qa.server.build.dockerfile }}
+        {{- end }}
+        image: firstdorsal/queer-augsburg-server
+        container_name: qa-server
+        networks:
+            - qadb
+            - qa-interossea-server
+            - {{ $config.reverseProxy.network }}
+        restart: always
+        environment:
+            MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD_QA
+            INTEROSSEA_INTERNAL_URL: {{ $config.interossea.server.internalHostname }}
+        volumes:
+            - ./config/qa-server.yml:/config.yml:ro
+        labels:
+            traefik:
+                docker:
+                    network: {{ $config.reverseProxy.network }}
+                enable: true
+                http:
+                    routers:
+                        qa-server:
+                            rule: "Host(`{{ $qaServerHostname }}`)"
+                            entrypoints: {{ ternary "websecure" "web" $config.tls }}
+                            service: qa-server
+                            tls: {{ $config.tls }}
+                    services:
+                        qa-server:
+                            loadbalancer:
+                                server:
+                                    port: 80
+    qadb:
+        build:
+            context: ../../db/
+            dockerfile: Dockerfile
+        image: mongo:6
+        restart: always
+        container_name: qadb
+        hostname: qadb.localhost
+        volumes:
+            - qa-server-db:/data/db/:rw
+            - ./qadb-configdb/:/data/configdb:rw
+        networks:
+            - qadb
+        {{- if eq $config.qa.db.exposeToLocalhost true}}
+        ports:
+            - 127.0.0.1:{{ $config.qa.db.port }}:{{ $config.qa.db.port }}
+        {{- end }}
+        command: ["--port","{{ $config.qa.db.port }}","--bind_ip_all", "--keyFile", "/keyfile", "--replSet", "rs0"]
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD_QA
+        healthcheck:
+            test: |
+                test $$(mongosh --port "{{ $config.qa.db.port }}" --quiet -u root -p $MONGO_INITDB_ROOT_PASSWORD_QA --eval "try { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'qadb.localhost:{{ $config.qa.db.port }}' }] }).ok } catch (_) { rs.status().ok }") -eq 1
+            interval: 10s
+            start_period: 10s
+    {{- if eq $config.interossea.web.create true }}
+    interossea-web:
+        {{- if eq $config.interossea.web.build.enabled true }}
+        build:
+            context: {{ $config.interossea.web.build.path }}
+            dockerfile: {{ $config.interossea.web.build.dockerfile }}
+        {{- end }}
+        image: firstdorsal/interossea-web
+        container_name: interossea-web
+        volumes:
+            - ./config/interossea-web.yml:/config.yml:ro
+            - ./config/interossea-web-ui.json:/public/config.json:ro
+        restart: always
+        environment:
+            CSP_CONNECT_SRC: {{ ternary "https://" "http://" $config.tls true }}{{ $interosseaServerHostname}} 
+        networks:
+            - {{ $config.reverseProxy.network }}
+        labels:
+            traefik:
+                docker:
+                    network: {{ $config.reverseProxy.network }}
+                enable: true
+                http:
+                    routers:
+                        interossea-web:
+                            rule: "Host(`{{ $interosseaWebHostname }}`)"
+                            entrypoints: {{ ternary "websecure" "web" $config.tls }}
+                            service: interossea-web
+                            tls: {{ $config.tls }}
+                    services:
+                        interossea-web:
+                            loadbalancer:
+                                server:
+                                    port: 80
+    {{- end }}
+    {{- if eq $config.interossea.server.create true }}
+    qainterosseadb:
+        build:
+            context: ../../db/
+            dockerfile: Dockerfile
+        restart: always
+        container_name: qainterosseadb
+        hostname: qainterosseadb.localhost
+        volumes:
+            - qa-interossea-db:/data/db/:rw
+            - ./qainterosseadb-configdb/:/data/configdb:rw
+        {{- if eq $config.interossea.server.db.exposeToLocalhost true}}
+        ports:
+            - 127.0.0.1:{{ $config.interossea.server.db.port }}:{{ $config.interossea.server.db.port }}
+        {{- end }}
+        command: ["--port","{{ $config.interossea.server.db.port }}","--bind_ip_all", "--keyFile", "/keyfile", "--replSet", "rs0"]
+
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: root
+            MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD_INTEROSSEA
+        healthcheck:
+            test: |
+                test $$(mongosh --port "{{ $config.interossea.server.db.port }}" --quiet -u root -p $MONGO_INITDB_ROOT_PASSWORD_INTEROSSEA --eval "try { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'qainterosseadb.localhost:{{ $config.interossea.server.db.port }}' }] }).ok } catch (_) { rs.status().ok }") -eq 1
+            interval: 10s
+            start_period: 10s
+        networks:
+            - qainterosseadb
+    qa-interossea-server:
+        {{- if eq $config.interossea.server.build.enabled true }}
+        build:
+            context: {{ $config.interossea.server.build.path }}
+            dockerfile: {{ $config.interossea.server.build.dockerfile }}
+        {{- end }}
+        image: firstdorsal/interossea-server
+        container_name: qa-interossea-server
+        restart: always
+        networks:
+            - {{ $config.reverseProxy.network }}
+            - qainterosseadb
+            - qa-interossea-server
+        volumes:
+            - ./config/interossea-server.yml:/config.yml:ro
+            - qa-interossea-keys:/keys/:rw
+            - ./config/interossea-redirects.env:/redirects/qa.env:ro
+        environment:
+            MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD_INTEROSSEA
+            INTEROSSEA_MAIL_PASSWORD: $INTEROSSEA_MAIL_PASSWORD
+        labels:
+            traefik:
+                docker:
+                    network: {{ $config.reverseProxy.network }}
+                enable: true
+                http:
+                    routers:
+                        qa-interossea-server:
+                            rule: "Host(`{{ $interosseaServerHostname }}`)"
+                            entrypoints: {{ ternary "websecure" "web" $config.tls }}
+                            service: qa-interossea-server
+                            tls: {{ $config.tls }}
+                    services:
+                        qa-interossea-server:
+                            loadbalancer:
+                                server:
+                                    port: 80
+    {{- end }}
+    {{- if eq $config.reverseProxy.create true }}
+    rp:
+        container_name: rp
+        image: pektin/verkehr
+        restart: always
+        networks:
+            - {{ $config.reverseProxy.network }}
+        volumes:
+            - ./config/verkehr.yml:/config.yml:ro
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+        ports:
+            - "80:80"
+            {{- if eq $config.tls true }}
+            - "443:443"
+            {{- end }}
+        labels:
+            traefik:
+                http:
+                    entrypoints:
+                        web:
+                            address: ":80"
+                        {{- if eq $config.tls true }}
+                        websecure:
+                            address: ":443"
+                        {{- end }}
+        
+    {{- end }}
+volumes:
+    qa-server-db:
+        name: qa-server-db
+    qa-interossea-db:
+        name: qa-interossea-db
+    {{- if eq $config.interossea.server.create true }}
+    qa-interossea-keys:
+        name: qa-interossea-keys
+    {{- end }}
+networks:
+    qainterosseadb:
+        name: qainterosseadb
+    qadb:
+        name: qadb
+    {{ $config.reverseProxy.network }}:
+        name: {{ $config.reverseProxy.network }}
+    qa-interossea-server:
+        name: qa-interossea-server

@@ -1,0 +1,52 @@
+{{- $config :=  yamlFile "../../config.yml" -}}
+{{- $interosseaWebHostname := joindomain $config.interossea.web.publicHostname.subdomain (ternary "localhost" $config.interossea.web.publicHostname.domain (eq $config.routing "local")) -}}
+{{- $interosseaServerHostname := joindomain $config.interossea.server.publicHostname.subdomain (ternary "localhost" $config.interossea.server.publicHostname.domain (eq $config.routing "local")) -}}
+{{- $qaWebHostname := joindomain $config.qa.web.publicHostname.subdomain (ternary "localhost" $config.qa.web.publicHostname.domain (eq $config.routing "local")) -}}
+variablePrefix: "$"
+
+allowNewUsers: {{ $config.interossea.server.allowNewUsers}}
+
+redirectsDir: /redirects/
+
+createUsers: 
+    {{- range $config.interossea.server.createUsers }}
+    - {{ . }}
+    {{- end }}
+
+magicLink:
+    cooldownMinutes: 1
+    expirationMinutes: 10
+    skipIpCheck: true
+
+keyFolder: /keys/
+
+services:
+    - id: qa
+      allowedOrigins: [{{ ternary "https://" "http://" $config.tls true }}{{ $qaWebHostname}}]
+
+
+mail:
+    username: {{ $config.interossea.server.mail.username}}
+    password: $INTEROSSEA_MAIL_PASSWORD
+    smtpServer: {{ $config.interossea.server.mail.smtpServer}}
+    fromName: {{ $config.interossea.server.mail.fromName}}
+    fromAddress: {{ $config.interossea.server.mail.fromAddress}}
+    userAgent: {{ $config.interossea.server.mail.userAgent}}
+    replyTo: {{ $config.interossea.server.mail.replyTo}}
+
+http:
+    internalAddress: "[::]:80"
+    host: {{ $interosseaServerHostname }}
+    protocol: {{ ternary "https" "http" $config.tls }}
+
+db:
+    url: mongodb://root:$MONGO_INITDB_ROOT_PASSWORD@qainterosseadb.localhost:{{ $config.interossea.server.db.port }}
+
+uiOrigin: {{ ternary "https://" "http://" $config.tls true }}{{ $interosseaWebHostname}}
+
+
+dev:
+    makeEmailsAdmin:
+        {{- range $config.interossea.server.makeUsersAdmin }}
+        - {{ . }}
+        {{- end }}
