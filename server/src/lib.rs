@@ -6,6 +6,8 @@ pub mod types;
 pub mod utils;
 
 pub mod methods {
+    pub mod create_own_user;
     pub mod get_meetings;
+    pub mod get_own_user;
     pub mod update_meeting;
 }

@@ -14,10 +14,11 @@ import { CommonMeetingTag } from "../apiTypes/CommonMeetingTag";
 import { QueerMeetingTag } from "../apiTypes/QueerMeetingTag";
 import { CSSProperties } from "preact/compat";
 import { LuMailQuestion } from "react-icons/lu";
+import { G } from "../types";
 
 interface SingleMeetingProps {
     readonly meeting: Meeting;
-    readonly style: CSSProperties;
+    readonly g: G;
 }
 interface SingleMeetingState {}
 export default class SingleMeeting extends Component<SingleMeetingProps, SingleMeetingState> {
@@ -32,8 +33,10 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
             minute: "numeric"
         }).format(Number(m.time));
 
+        const isPast = Number(m.time) < Date.now();
+
         return (
-            <div className="SingleMeeting" style={this.props.style}>
+            <div className="SingleMeeting">
                 <div className="Title">{m.title}</div>
                 <div className="Tags">
                     {m.tags.freeform.map(renderFreeformTag)}
@@ -56,7 +59,11 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                         </div>
                     </div>
                     <div className="Right">
-                        <div className="Time" title="Zeit">
+                        <div
+                            style={{ color: isPast ? "#fb0000" : "var(--text-color)" }}
+                            className="Time"
+                            title="Zeit"
+                        >
                             <IoTime />
                             <span className="InfoText">{time}</span>
                         </div>
@@ -89,9 +96,11 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                     <button title="Notifications">
                         <BsBellFill />
                     </button>
-                    <button title="Bearbeiten">
-                        <BsPencilSquare />
-                    </button>
+                    {this.props.g.admin && (
+                        <button className={"Edit"} title="Bearbeiten">
+                            <BsPencilSquare />
+                        </button>
+                    )}
                 </div>
             </div>
         );

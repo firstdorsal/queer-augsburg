@@ -9,7 +9,7 @@ pub struct Meeting {
     pub title: String,
     pub authority: String,
     pub age_restriction: Vec<u8>,
-    pub time: i64,
+    pub time: Option<i64>,
     pub location: MeetingLocation,
     pub description: String,
     pub price: Vec<u32>,
@@ -17,6 +17,15 @@ pub struct Meeting {
     pub attendance: Option<u16>,
     pub rating: Option<f32>,
     pub tags: MeetingTags,
+    pub status: MeetingStatus,
+}
+
+#[derive(TS)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone, Copy)]
+pub enum MeetingStatus {
+    Planned,
+    Active,
 }
 
 #[derive(TS)]
@@ -38,7 +47,7 @@ pub struct MeetingTags {
 }
 #[derive(TS)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
-#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone, Copy)]
 pub enum CommonMeetingTag {
     Kultur,
     Party,
@@ -57,7 +66,7 @@ pub enum CommonMeetingTag {
 }
 #[derive(TS)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
-#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone, Copy)]
 pub enum QueerMeetingTag {
     Everyone,
     Queer,
@@ -70,11 +79,21 @@ pub enum QueerMeetingTag {
     Inter,
     Poly,
 }
+
+#[derive(TS)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+pub struct User {
+    #[serde(rename = "_id")]
+    pub id: String,
+    pub member: Option<Member>,
+    pub admin: bool,
+}
+
 #[derive(TS)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
 pub struct Member {
-    pub id: String,
     #[serde(rename = "type")]
     pub _type: MemberType,
     pub legal_person: bool,
@@ -91,7 +110,7 @@ pub struct Member {
 }
 #[derive(TS)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
-#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone, Copy)]
 pub enum MemberType {
     Active,
     Supporting,
@@ -120,5 +139,15 @@ pub struct UpdateMeetingRequestBody {
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct GetMeetingsResponseBody {
     pub meetings: Vec<Meeting>,
-    pub all_meetings_count: u32,
+    pub selected_total_count: u32,
+}
+
+#[derive(TS)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone, Copy)]
+pub enum MeetingTypeQuery {
+    Past,
+    Future,
+    Planned,
+    All,
 }

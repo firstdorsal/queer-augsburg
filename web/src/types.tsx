@@ -10,4 +10,6 @@ export interface UiConfig {
 export interface G {
     uiConfig: UiConfig | null;
     qaClient: QaClient | null;
+    loggedIn: boolean;
+    admin: boolean;
 }

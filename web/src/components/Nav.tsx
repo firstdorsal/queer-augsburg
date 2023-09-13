@@ -1,5 +1,7 @@
 import { Component } from "preact";
 import { Link } from "preact-router/match";
+import { BsFillPersonFill } from "react-icons/bs";
+import { G } from "../types";
 
 const navItems = [
     {
@@ -17,17 +19,17 @@ const navItems = [
     {
         name: "Kontakt",
         href: "/kontakt"
-    },
-    {
-        name: "Ich",
-        href: "/ich"
     }
 ];
 
-interface NavProps {}
+interface NavProps {
+    readonly g: G;
+}
 interface NavState {}
 export default class Nav extends Component<NavProps, NavState> {
     render = () => {
+        console.log(this.props.g);
+
         return (
             <nav className="Nav">
                 <ul>
@@ -40,6 +42,28 @@ export default class Nav extends Component<NavProps, NavState> {
                             </li>
                         );
                     })}
+
+                    {this.props.g.loggedIn && (
+                        <li>
+                            <Link draggable={false} activeClassName="active" href={"/ich"}>
+                                Ich
+                            </Link>
+                        </li>
+                    )}
+
+                    <li>
+                        {this.props.g.loggedIn ? (
+                            <a
+                                href={`${this.props.g.uiConfig?.interosseaWebAddress}/logout?rid=qa`}
+                            >
+                                Logout
+                            </a>
+                        ) : (
+                            <a href={`${this.props.g.uiConfig?.interosseaWebAddress}/login?rid=qa`}>
+                                Login
+                            </a>
+                        )}
+                    </li>
                 </ul>
             </nav>
         );

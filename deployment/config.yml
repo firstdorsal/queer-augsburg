@@ -31,8 +31,8 @@ qa:
 interossea:
     server:
         allowNewUsers: false
-        createUsers: [mail@queer-augsburg.de]
-        makeUsersAdmin: [mail@queer-augsburg.de]
+        createUsers: [mail@queer-augsburg.de, test@vindelicum.eu]
+        makeUsersAdmin: [mail@queer-augsburg.de, test@vindelicum.eu]
         create: true
         internalHostname: qa-interossea-server
         publicHostname:

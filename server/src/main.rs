@@ -1,7 +1,9 @@
 use backend::config::SERVER_CONFIG;
 use backend::db::DB;
 use backend::interossea::{get_session_cookie, Auth, Interossea, UserAssertion, INTEROSSEA};
+use backend::methods::create_own_user::create_own_user;
 use backend::methods::get_meetings::get_meetings;
+use backend::methods::get_own_user::get_own_user;
 use backend::methods::update_meeting::update_meeting;
 use backend::utils::{get_token_from_query, import_old_meetings, is_allowed_origin};
 use hyper::server::conn::AddrStream;
@@ -157,6 +159,10 @@ async fn handle_inner(
         get_meetings(req, db, &auth, res).await
     } else if p.starts_with("/update_meeting/") && m == Method::POST {
         update_meeting(req, db, &auth, res).await
+    } else if p.starts_with("/get_own_user/") && m == Method::GET {
+        get_own_user(req, db, &auth, res).await
+    } else if p.starts_with("/create_own_user/") && m == Method::POST {
+        create_own_user(req, db, &auth, res).await
     } else if p == "/get_assertion_validity_seconds/" && m == Method::GET {
         Ok(res
             .status(200)

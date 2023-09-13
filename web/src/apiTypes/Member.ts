@@ -2,4 +2,4 @@
 import type { Address } from "./Address";
 import type { MemberType } from "./MemberType";
 
-export interface Member { id: string, type: MemberType, legal_person: boolean, first_name: string | null, last_name: string | null, institution: string | null, pronouns: string | null, address: Address, email: string, phone: string | null, start_data: bigint, end_date: bigint | null, approved: boolean, }
+export interface Member { type: MemberType, legal_person: boolean, first_name: string | null, last_name: string | null, institution: string | null, pronouns: string | null, address: Address, email: string, phone: string | null, start_data: bigint, end_date: bigint | null, approved: boolean, }

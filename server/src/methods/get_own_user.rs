@@ -1,0 +1,20 @@
+use crate::{db::DB, interossea::Auth};
+use hyper::{Body, Request, Response};
+
+pub async fn get_own_user(
+    mut req: Request<Body>,
+    db: DB,
+    auth: &Auth,
+    res: hyper::http::response::Builder,
+) -> anyhow::Result<Response<Body>> {
+    let user_id = match &auth.authenticated_user {
+        Some(user_id) => user_id,
+        None => return Ok(res.status(401).body(Body::from("Unauthorized"))?),
+    };
+
+    let user = match db.get_user(user_id).await? {
+        Some(user) => user,
+        None => return Ok(res.status(404).body(Body::from("User not found"))?),
+    };
+    Ok(res.body(Body::from(serde_json::to_string(&user)?))?)
+}

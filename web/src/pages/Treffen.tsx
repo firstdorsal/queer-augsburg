@@ -13,7 +13,7 @@ export default class Treffen extends Component<TreffenProps, TreffenState> {
         }
         return (
             <div className="Treffen">
-                <MeetingList qaClient={this.props.g.qaClient}></MeetingList>
+                <MeetingList g={this.props.g} type={"All"} qaClient={this.props.g.qaClient} />
             </div>
         );
     };

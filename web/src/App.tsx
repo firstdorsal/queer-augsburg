@@ -12,6 +12,7 @@ import "@fontsource/inter/400.css";
 import { QaClient } from "./api";
 import { G, UiConfig } from "./types";
 import update from "immutability-helper";
+import Ich from "./pages/Ich";
 
 interface AppProps {}
 interface AppState {
@@ -23,7 +24,9 @@ export default class App extends Component<AppProps, AppState> {
         this.state = {
             g: {
                 uiConfig: null,
-                qaClient: null
+                qaClient: null,
+                loggedIn: false,
+                admin: false
             }
         };
     }
@@ -39,7 +42,22 @@ export default class App extends Component<AppProps, AppState> {
             uiConfig.skipInterossea
         );
 
-        await client.init();
+        await client.init().catch(() => {});
+
+        client
+            .create_own_user()
+            .then(async () => {
+                const account = await client.get_own_user();
+                this.setState(state => {
+                    return update(state, {
+                        g: {
+                            loggedIn: { $set: true },
+                            admin: { $set: account.admin }
+                        }
+                    });
+                });
+            })
+            .catch(() => {});
 
         this.setState(state => {
             return update(state, {
@@ -58,7 +76,7 @@ export default class App extends Component<AppProps, AppState> {
             <div className="App">
                 <div className="Header">
                     <Logo />
-                    <Nav />
+                    <Nav g={this.state.g} />
                 </div>
 
                 <div className="Page">
@@ -67,6 +85,7 @@ export default class App extends Component<AppProps, AppState> {
                         <Wir path="/wir" />
                         <Verein path="/verein" />
                         <Kontakt path="/kontakt" />
+                        <Ich g={this.state.g} path="/ich" />
                         <Redirect default to="/" />
                     </Router>
                 </div>

@@ -1,3 +1,5 @@
+$bp1: 820px;
+
 :root {
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
     line-height: 1.5;
@@ -17,6 +19,8 @@
 
     color: var(--text-color);
     background-color: var(--background-color);
+
+    --header-height: 50px;
 }
 
 html,
@@ -28,6 +32,7 @@ body,
     height: 100%;
     width: 100%;
     background-color: var(--background-color);
+    overflow: hidden;
 }
 
 .bold {
@@ -39,28 +44,43 @@ body,
 }
 
 .Page {
-    height: calc(100% - 100px);
+    height: calc(100% - 110px);
+    @media (max-width: $bp1) {
+        height: calc(100% - 130px);
+    }
     width: 100%;
     > div {
         height: 100%;
-        width: 100%;
+        overflow-x: hidden;
     }
 }
 
 .MeetingList {
-    width: 100%;
     height: 100%;
+    width: 100%;
+
+    overflow-x: hidden;
 }
 
 .SingleMeeting {
+    margin-left: auto;
+    margin-right: auto;
     width: 100%;
-    padding: 0px 40px;
-    max-width: 500px;
+    max-width: 600px;
     height: 500px;
     overflow: hidden;
+    padding: 0px 40px;
+    @media (max-width: $bp1) {
+        padding: 0px 20px;
+        box-sizing: border-box;
+    }
+
     .Title {
         font-size: 20px;
         font-weight: 700;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
     }
     .Tags {
         margin: 5px 0px;
@@ -78,9 +98,26 @@ body,
         box-sizing: border-box;
         padding: 10px 0px;
 
-        height: 200px;
-        overflow-y: auto;
+        height: 150px;
+        overflow-y: hidden;
         overflow-x: hidden;
+        text-overflow: ellipsis;
+
+        // element that makes it look like the description is fading out
+        &:after {
+            content: "";
+            position: absolute;
+            bottom: 142px;
+            left: 0px;
+            height: 20px;
+            width: 100%;
+            background: linear-gradient(to bottom, #ffffff00 0%, var(--background-color) 100%);
+        }
+        @media (max-width: $bp1) {
+            &:after {
+                bottom: 140px;
+            }
+        }
     }
     .Infos {
         width: 100%;
@@ -99,6 +136,7 @@ body,
     }
 
     .Actions {
+        margin-top: 20px;
         button {
             all: unset;
             margin: 0px 5px;
@@ -108,6 +146,9 @@ body,
                 height: 30px;
                 width: 24px;
             }
+            &.Edit {
+                float: right;
+            }
         }
     }
 }
@@ -115,7 +156,16 @@ body,
 .Header {
     user-select: none;
     padding: 30px 40px;
-    height: 40px;
+    box-sizing: border-box;
+
+    height: 110px;
+    width: 100%;
+
+    @media (max-width: $bp1) {
+        padding: 20px 20px;
+        height: 120px;
+    }
+
     .Logo {
         float: left;
 
@@ -127,10 +177,10 @@ body,
     .Nav {
         float: right;
 
-        @media (max-width: 680px) {
+        @media (max-width: $bp1) {
             display: block;
             float: none;
-            margin-left: -20px;
+            margin-left: -10px;
         }
 
         margin-top: 10px;
@@ -141,12 +191,18 @@ body,
                 font-size: 20px;
                 text-decoration: none;
                 color: var(--text-color);
+                @media (max-width: $bp1) {
+                    font-size: 18px;
+                }
 
                 &.active {
                     border-bottom: 1.5px solid var(--text-color);
                 }
             }
             margin: 10px;
+            @media (max-width: $bp1) {
+                margin: 5px;
+            }
         }
     }
 }

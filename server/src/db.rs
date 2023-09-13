@@ -1,4 +1,4 @@
-use crate::types::Meeting;
+use crate::types::{Meeting, MeetingTypeQuery, Member, User};
 use futures::stream::TryStreamExt;
 use mongodb::options::FindOptions;
 use mongodb::{bson::doc, options::ClientOptions, Client, Database};
@@ -15,7 +15,7 @@ impl DB {
         Ok(Self { client, db })
     }
     pub async fn create_collections(&self) -> anyhow::Result<()> {
-        let collections = vec!["members", "meetings"];
+        let collections = vec!["users", "meetings"];
 
         for collection in collections {
             let _ = self.db.create_collection(collection, None).await;
@@ -27,16 +27,52 @@ impl DB {
         &self,
         limit: Option<i64>,
         from_index: u64,
-    ) -> anyhow::Result<Vec<Meeting>> {
+        meeting_type: MeetingTypeQuery,
+    ) -> anyhow::Result<(Vec<Meeting>, u32)> {
         let collection = self.db.collection::<Meeting>("meetings");
-        let find_options = FindOptions::builder().limit(limit).skip(from_index).build();
-        let meetings = collection
-            .find(doc! {}, find_options)
-            .await?
-            .try_collect::<Vec<_>>()
-            .await?;
+        let find_options = FindOptions::builder()
+            .limit(limit)
+            .skip(from_index)
+            .sort(doc! {"time": -1})
+            .build();
 
-        Ok(meetings)
+        let current_time = chrono::Utc::now().timestamp() * 1000;
+
+        let filter = match meeting_type {
+            MeetingTypeQuery::Future => {
+                doc! {
+                    "time": {
+                        "$gt": current_time
+                    }
+                }
+            }
+            MeetingTypeQuery::Past => {
+                doc! {
+                    "time": {
+                        "$lt": current_time
+                    }
+                }
+            }
+            MeetingTypeQuery::Planned => {
+                doc! {
+                    "status": "Planned"
+                }
+            }
+            MeetingTypeQuery::All => {
+                doc! {}
+            }
+        };
+
+        let (meetings, count) = (
+            collection
+                .find(filter.clone(), find_options)
+                .await?
+                .try_collect::<Vec<_>>()
+                .await?,
+            collection.count_documents(filter, None).await?,
+        );
+
+        Ok((meetings, count as u32))
     }
 
     pub async fn delete_meeting(&self, meeting_id: &str) -> anyhow::Result<()> {
@@ -75,9 +111,24 @@ impl DB {
         Ok(())
     }
 
-    pub async fn get_all_meetings_count(&self) -> anyhow::Result<u32> {
-        let collection = self.db.collection::<Meeting>("meetings");
-        let count = collection.count_documents(doc! {}, None).await?;
-        Ok(count as u32)
+    pub async fn create_user(&self, user_id: &str, is_admin: bool) -> anyhow::Result<()> {
+        let collection = self.db.collection::<User>("users");
+        let user = collection.find_one(doc! { "_id": user_id }, None).await?;
+
+        if user.is_none() {
+            let new_user = User {
+                id: user_id.to_string(),
+                member: None,
+                admin: is_admin,
+            };
+
+            collection.insert_one(&new_user, None).await?;
+        }
+        Ok(())
+    }
+
+    pub async fn get_user(&self, user_id: &str) -> anyhow::Result<Option<User>> {
+        let collection = self.db.collection::<User>("users");
+        Ok(collection.find_one(doc! { "_id": user_id }, None).await?)
     }
 }

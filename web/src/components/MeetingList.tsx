@@ -6,8 +6,12 @@ import { Meeting } from "../apiTypes/Meeting";
 import { QaClient } from "../api";
 import SingleMeeting from "./SingleMeeting";
 import { CSSProperties } from "preact/compat";
+import { G } from "../types";
+import { MeetingTypeQuery } from "../apiTypes/MeetingTypeQuery";
 
 interface MeetingListProps {
+    readonly type: MeetingTypeQuery;
+    readonly g: G;
     readonly qaClient: QaClient;
 }
 interface MeetingListState {
@@ -30,15 +34,15 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
     };
 
     loadData = async () => {
-        const res = await this.props.qaClient.get_meetings();
-        this.setState({ meetings: res.meetings, meetingCount: res.all_meetings_count });
+        const res = await this.props.qaClient.get_meetings(0, 10, this.props.type);
+        this.setState({ meetings: res.meetings, meetingCount: res.selected_total_count });
     };
 
     loadMoreMeetings = async (startIndex: number, limit: number) => {
         if (this.moreLoading === false) {
             this.moreLoading = true;
 
-            const res = await this.props.qaClient.get_meetings(startIndex, limit);
+            const res = await this.props.qaClient.get_meetings(startIndex, limit, this.props.type);
             const newMeetings = res.meetings;
             this.moreLoading = false;
 
@@ -65,7 +69,7 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
                         >
                             {({ onItemsRendered, ref }) => (
                                 <FixedSizeList
-                                    itemSize={400}
+                                    itemSize={420}
                                     height={height}
                                     itemCount={this.state.meetingCount}
                                     width={width}
@@ -82,10 +86,12 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
                                         }
 
                                         return (
-                                            <SingleMeeting
-                                                style={style}
-                                                meeting={currentItem}
-                                            ></SingleMeeting>
+                                            <div style={style}>
+                                                <SingleMeeting
+                                                    g={this.props.g}
+                                                    meeting={currentItem}
+                                                />
+                                            </div>
                                         );
                                     }}
                                 </FixedSizeList>
