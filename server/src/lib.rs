@@ -10,4 +10,5 @@ pub mod methods {
     pub mod get_meetings;
     pub mod get_own_user;
     pub mod update_meeting;
+    pub mod update_own_member_data;
 }

@@ -5,6 +5,7 @@ use backend::methods::create_own_user::create_own_user;
 use backend::methods::get_meetings::get_meetings;
 use backend::methods::get_own_user::get_own_user;
 use backend::methods::update_meeting::update_meeting;
+use backend::methods::update_own_member_data::update_own_member_data;
 use backend::utils::{get_token_from_query, import_old_meetings, is_allowed_origin};
 use hyper::server::conn::AddrStream;
 use hyper::service::{make_service_fn, service_fn};
@@ -163,6 +164,8 @@ async fn handle_inner(
         get_own_user(req, db, &auth, res).await
     } else if p.starts_with("/create_own_user/") && m == Method::POST {
         create_own_user(req, db, &auth, res).await
+    } else if p.starts_with("/update_own_member_data/") && m == Method::POST {
+        update_own_member_data(req, db, &auth, res).await
     } else if p == "/get_assertion_validity_seconds/" && m == Method::GET {
         Ok(res
             .status(200)

@@ -1,7 +1,7 @@
 $bp1: 820px;
 
 :root {
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif !important;
     line-height: 1.5;
     font-weight: 400;
 
@@ -27,6 +27,7 @@ html,
 body,
 #root,
 .App {
+    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif !important;
     padding: 0px;
     margin: 0px;
     height: 100%;
@@ -52,6 +53,9 @@ body,
     > div {
         height: 100%;
         overflow-x: hidden;
+    }
+    .MyData {
+        padding: 0px 40px;
     }
 }
 

@@ -23,6 +23,8 @@ tokio = { version = "1.17.0", default-features = false, features = [
     "signal",
     "fs",
 ] }
+validator = { version = "0.16.1", features = ["derive", "phone"] }
+
 
 bytes = "1"
 

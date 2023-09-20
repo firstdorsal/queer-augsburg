@@ -13,6 +13,8 @@ import { QaClient } from "./api";
 import { G, UiConfig } from "./types";
 import update from "immutability-helper";
 import Ich from "./pages/Ich";
+import "rsuite/styles/index.less";
+import { CustomProvider } from "rsuite";
 
 interface AppProps {}
 interface AppState {
@@ -74,21 +76,23 @@ export default class App extends Component<AppProps, AppState> {
     render = () => {
         return (
             <div className="App">
-                <div className="Header">
-                    <Logo />
-                    <Nav g={this.state.g} />
-                </div>
+                <CustomProvider theme="dark">
+                    <div className="Header">
+                        <Logo />
+                        <Nav g={this.state.g} />
+                    </div>
 
-                <div className="Page">
-                    <Router>
-                        <Treffen g={this.state.g} path="/" />
-                        <Wir path="/wir" />
-                        <Verein path="/verein" />
-                        <Kontakt path="/kontakt" />
-                        <Ich g={this.state.g} path="/ich" />
-                        <Redirect default to="/" />
-                    </Router>
-                </div>
+                    <div className="Page">
+                        <Router>
+                            <Treffen g={this.state.g} path="/" />
+                            <Wir g={this.state.g} path="/wir" />
+                            <Verein path="/verein" />
+                            <Kontakt path="/kontakt" />
+                            <Ich g={this.state.g} path="/ich" />
+                            <Redirect default to="/" />
+                        </Router>
+                    </div>
+                </CustomProvider>
             </div>
         );
     };

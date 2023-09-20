@@ -3,6 +3,7 @@ import { Meeting } from "./apiTypes/Meeting";
 import { GetMeetingsResponseBody } from "./apiTypes/GetMeetingsResponseBody";
 import { User } from "./apiTypes/User";
 import { MeetingTypeQuery } from "./apiTypes/MeetingTypeQuery";
+import { SubmittedMember } from "./apiTypes/SubmittedMember";
 
 export class QaClient {
     interosseaClient: InterosseaClient;
@@ -66,5 +67,15 @@ export class QaClient {
         });
         const user: User = await res.json();
         return user;
+    };
+
+    update_own_member_data = async (submitted_member: SubmittedMember) => {
+        const res = await fetch(`${this.qaEndpoint}/api/update_own_member_data/`, {
+            method: "POST",
+            credentials: "include",
+            body: JSON.stringify({ member: submitted_member })
+        });
+        const success = res.status === 200;
+        return success;
     };
 }

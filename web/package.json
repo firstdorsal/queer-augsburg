@@ -13,16 +13,19 @@
     "@fontsource/inter": "^5.0.8",
     "@types/react-window-infinite-loader": "^1.0.6",
     "immutability-helper": "^3.1.1",
+    "lodash": "^4.17.21",
     "preact": "^10.16.0",
     "preact-router": "^4.1.2",
     "react-icons": "^4.11.0",
     "react-virtualized-auto-sizer": "^1.0.20",
     "react-window": "^1.8.9",
     "react-window-infinite-loader": "^1.0.9",
+    "rsuite": "^5.40.0",
     "sass": "^1.66.1"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.5.0",
+    "less": "^4.2.0",
     "typescript": "^5.0.2",
     "vite": "^4.4.5"
   }

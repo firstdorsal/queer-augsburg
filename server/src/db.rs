@@ -1,4 +1,6 @@
-use crate::types::{Meeting, MeetingTypeQuery, Member, User};
+use crate::types::{InternalMember, Meeting, MeetingTypeQuery, User};
+use anyhow::bail;
+use bson::bson;
 use futures::stream::TryStreamExt;
 use mongodb::options::FindOptions;
 use mongodb::{bson::doc, options::ClientOptions, Client, Database};
@@ -130,5 +132,28 @@ impl DB {
     pub async fn get_user(&self, user_id: &str) -> anyhow::Result<Option<User>> {
         let collection = self.db.collection::<User>("users");
         Ok(collection.find_one(doc! { "_id": user_id }, None).await?)
+    }
+
+    pub async fn update_member_data(
+        &self,
+        user_id: &str,
+        member: InternalMember,
+    ) -> anyhow::Result<()> {
+        let collection = self.db.collection::<User>("users");
+        let user = collection.find_one(doc! { "_id": user_id }, None).await?;
+
+        match user {
+            Some(mut user) => {
+                user.member = Some(member);
+                collection
+                    .replace_one(doc! { "_id": user_id }, &user, None)
+                    .await?;
+            }
+            None => {
+                bail!("User not found")
+            }
+        }
+
+        Ok(())
     }
 }
