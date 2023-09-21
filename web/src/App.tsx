@@ -15,6 +15,7 @@ import update from "immutability-helper";
 import Ich from "./pages/Ich";
 import "rsuite/styles/index.less";
 import { CustomProvider } from "rsuite";
+import Admin from "./pages/Admin";
 
 interface AppProps {}
 interface AppState {
@@ -89,6 +90,7 @@ export default class App extends Component<AppProps, AppState> {
                             <Verein path="/verein" />
                             <Kontakt path="/kontakt" />
                             <Ich g={this.state.g} path="/ich" />
+                            <Admin g={this.state.g} path="/admin" />
                             <Redirect default to="/" />
                         </Router>
                     </div>

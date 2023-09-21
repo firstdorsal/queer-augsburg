@@ -1,6 +1,5 @@
 use crate::types::{InternalMember, Meeting, MeetingTypeQuery, User};
 use anyhow::bail;
-use bson::bson;
 use futures::stream::TryStreamExt;
 use mongodb::options::FindOptions;
 use mongodb::{bson::doc, options::ClientOptions, Client, Database};
@@ -139,15 +138,75 @@ impl DB {
         user_id: &str,
         member: InternalMember,
     ) -> anyhow::Result<()> {
-        let collection = self.db.collection::<User>("users");
-        let user = collection.find_one(doc! { "_id": user_id }, None).await?;
+        let users = self.db.collection::<User>("users");
+        let original_users = self.db.collection::<User>("originalUsers");
+        let user = users.find_one(doc! { "_id": user_id }, None).await?;
 
         match user {
             Some(mut user) => {
-                user.member = Some(member);
-                collection
+                match user.member {
+                    Some(_) => {
+                        user.member = Some(member);
+                    }
+                    None => {
+                        user.member = Some(member);
+                        original_users.insert_one(user.clone(), None).await?;
+                    }
+                }
+
+                users
                     .replace_one(doc! { "_id": user_id }, &user, None)
                     .await?;
+            }
+            None => {
+                bail!("User not found")
+            }
+        }
+
+        Ok(())
+    }
+
+    pub async fn get_users(
+        &self,
+        limit: Option<i64>,
+        from_index: u64,
+    ) -> anyhow::Result<(Vec<User>, u32)> {
+        let collection = self.db.collection::<User>("users");
+        let find_options = FindOptions::builder().limit(limit).skip(from_index).build();
+
+        let (users, count) = (
+            collection
+                .find(doc! {}, find_options)
+                .await?
+                .try_collect::<Vec<_>>()
+                .await?,
+            collection.count_documents(doc! {}, None).await?,
+        );
+
+        Ok((users, count as u32))
+    }
+
+    pub async fn accept_member_application(&self, user_id: &str) -> anyhow::Result<()> {
+        let users = self.db.collection::<User>("users");
+        let user = users.find_one(doc! { "_id": user_id }, None).await?;
+
+        match user {
+            Some(user) => {
+                //set the approved field to true
+                match user.member {
+                    Some(_) => {
+                        users
+                            .update_one(
+                                doc! { "_id": user_id },
+                                doc! { "$set": { "member.approved": true } },
+                                None,
+                            )
+                            .await?;
+                    }
+                    None => {
+                        bail!("User has no member data")
+                    }
+                }
             }
             None => {
                 bail!("User not found")

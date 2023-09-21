@@ -115,7 +115,6 @@ pub struct SubmittedMember {
     pub approved_charter: bool,
     pub approved_privacy: bool,
     pub above_18: bool,
-    pub linked_accounts: LinkedAccounts,
 }
 
 #[derive(TS)]
@@ -140,7 +139,6 @@ pub struct InternalMember {
     pub approved_charter: bool,
     pub approved_privacy: bool,
     pub above_18: bool,
-    pub linked_accounts: LinkedAccounts,
 }
 
 #[derive(TS)]
@@ -156,16 +154,6 @@ pub struct Name {
     pub first_name: String,
     #[validate(length(min = 1, max = 100))]
     pub last_name: String,
-}
-
-#[derive(TS)]
-#[ts(export, export_to = "../web/src/apiTypes/")]
-#[derive(Validate, Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
-pub struct LinkedAccounts {
-    #[validate(url, length(min = 1, max = 100))]
-    pub website: Option<String>,
-    #[validate(length(min = 1, max = 100))]
-    pub instagram: Option<String>,
 }
 
 // Notifcations
@@ -218,6 +206,14 @@ pub struct GetMeetingsResponseBody {
 
 #[derive(TS)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+pub struct GetUsersResponseBody {
+    pub users: Vec<User>,
+    pub total_count: u32,
+}
+
+#[derive(TS)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone, Copy)]
 pub enum MeetingTypeQuery {
     Past,
@@ -231,4 +227,11 @@ pub enum MeetingTypeQuery {
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct SetOwnMemberDataRequestBody {
     pub member: SubmittedMember,
+}
+
+#[derive(TS)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+pub struct AcceptMemberApplicationRequestBody {
+    pub user_id: String,
 }

@@ -8,7 +8,7 @@ use hyper::{Body, Request, Response};
 use validator::Validate;
 
 pub async fn update_own_member_data(
-    mut req: Request<Body>,
+    req: Request<Body>,
     db: DB,
     auth: &Auth,
     res: hyper::http::response::Builder,
@@ -47,7 +47,6 @@ pub async fn update_own_member_data(
         approved_charter: sm.approved_charter,
         approved_privacy: sm.approved_privacy,
         above_18: sm.above_18,
-        linked_accounts: sm.linked_accounts,
     };
 
     db.update_member_data(user_id, internal_member).await?;

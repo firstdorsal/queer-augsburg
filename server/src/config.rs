@@ -55,6 +55,7 @@ pub struct ServerConfig {
     pub service_id: String,
     pub interossea: InterosseaConfig,
     pub services: Vec<Service>,
+    pub mail: MailConfig,
 }
 
 #[derive(Deserialize, Debug, Serialize, Eq, PartialEq)]
@@ -88,4 +89,16 @@ pub struct HttpConfig {
 pub struct InterosseaConfig {
     pub url: String,
     pub assertion_validity_seconds: u64,
+}
+
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct MailConfig {
+    pub username: String,
+    pub password: String,
+    pub smtp_server: String,
+    pub from_name: String,
+    pub from_address: String,
+    pub user_agent: String,
+    pub reply_to: String,
 }

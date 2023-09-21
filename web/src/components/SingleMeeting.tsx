@@ -36,7 +36,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
         const isPast = Number(m.time) < Date.now();
 
         return (
-            <div className="SingleMeeting">
+            <div className="SingleMeeting Pad">
                 <div className="Title">{m.title}</div>
                 <div className="Tags">
                     {m.tags.freeform.map(renderFreeformTag)}

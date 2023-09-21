@@ -50,6 +50,13 @@ export default class Nav extends Component<NavProps, NavState> {
                             </Link>
                         </li>
                     )}
+                    {this.props.g.admin && (
+                        <li>
+                            <Link draggable={false} activeClassName="active" href={"/admin"}>
+                                Admin
+                            </Link>
+                        </li>
+                    )}
 
                     <li>
                         {this.props.g.loggedIn ? (
