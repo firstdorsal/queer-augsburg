@@ -1,4 +1,5 @@
-$bp1: 820px;
+$bp1: 900px;
+$scrollbarWidth: 8px;
 
 :root {
     font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif !important;
@@ -21,6 +22,20 @@ $bp1: 820px;
     background-color: var(--background-color);
 
     --header-height: 50px;
+}
+
+// a modern looking darkmode scrollbar
+::-webkit-scrollbar {
+    width: $scrollbarWidth;
+    height: $scrollbarWidth;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--background-color-2);
+}
+
+::-webkit-scrollbar-thumb {
+    background: #555;
 }
 
 html,
@@ -83,6 +98,11 @@ body,
     height: 500px;
     overflow: hidden;
 
+    @media (max-width: $bp1) {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
     .Title {
         font-size: 20px;
         font-weight: 700;
@@ -107,26 +127,14 @@ body,
         padding: 10px 0px;
 
         height: 150px;
-        overflow-y: hidden;
+        overflow-y: auto;
         overflow-x: hidden;
         text-overflow: ellipsis;
+        position: relative;
 
         // element that makes it look like the description is fading out
-        &:after {
-            content: "";
-            position: absolute;
-            bottom: 142px;
-            left: 0px;
-            height: 20px;
-            width: 100%;
-            background: linear-gradient(to bottom, #ffffff00 0%, var(--background-color) 100%);
-        }
-        @media (max-width: $bp1) {
-            &:after {
-                bottom: 140px;
-            }
-        }
     }
+
     .Infos {
         width: 100%;
         margin: 10px 0px;
@@ -189,6 +197,11 @@ body,
             display: block;
             float: none;
             margin-left: -10px;
+            margin-top: 60px;
+            overflow-x: scroll;
+            &::-webkit-scrollbar {
+                display: none;
+            }
         }
 
         margin-top: 10px;

@@ -8,10 +8,6 @@ interface WirProps {
 interface WirState {}
 export default class Wir extends Component<WirProps, WirState> {
     render = () => {
-        return (
-            <div className="Wir">
-                <MyData g={this.props.g} />
-            </div>
-        );
+        return <div className="Wir"></div>;
     };
 }

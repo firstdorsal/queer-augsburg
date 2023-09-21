@@ -60,6 +60,7 @@ services:
         environment:
             MONGO_INITDB_ROOT_PASSWORD: $MONGO_INITDB_ROOT_PASSWORD_QA
             INTEROSSEA_INTERNAL_URL: {{ $config.interossea.server.internalHostname }}
+            MAIL_PASSWORD: $INTEROSSEA_MAIL_PASSWORD
         volumes:
             - ./config/qa-server.yml:/config.yml:ro
         labels:

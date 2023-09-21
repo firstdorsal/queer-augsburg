@@ -79,7 +79,7 @@ impl DB {
     pub async fn delete_meeting(&self, meeting_id: &str) -> anyhow::Result<()> {
         let collection = self.db.collection::<Meeting>("meetings");
         collection
-            .delete_one(doc! { "id": meeting_id }, None)
+            .delete_one(doc! { "_id": meeting_id }, None)
             .await?;
         Ok(())
     }
@@ -89,12 +89,12 @@ impl DB {
 
         // check if meeting exists
         match collection
-            .find_one(doc! { "id": &meeting._id }, None)
+            .find_one(doc! { "_id": &meeting._id }, None)
             .await?
         {
             Some(_) => {
                 collection
-                    .replace_one(doc! { "id": &meeting._id }, meeting, None)
+                    .replace_one(doc! { "_id": &meeting._id }, meeting, None)
                     .await?;
             }
             None => {

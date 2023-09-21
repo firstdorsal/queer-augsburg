@@ -7,13 +7,30 @@ interface SingleUserProps {
     readonly user: User;
     readonly g: G;
 }
-interface SingleUserState {}
+interface SingleUserState {
+    readonly awaitingResponse: boolean;
+    readonly accepted_approval: boolean;
+    readonly rejected_approval: boolean;
+    readonly rejected_approval_reason: string;
+}
 export default class SingleUser extends Component<SingleUserProps, SingleUserState> {
+    constructor(props: SingleUserProps) {
+        super(props);
+        this.state = {
+            awaitingResponse: false,
+            accepted_approval: false,
+            rejected_approval: false,
+            rejected_approval_reason: ""
+        };
+    }
+
     acceptApplication = async () => {
         if (this.props.g.qaClient === null) {
             return;
         }
-        await this.props.g.qaClient.accept_member_application(this.props.user._id);
+        this.setState({ awaitingResponse: true });
+        const res = await this.props.g.qaClient.accept_member_application(this.props.user._id);
+        this.setState({ awaitingResponse: false, accepted_approval: res });
     };
 
     render = () => {
@@ -46,14 +63,24 @@ export default class SingleUser extends Component<SingleUserProps, SingleUserSta
                             {m.address.city}, {m.address.country}
                         </div>
                         <div style={{ marginTop: "10px" }}>
-                            {m.approved ? (
+                            {m.approved || this.state.accepted_approval ? (
                                 <span style={{ borderBottom: "2px solid green" }}>
                                     Antrag akzeptiert
                                 </span>
                             ) : (
-                                <Button onClick={this.acceptApplication} appearance="primary">
+                                <Button
+                                    disabled={this.state.awaitingResponse}
+                                    onClick={this.acceptApplication}
+                                    appearance="primary"
+                                >
                                     Antrag akzeptieren
                                 </Button>
+                            )}
+
+                            {this.state.rejected_approval && (
+                                <span style={{ borderBottom: "2px solid red" }}>
+                                    {this.state.rejected_approval_reason}
+                                </span>
                             )}
                         </div>
                     </div>

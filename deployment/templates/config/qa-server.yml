@@ -10,6 +10,15 @@ dev:
     insecureSkipInterossea: false
     importOldMeetings: false
 
+mail:
+    username: {{ $config.interossea.server.mail.username}}
+    password: $MAIL_PASSWORD
+    smtpServer: {{ $config.interossea.server.mail.smtpServer}}
+    fromName: Queer Augsburg
+    fromAddress: {{ $config.interossea.server.mail.fromAddress}}
+    userAgent: {{ $config.interossea.server.mail.userAgent}}
+    replyTo: {{ $config.interossea.server.mail.replyTo}}
+
 services:
     - id: qa
       allowedOrigins: [{{ ternary "https://" "http://" $config.tls true }}{{ $qaWebHostname}}]

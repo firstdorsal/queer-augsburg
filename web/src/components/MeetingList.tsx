@@ -55,6 +55,10 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
         }
     };
 
+    reloadMeetingList = async () => {
+        await this.loadData();
+    };
+
     render = () => {
         return (
             <div className="MeetingList">
@@ -90,6 +94,7 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
                                                 <SingleMeeting
                                                     g={this.props.g}
                                                     meeting={currentItem}
+                                                    reloadMeetingList={this.reloadMeetingList}
                                                 />
                                             </div>
                                         );

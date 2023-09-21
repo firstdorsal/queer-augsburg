@@ -13,3 +13,33 @@ export interface G {
     loggedIn: boolean;
     admin: boolean;
 }
+
+export const commonTags = [
+    "Kultur",
+    "Party",
+    "Orga",
+    "Sport",
+    "Education",
+    "Meet",
+    "Students",
+    "Marketing",
+    "Cinema",
+    "Talks",
+    "Open",
+    "Explores",
+    "Connect",
+    "Ostqueer"
+];
+
+export const queerTags = [
+    "Everyone",
+    "Queer",
+    "Gay",
+    "Lesbian",
+    "Trans",
+    "Bi",
+    "Asexual",
+    "Aromantic",
+    "Inter",
+    "Poly"
+];

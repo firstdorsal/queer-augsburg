@@ -13,7 +13,7 @@ pub struct Meeting {
     pub time: Option<i64>,
     pub location: MeetingLocation,
     pub description: String,
-    pub price: Vec<u32>,
+    pub price: Vec<f32>,
     pub trigger_warning: Option<String>,
     pub attendance: Option<u16>,
     pub rating: Option<f32>,
@@ -192,7 +192,7 @@ pub struct Address {
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct UpdateMeetingRequestBody {
-    pub meeting: Option<Meeting>,
+    pub meeting: Meeting,
     pub delete: Option<bool>,
 }
 

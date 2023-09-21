@@ -1,8 +1,52 @@
 use crate::{config::SERVER_CONFIG, db::DB, some_or_bail, types::Meeting};
 use anyhow::bail;
 use hyper::{Body, Request};
+use lettre::{
+    message::{header, MultiPart, SinglePart},
+    transport::smtp::authentication::Credentials,
+    Message, SmtpTransport, Transport,
+};
 use qstring::QString;
 use std::collections::HashMap;
+pub async fn send_mail(
+    recipient: &str,
+    subject: &str,
+    body_text: String,
+    body_html: String,
+) -> anyhow::Result<()> {
+    let config = &SERVER_CONFIG;
+
+    let mailer = SmtpTransport::relay(&config.mail.smtp_server)?
+        .credentials(Credentials::new(
+            config.mail.username.clone(),
+            config.mail.password.clone(),
+        ))
+        .build();
+
+    let email = Message::builder()
+        .from(format!("{} <{}>", &config.mail.from_name, &config.mail.from_address).parse()?)
+        .to(recipient.parse()?)
+        .reply_to(config.mail.reply_to.parse()?)
+        .user_agent(config.mail.user_agent.clone())
+        .subject(subject)
+        .multipart(
+            MultiPart::alternative()
+                .singlepart(
+                    SinglePart::builder()
+                        .header(header::ContentType::TEXT_PLAIN)
+                        .body(body_text),
+                )
+                .singlepart(
+                    SinglePart::builder()
+                        .header(header::ContentType::TEXT_HTML)
+                        .body(body_html),
+                ),
+        )?;
+
+    mailer.send(&email)?;
+
+    Ok(())
+}
 
 pub async fn import_old_meetings(db: &DB) -> anyhow::Result<()> {
     let file = include_str!("./old_meetings.json");

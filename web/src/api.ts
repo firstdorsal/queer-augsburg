@@ -51,7 +51,7 @@ export class QaClient {
         return users;
     };
 
-    update_meeting = async (meeting: Meeting, remove?: boolean) => {
+    update_meeting = async (meeting: Meeting | null, remove?: boolean) => {
         const res = await fetch(`${this.qaEndpoint}/api/update_meeting/`, {
             method: "POST",
             credentials: "include",

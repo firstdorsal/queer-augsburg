@@ -65,7 +65,7 @@ export default class UserList extends Component<UserListProps, UserListState> {
                         >
                             {({ onItemsRendered, ref }) => (
                                 <FixedSizeList
-                                    itemSize={420}
+                                    itemSize={270}
                                     height={height}
                                     itemCount={this.state.userCount}
                                     width={width}

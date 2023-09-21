@@ -12,16 +12,31 @@ import {
 import { Meeting } from "../apiTypes/Meeting";
 import { CommonMeetingTag } from "../apiTypes/CommonMeetingTag";
 import { QueerMeetingTag } from "../apiTypes/QueerMeetingTag";
-import { CSSProperties } from "preact/compat";
 import { LuMailQuestion } from "react-icons/lu";
 import { G } from "../types";
+import EditMeeting from "./EditMeeting";
+import MeetingList from "./MeetingList";
 
 interface SingleMeetingProps {
     readonly meeting: Meeting;
     readonly g: G;
+    readonly reloadMeetingList: InstanceType<typeof MeetingList>["reloadMeetingList"];
 }
-interface SingleMeetingState {}
+interface SingleMeetingState {
+    readonly editing: boolean;
+}
 export default class SingleMeeting extends Component<SingleMeetingProps, SingleMeetingState> {
+    constructor(props: SingleMeetingProps) {
+        super(props);
+        this.state = {
+            editing: false
+        };
+    }
+
+    changeEditing = (editing: boolean) => {
+        this.setState({ editing });
+    };
+
     render = () => {
         const m = this.props.meeting;
 
@@ -80,7 +95,10 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                     </div>
                 </div>
 
-                <div className="Description">{m.description}</div>
+                <div className="Description" style={{ position: "relative" }}>
+                    {m.description}
+                </div>
+
                 <div className="Actions">
                     <button title="Lesezeichen">
                         <BsBookmark />
@@ -97,11 +115,24 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                         <BsBellFill />
                     </button>
                     {this.props.g.admin && (
-                        <button className={"Edit"} title="Bearbeiten">
+                        <button
+                            onClick={() => {
+                                this.setState({ editing: true });
+                            }}
+                            className={"Edit"}
+                            title="Bearbeiten"
+                        >
                             <BsPencilSquare />
                         </button>
                     )}
                 </div>
+                <EditMeeting
+                    reloadMeetingList={this.props.reloadMeetingList}
+                    changEditing={this.changeEditing}
+                    editing={this.state.editing}
+                    g={this.props.g}
+                    meeting={this.props.meeting}
+                ></EditMeeting>
             </div>
         );
     };

@@ -17,23 +17,13 @@ pub async fn update_meeting(
     let umrb: UpdateMeetingRequestBody = serde_json::from_slice(&body)?;
 
     match umrb.delete {
-        Some(true) => match umrb.meeting {
-            Some(meeting) => {
-                db.delete_meeting(&meeting._id).await?;
-            }
-            None => {
-                bail!("No meeting id given");
-            }
-        },
-        _ => match umrb.meeting {
-            Some(meeting) => {
-                db.update_meeting(&meeting).await?;
-            }
-            None => {
-                bail!("No meeting id given");
-            }
-        },
+        Some(true) => {
+            db.delete_meeting(&umrb.meeting._id).await?;
+        }
+        _ => {
+            db.update_meeting(&umrb.meeting).await?;
+        }
     }
 
-    Ok(res.body(Body::from("Hello world"))?)
+    Ok(res.body(Body::from("Ok"))?)
 }
