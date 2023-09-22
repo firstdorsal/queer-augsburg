@@ -139,6 +139,7 @@ pub struct InternalMember {
     pub approved_charter: bool,
     pub approved_privacy: bool,
     pub above_18: bool,
+    pub honorary: bool,
 }
 
 #[derive(TS)]

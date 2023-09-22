@@ -1,5 +1,15 @@
 import { Component } from "preact";
-import { Button, Checkbox, CheckboxGroup, Form, Radio, RadioGroup, Schema } from "rsuite";
+import {
+    Button,
+    Checkbox,
+    CheckboxGroup,
+    Form,
+    Message,
+    Radio,
+    RadioGroup,
+    Schema,
+    useToaster
+} from "rsuite";
 import { G } from "../types";
 import update from "immutability-helper";
 import cloneDeep from "lodash/cloneDeep";
@@ -12,17 +22,22 @@ const emailRule = Schema.Types.StringType()
 
 interface MyDataProps {
     readonly g: G;
+    readonly toaster: ReturnType<typeof useToaster>;
 }
 interface MyDataState {
     readonly formData: any;
     readonly loadedUserData: boolean;
+    readonly responseMessage: string;
+    readonly responseMessageType: "success" | "error" | null;
 }
-export default class MyData extends Component<MyDataProps, MyDataState> {
+class MyData extends Component<MyDataProps, MyDataState> {
     constructor(props: MyDataProps) {
         super(props);
         this.state = {
             formData: cloneDeep(defaultFormData),
-            loadedUserData: false
+            loadedUserData: false,
+            responseMessage: "",
+            responseMessageType: null
         };
     }
 
@@ -75,8 +90,6 @@ export default class MyData extends Component<MyDataProps, MyDataState> {
     };
 
     handleFormChange = (value: any) => {
-        console.log(value);
-
         this.setState(state => {
             return update(state, {
                 formData: {
@@ -122,11 +135,27 @@ export default class MyData extends Component<MyDataProps, MyDataState> {
 
         this.props.g.qaClient
             ?.update_own_member_data(m)
-            .then(() => {
-                alert("Daten gespeichert");
+            .then(v => {
+                this.props.toaster.push(
+                    <Message showIcon type={"success"} closable>
+                        Daten gespeichert
+                    </Message>,
+                    {
+                        placement: "bottomCenter",
+                        duration: 5000
+                    }
+                );
             })
-            .catch(() => {
-                alert("Fehler beim Speichern");
+            .catch(e => {
+                this.props.toaster.push(
+                    <Message showIcon type={"error"} closable>
+                        Fehler beim speichern der Daten
+                    </Message>,
+                    {
+                        placement: "bottomCenter",
+                        duration: 5000
+                    }
+                );
             });
     };
 
@@ -312,11 +341,16 @@ export default class MyData extends Component<MyDataProps, MyDataState> {
                                     onClick={this.saveData}
                                     appearance="primary"
                                     type="submit"
-                                    disabled={this.state.formData.zustimmung.length !== 3}
+                                    disabled={this.state.formData.zustimmung?.length !== 3}
                                 >
                                     Speichern
                                 </Button>
                             </div>
+                            {this.state.responseMessageType !== null && (
+                                <Message type={this.state.responseMessageType}>
+                                    {this.state.responseMessage}
+                                </Message>
+                            )}
                         </div>
                     </Form>
                 </div>
@@ -349,3 +383,13 @@ const defaultFormData = {
     reference: "",
     user_notes: ""
 };
+
+const withToasterHook = (Component: any) => {
+    return (props: any) => {
+        const toaster = useToaster();
+
+        return <Component toaster={toaster} {...props} />;
+    };
+};
+
+export default withToasterHook(MyData);

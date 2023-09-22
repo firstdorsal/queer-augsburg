@@ -47,6 +47,7 @@ pub async fn update_own_member_data(
         approved_charter: sm.approved_charter,
         approved_privacy: sm.approved_privacy,
         above_18: sm.above_18,
+        honorary: false,
     };
 
     db.update_member_data(user_id, internal_member).await?;

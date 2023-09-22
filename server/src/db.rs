@@ -16,7 +16,7 @@ impl DB {
         Ok(Self { client, db })
     }
     pub async fn create_collections(&self) -> anyhow::Result<()> {
-        let collections = vec!["users", "meetings"];
+        let collections = vec!["users", "meetings", "originalUsers"];
 
         for collection in collections {
             let _ = self.db.create_collection(collection, None).await;
