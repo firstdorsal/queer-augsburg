@@ -107,14 +107,14 @@ services:
             interval: 10s
             start_period: 10s
     {{- if eq $config.interossea.web.create true }}
-    interossea-web:
+    qa-interossea-web:
         {{- if eq $config.interossea.web.build.enabled true }}
         build:
             context: {{ $config.interossea.web.build.path }}
             dockerfile: {{ $config.interossea.web.build.dockerfile }}
         {{- end }}
         image: firstdorsal/interossea-web
-        container_name: interossea-web
+        container_name: qa-interossea-web
         volumes:
             - ./config/interossea-web.yml:/config.yml:ro
             - ./config/interossea-web-ui.json:/public/config.json:ro
@@ -130,13 +130,13 @@ services:
                 enable: true
                 http:
                     routers:
-                        interossea-web:
+                        qa-interossea-web:
                             rule: "Host(`{{ $interosseaWebHostname }}`)"
                             entrypoints: {{ ternary "websecure" "web" $config.tls }}
-                            service: interossea-web
+                            service: qa-interossea-web
                             tls: {{ $config.tls }}
                     services:
-                        interossea-web:
+                        qa-interossea-web:
                             loadbalancer:
                                 server:
                                     port: 80
