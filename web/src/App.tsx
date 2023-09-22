@@ -16,6 +16,7 @@ import Ich from "./pages/Ich";
 import "rsuite/styles/index.less";
 import { CustomProvider } from "rsuite";
 import Admin from "./pages/Admin";
+import { prefersDarkMode } from "./utils";
 
 interface AppProps {}
 interface AppState {
@@ -23,13 +24,26 @@ interface AppState {
 }
 export default class App extends Component<AppProps, AppState> {
     constructor(props: AppProps) {
+        // parse ref query parameter and save it to localStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        let ref = urlParams.get("ref");
+        if (ref) {
+            localStorage.setItem("ref", ref);
+        } else {
+            ref = localStorage.getItem("ref");
+        }
+
+        const meetingId = urlParams.get("m");
+
         super(props);
         this.state = {
             g: {
                 uiConfig: null,
                 qaClient: null,
-                loggedIn: false,
-                admin: false
+                loggedIn: null,
+                admin: null,
+                ref,
+                meetingId
             }
         };
     }
@@ -60,7 +74,16 @@ export default class App extends Component<AppProps, AppState> {
                     });
                 });
             })
-            .catch(() => {});
+            .catch(() => {
+                this.setState(state => {
+                    return update(state, {
+                        g: {
+                            loggedIn: { $set: false },
+                            admin: { $set: false }
+                        }
+                    });
+                });
+            });
 
         this.setState(state => {
             return update(state, {
@@ -77,7 +100,7 @@ export default class App extends Component<AppProps, AppState> {
     render = () => {
         return (
             <div className="App">
-                <CustomProvider theme="dark">
+                <CustomProvider theme={prefersDarkMode() ? "dark" : "light"}>
                     <div className="Header">
                         <Logo />
                         <Nav g={this.state.g} />

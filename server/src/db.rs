@@ -1,4 +1,5 @@
 use crate::types::{InternalMember, Meeting, MeetingTypeQuery, User};
+use crate::utils::generate_id;
 use anyhow::bail;
 use futures::stream::TryStreamExt;
 use mongodb::options::FindOptions;
@@ -98,6 +99,10 @@ impl DB {
                     .await?;
             }
             None => {
+                //change the _id to a random one
+                let mut meeting = meeting.clone();
+                meeting._id = generate_id(5);
+
                 collection.insert_one(meeting, None).await?;
             }
         };

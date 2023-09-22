@@ -13,6 +13,10 @@ const navItems = [
         href: "/wir"
     },
     {
+        name: "Ich",
+        href: "/ich"
+    },
+    {
         name: "Verein",
         href: "/verein"
     },
@@ -28,8 +32,6 @@ interface NavProps {
 interface NavState {}
 export default class Nav extends Component<NavProps, NavState> {
     render = () => {
-        console.log(this.props.g);
-
         return (
             <nav className="Nav">
                 <ul>
@@ -43,13 +45,6 @@ export default class Nav extends Component<NavProps, NavState> {
                         );
                     })}
 
-                    {this.props.g.loggedIn && (
-                        <li>
-                            <Link draggable={false} activeClassName="active" href={"/ich"}>
-                                Ich
-                            </Link>
-                        </li>
-                    )}
                     {this.props.g.admin && (
                         <li>
                             <Link draggable={false} activeClassName="active" href={"/admin"}>
@@ -57,20 +52,6 @@ export default class Nav extends Component<NavProps, NavState> {
                             </Link>
                         </li>
                     )}
-
-                    <li>
-                        {this.props.g.loggedIn ? (
-                            <a
-                                href={`${this.props.g.uiConfig?.interosseaWebAddress}/logout?rid=qa`}
-                            >
-                                Logout
-                            </a>
-                        ) : (
-                            <a href={`${this.props.g.uiConfig?.interosseaWebAddress}/login?rid=qa`}>
-                                Login
-                            </a>
-                        )}
-                    </li>
                 </ul>
             </nav>
         );

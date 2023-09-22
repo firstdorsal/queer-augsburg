@@ -1,12 +1,13 @@
 import { Component } from "preact";
 import { IoLocation, IoLogoEuro, IoTime } from "react-icons/io5";
-import { FaChildReaching } from "react-icons/fa6";
+import { TbRating18Plus } from "react-icons/tb";
 import {
     BsBellFill,
     BsBookmark,
     BsFillExclamationTriangleFill,
     BsFillPeopleFill,
     BsPencilSquare,
+    BsQrCode,
     BsShareFill
 } from "react-icons/bs";
 import { Meeting } from "../apiTypes/Meeting";
@@ -16,6 +17,8 @@ import { LuMailQuestion } from "react-icons/lu";
 import { G } from "../types";
 import EditMeeting from "./EditMeeting";
 import MeetingList from "./MeetingList";
+import { Button, Modal } from "rsuite";
+import QrCode from "./QrCode";
 
 interface SingleMeetingProps {
     readonly meeting: Meeting;
@@ -24,12 +27,14 @@ interface SingleMeetingProps {
 }
 interface SingleMeetingState {
     readonly editing: boolean;
+    readonly showQRCode: boolean;
 }
 export default class SingleMeeting extends Component<SingleMeetingProps, SingleMeetingState> {
     constructor(props: SingleMeetingProps) {
         super(props);
         this.state = {
-            editing: false
+            editing: false,
+            showQRCode: false
         };
     }
 
@@ -51,7 +56,11 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
         const isPast = Number(m.time) < Date.now();
 
         return (
-            <div className="SingleMeeting Pad">
+            <div
+                className={`SingleMeeting Pad${
+                    this.props.g.meetingId === m._id ? " ShortHighlight" : ""
+                }`}
+            >
                 <div className="Title">{m.title}</div>
                 <div className="Tags">
                     {m.tags.freeform.map(renderFreeformTag)}
@@ -87,7 +96,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                             <span className="InfoText">{priceToString(m.price)}</span>
                         </div>
                         <div className="Age Restriction" title="Altersbeschränkungen">
-                            <FaChildReaching />
+                            <TbRating18Plus />
                             <span className="InfoText">
                                 {ageRestrictionToString(m.age_restriction)}
                             </span>
@@ -108,22 +117,71 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                             <LuMailQuestion style={{ transform: "scale(1.2)" }} />
                         </a>
                     </button>
-                    <button title="Teilen">
+                    <button
+                        onClick={() => {
+                            if (navigator.share) {
+                                navigator.share({
+                                    url: this.props.g.uiConfig?.qaWebAddress + `/?m=${m._id}`
+                                });
+                            } else {
+                                // change the url
+                                window.history.pushState({}, "", `/?m=${m._id}`);
+                            }
+                        }}
+                        title="Teilen"
+                    >
                         <BsShareFill />
                     </button>
                     <button title="Notifications">
                         <BsBellFill />
                     </button>
                     {this.props.g.admin && (
-                        <button
-                            onClick={() => {
-                                this.setState({ editing: true });
-                            }}
-                            className={"Edit"}
-                            title="Bearbeiten"
-                        >
-                            <BsPencilSquare />
-                        </button>
+                        <>
+                            <span className={"Admin"}>
+                                <button
+                                    onClick={() => {
+                                        this.setState({ editing: true });
+                                    }}
+                                    className={"Edit"}
+                                    title="Bearbeiten"
+                                >
+                                    <BsPencilSquare />
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        this.setState({ showQRCode: true });
+                                    }}
+                                    title={"Anmeldungs QR-Code anzeigen"}
+                                >
+                                    <BsQrCode />
+                                </button>
+                            </span>
+                            <Modal
+                                open={this.state.showQRCode}
+                                onClose={() => {
+                                    this.setState({ showQRCode: false });
+                                }}
+                            >
+                                <Modal.Body>
+                                    <h2>Link zur Vereinsanmeldung</h2>
+                                    <div>
+                                        <span style={{ userSelect: "all" }}>
+                                            {this.props.g.uiConfig?.qaWebAddress +
+                                                `/ich?ref=${m._id}`}
+                                        </span>
+
+                                        <br />
+                                        <br />
+                                        <QrCode
+                                            url={
+                                                this.props.g.uiConfig?.qaWebAddress +
+                                                `/ich?ref=${m._id}`
+                                            }
+                                        ></QrCode>
+                                    </div>
+                                </Modal.Body>
+                            </Modal>
+                        </>
                     )}
                 </div>
                 <EditMeeting
@@ -156,17 +214,16 @@ const priceToString = (price: number[]) => {
     } else if (price.length === 2) {
         return `${price[0]}-${price[1]}€`;
     } else {
-        return "0€";
+        return "Kostenlos";
     }
 };
 
-// TODO
 const ageRestrictionToString = (ageRestriction: number[]) => {
     if (ageRestriction.length === 1 && ageRestriction[0] !== 0) {
         return `${ageRestriction[0]}+`;
     } else if (ageRestriction.length === 2) {
         return `${ageRestriction[0]}-${ageRestriction[1]}`;
     } else {
-        return "0+";
+        return "Keine";
     }
 };

@@ -19,11 +19,13 @@ pub async fn update_meeting(
     match umrb.delete {
         Some(true) => {
             db.delete_meeting(&umrb.meeting._id).await?;
+            Ok(res.body(Body::from("Ok"))?)
         }
         _ => {
             db.update_meeting(&umrb.meeting).await?;
+            Ok(res
+                .header("Content-Type", "application/json")
+                .body(Body::from(serde_json::to_string(&umrb.meeting)?))?)
         }
     }
-
-    Ok(res.body(Body::from("Ok"))?)
 }

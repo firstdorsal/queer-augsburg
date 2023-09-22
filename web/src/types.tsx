@@ -4,14 +4,17 @@ export interface UiConfig {
     interosseaServerAddress: string;
     interosseaWebAddress: string;
     qaServerAddress: string;
+    qaWebAddress: string;
     skipInterossea: boolean;
 }
 
 export interface G {
     uiConfig: UiConfig | null;
     qaClient: QaClient | null;
-    loggedIn: boolean;
-    admin: boolean;
+    loggedIn: boolean | null;
+    admin: boolean | null;
+    ref: string | null;
+    meetingId: string | null;
 }
 
 export const commonTags = [

@@ -14,6 +14,7 @@ import { G } from "../types";
 import update from "immutability-helper";
 import cloneDeep from "lodash/cloneDeep";
 import { SubmittedMember } from "../apiTypes/SubmittedMember";
+import { withToasterHook } from "../utils";
 
 const nameRule = Schema.Types.StringType().isRequired("Diese Information ist nicht optional.");
 const emailRule = Schema.Types.StringType()
@@ -33,8 +34,11 @@ interface MyDataState {
 class MyData extends Component<MyDataProps, MyDataState> {
     constructor(props: MyDataProps) {
         super(props);
+
+        const newFormData = cloneDeep(defaultFormData);
+        newFormData.reference = props.g.ref ?? "";
         this.state = {
-            formData: cloneDeep(defaultFormData),
+            formData: newFormData,
             loadedUserData: false,
             responseMessage: "",
             responseMessageType: null
@@ -161,7 +165,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
 
     render = () => {
         if (!this.state.loadedUserData) {
-            return <div className="MyData">Lade...</div>;
+            return <div className="MyData"></div>;
         }
         return (
             <div className="MyData">
@@ -190,6 +194,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
                         </RadioGroup>
                     </div>
                     <Form formValue={this.state.formData} onChange={this.handleFormChange}>
+                        <br />
                         <div>
                             {this.state.formData.natural_person ? (
                                 <div>
@@ -252,6 +257,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
                                 </div>
                             )}
                         </div>
+                        <br />
                         <div>
                             <h3>Kontakt</h3>
                             <div>
@@ -267,6 +273,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
                                 </Form.Group>
                             </div>
                         </div>
+                        <br />
                         <div>
                             <h3>Adresse</h3>
                             <div>
@@ -296,7 +303,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
                                     <Form.Control rule={nameRule} name="country" />
                                 </Form.Group>
                             </div>
-
+                            <br />
                             <div>
                                 <h3>Sonstiges</h3>
                                 <Form.Group>
@@ -312,7 +319,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
                                     </Form.HelpText>
                                 </Form.Group>
                             </div>
-
+                            <br />
                             <div>
                                 <h3>Zustimmung</h3>
                                 <Form.Group>
@@ -382,14 +389,6 @@ const defaultFormData = {
     pronouns: "",
     reference: "",
     user_notes: ""
-};
-
-const withToasterHook = (Component: any) => {
-    return (props: any) => {
-        const toaster = useToaster();
-
-        return <Component toaster={toaster} {...props} />;
-    };
 };
 
 export default withToasterHook(MyData);

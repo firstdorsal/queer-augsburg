@@ -2,5 +2,6 @@
     "interosseaServerAddress": "http://localhost:8081",
     "interosseaWebAddress": "http://localhost:5173",
     "qaServerAddress": "http://localhost:8080",
+    "qaWebAddress": "http://localhost:5173",
     "skipInterossea": true
 }

@@ -1,10 +1,21 @@
 import { Component } from "preact";
 import { G, commonTags, queerTags } from "../types";
-import { Button, DatePicker, Input, Modal, SelectPicker, TagInput, TagPicker } from "rsuite";
+import {
+    Button,
+    DatePicker,
+    Input,
+    Message,
+    Modal,
+    SelectPicker,
+    TagInput,
+    TagPicker,
+    useToaster
+} from "rsuite";
 import { Meeting } from "../apiTypes/Meeting";
 import { cloneDeep } from "lodash";
 import update from "immutability-helper";
 import MeetingList from "./MeetingList";
+import { withToasterHook } from "../utils";
 
 interface EditMeetingProps {
     readonly g: G;
@@ -12,12 +23,14 @@ interface EditMeetingProps {
     readonly editing: boolean;
     readonly changEditing: (editing: boolean) => void;
     readonly reloadMeetingList: InstanceType<typeof MeetingList>["reloadMeetingList"];
+    readonly toaster: ReturnType<typeof useToaster>;
+    readonly newMeeting?: boolean;
 }
 interface EditMeetingState {
     readonly editingMeeting: Meeting;
     readonly cords: string;
 }
-export default class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
+class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
     constructor(props: EditMeetingProps) {
         super(props);
         this.state = {
@@ -42,15 +55,63 @@ export default class EditMeeting extends Component<EditMeetingProps, EditMeeting
         if (success) {
             await this.props.reloadMeetingList();
             this.props.changEditing(false);
+            this.props.toaster.push(
+                <Message showIcon type={"success"} closable>
+                    Treffen erfolgreich gespeichert!
+                </Message>,
+                {
+                    placement: "bottomCenter",
+                    duration: 5000
+                }
+            );
+        } else {
+            this.props.toaster.push(
+                <Message showIcon type={"error"} closable>
+                    Treffen konnte nicht gespeichert werden!
+                </Message>,
+                {
+                    placement: "bottomCenter",
+                    duration: 5000
+                }
+            );
         }
     };
+
     deleteMeeting = async () => {
         if (!this.props.g.qaClient) return;
-        const success = await this.props.g.qaClient.update_meeting(this.state.editingMeeting, true);
+        const success = await this.props.g.qaClient.delete_meeting(this.state.editingMeeting);
         if (success) {
             await this.props.reloadMeetingList();
             this.props.changEditing(false);
+            this.props;
+            this.props.toaster.push(
+                <Message showIcon type={"success"} closable>
+                    Treffen erfolgreich gelöscht!
+                </Message>,
+                {
+                    placement: "bottomCenter",
+                    duration: 5000
+                }
+            );
+        } else {
+            this.props.toaster.push(
+                <Message showIcon type={"error"} closable>
+                    Treffen konnte nicht gelöscht werden!
+                </Message>,
+                {
+                    placement: "bottomCenter",
+                    duration: 5000
+                }
+            );
         }
+    };
+
+    reset = () => {
+        this.setState({
+            editingMeeting: cloneDeep(this.props.meeting),
+            cords: `${this.props.meeting.location.lat}, ${this.props.meeting.location.lon}`
+        });
+        this.props.changEditing(false);
     };
 
     render = () => {
@@ -350,21 +411,25 @@ export default class EditMeeting extends Component<EditMeetingProps, EditMeeting
                         >
                             Speichern
                         </Button>
-                        <Button onClick={() => this.props.changEditing(false)} appearance="subtle">
+                        <Button onClick={this.reset} appearance="subtle">
                             Verwerfen
                         </Button>
-                        <Button
-                            style={{ background: "#ff2222", color: "white", float: "left" }}
-                            onClick={() => {
-                                this.deleteMeeting();
-                            }}
-                            appearance="subtle"
-                        >
-                            Löschen
-                        </Button>
+                        {!this.props.newMeeting && (
+                            <Button
+                                style={{ background: "#ff2222", color: "white", float: "left" }}
+                                onClick={() => {
+                                    this.deleteMeeting();
+                                }}
+                                appearance="subtle"
+                            >
+                                Löschen
+                            </Button>
+                        )}
                     </Modal.Footer>
                 </Modal>
             </div>
         );
     };
 }
+
+export default withToasterHook(EditMeeting);

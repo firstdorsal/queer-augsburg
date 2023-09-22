@@ -32,13 +32,18 @@ export class QaClient {
         await this.interosseaClient.init();
     };
 
-    get_meetings = async (from_index = 0, limit = 10, meeting_type: MeetingTypeQuery = "All") => {
-        const res = await fetch(
-            `${this.qaEndpoint}/api/get_meetings/?i=${from_index}&l=${limit}&t=${meeting_type}`,
-            {
-                credentials: "include"
-            }
-        );
+    get_meetings = async (
+        from_index: number,
+        limit: number | null,
+        meeting_type: MeetingTypeQuery = "All"
+    ) => {
+        const url = `${this.qaEndpoint}/api/get_meetings/?i=${from_index}${
+            limit === null ? "" : "&l=" + limit
+        }&t=${meeting_type}`;
+
+        const res = await fetch(url, {
+            credentials: "include"
+        });
         const meetings: GetMeetingsResponseBody = await res.json();
         return meetings;
     };
@@ -51,11 +56,21 @@ export class QaClient {
         return users;
     };
 
-    update_meeting = async (meeting: Meeting | null, remove?: boolean) => {
+    update_meeting = async (meeting: Meeting) => {
         const res = await fetch(`${this.qaEndpoint}/api/update_meeting/`, {
             method: "POST",
             credentials: "include",
-            body: JSON.stringify({ meeting, ...(remove && { delete: true }) })
+            body: JSON.stringify({ meeting })
+        });
+        const updated_meeting: Meeting = await res.json();
+        return updated_meeting;
+    };
+
+    delete_meeting = async (meeting: Meeting) => {
+        const res = await fetch(`${this.qaEndpoint}/api/update_meeting/`, {
+            method: "POST",
+            credentials: "include",
+            body: JSON.stringify({ meeting, delete: true })
         });
         const success = res.status === 200;
         return success;

@@ -17,11 +17,17 @@ $scrollbarWidth: 8px;
     --text-color: #ffffffe9;
     --background-color: #111;
     --background-color-2: #222;
-
-    color: var(--text-color);
-    background-color: var(--background-color);
-
     --header-height: 50px;
+
+    // light color scheme
+    @media (prefers-color-scheme: light) {
+        --text-color: #111;
+        --background-color: #fff;
+        --background-color-2: #eee;
+    }
+
+    color: var(--text-color) !important;
+    background-color: var(--background-color) !important;
 }
 
 // a modern looking darkmode scrollbar
@@ -45,6 +51,10 @@ h2 {
     font-size: 24px;
 }
 
+h3 {
+    font-size: 20px;
+}
+
 html,
 body,
 #root,
@@ -54,8 +64,9 @@ body,
     margin: 0px;
     height: 100%;
     width: 100%;
-    background-color: var(--background-color);
     overflow: hidden;
+    color: var(--text-color) !important;
+    background-color: var(--background-color) !important;
 }
 
 .bold {
@@ -81,6 +92,13 @@ body,
     }
 }
 
+.NewMeeting {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 10;
+}
+
 .MeetingList,
 .UserList {
     height: 100%;
@@ -95,6 +113,10 @@ body,
         padding: 0px 20px;
         box-sizing: border-box;
     }
+}
+
+// a border arround the div that slowly fades away
+.ShortHighlight {
 }
 
 .SingleMeeting {
@@ -160,6 +182,9 @@ body,
 
     .Actions {
         margin-top: 20px;
+        .Admin {
+            float: right;
+        }
         button {
             all: unset;
             margin: 0px 5px;
@@ -168,9 +193,6 @@ body,
                 color: var(--text-color);
                 height: 30px;
                 width: 24px;
-            }
-            &.Edit {
-                float: right;
             }
         }
     }
