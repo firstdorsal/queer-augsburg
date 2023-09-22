@@ -135,7 +135,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
 
         this.props.g.qaClient
             ?.update_own_member_data(m)
-            .then(v => {
+            .then(() => {
                 this.props.toaster.push(
                     <Message showIcon type={"success"} closable>
                         Daten gespeichert
@@ -146,7 +146,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
                     }
                 );
             })
-            .catch(e => {
+            .catch(() => {
                 this.props.toaster.push(
                     <Message showIcon type={"error"} closable>
                         Fehler beim speichern der Daten
