@@ -106,7 +106,6 @@ pub struct SubmittedMember {
     pub address: Address,
     #[validate(email)]
     pub email: String,
-    #[validate(phone)]
     pub phone: Option<String>,
     #[validate(length(min = 1, max = 500))]
     pub user_notes: Option<String>,

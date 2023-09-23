@@ -4,9 +4,12 @@
 
 {{- $qaServerHostname := joindomain $config.qa.server.publicHostname.subdomain (ternary "localhost" $config.qa.server.publicHostname.domain (eq $config.routing "local")) -}}
 
+{{- $qaWebHostname := joindomain $config.qa.web.publicHostname.subdomain (ternary "localhost" $config.qa.web.publicHostname.domain (eq $config.routing "local")) -}}
+
 {{- $interosseaWebHostname := joindomain $config.interossea.web.publicHostname.subdomain (ternary "localhost" $config.interossea.web.publicHostname.domain (eq $config.routing "local")) -}}
 
 qaServerAddress: {{ ternary "https://" "http://" $config.tls true }}{{ $qaServerHostname}}
 interosseaServerAddress: {{ ternary "https://" "http://" $config.tls true }}{{ $interosseaServerHostname}}
 interosseaWebAddress: {{ ternary "https://" "http://" $config.tls true }}{{ $interosseaWebHostname}}
+qaWebAddress: {{ ternary "https://" "http://" $config.tls true }}{{ $qaWebHostname}}
 skipInterossea: false
