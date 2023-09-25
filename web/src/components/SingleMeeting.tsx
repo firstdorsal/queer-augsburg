@@ -17,8 +17,9 @@ import { LuMailQuestion } from "react-icons/lu";
 import { G } from "../types";
 import EditMeeting from "./EditMeeting";
 import MeetingList from "./MeetingList";
-import { Button, Modal } from "rsuite";
+import { Modal } from "rsuite";
 import QrCode from "./QrCode";
+import Md from "./Md";
 
 interface SingleMeetingProps {
     readonly meeting: Meeting;
@@ -105,7 +106,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                 </div>
 
                 <div className="Description" style={{ position: "relative" }}>
-                    {m.description}
+                    <Md plainText={m.description}></Md>
                 </div>
 
                 <div className="Actions">

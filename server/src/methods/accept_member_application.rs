@@ -5,7 +5,7 @@ use anyhow::bail;
 use hyper::{Body, Request, Response};
 
 pub async fn accept_member_application(
-    mut req: Request<Body>,
+    req: Request<Body>,
     db: DB,
     auth: &Auth,
     res: hyper::http::response::Builder,

@@ -7,9 +7,9 @@ use crate::{
 use hyper::{Body, Request, Response};
 
 pub async fn get_meetings(
-    mut req: Request<Body>,
+    req: Request<Body>,
     db: DB,
-    auth: &Auth,
+    _auth: &Auth,
     res: hyper::http::response::Builder,
 ) -> anyhow::Result<Response<Body>> {
     let limit = get_query_item_number(&req, "l");

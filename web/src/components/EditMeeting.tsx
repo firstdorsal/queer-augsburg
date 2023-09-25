@@ -16,6 +16,7 @@ import { cloneDeep } from "lodash";
 import update from "immutability-helper";
 import MeetingList from "./MeetingList";
 import { withToasterHook } from "../utils";
+import Md from "./Md";
 
 interface EditMeetingProps {
     readonly g: G;
@@ -136,7 +137,24 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             placeholder="Titel"
                         ></Input>
                         <br />
-                        Beschreibung
+                        <b>
+                            Beschreibung (
+                            <a
+                                target="_blank"
+                                rel="noreferrer"
+                                href="https://www.markdownguide.org/cheat-sheet/"
+                            >
+                                Markdown Support
+                            </a>
+                            )
+                        </b>
+                        <br />
+                        [linkText](https://www.example.com)
+                        <br />
+                        **fett**
+                        <br />
+                        *kursiv*
+                        <br />
                         <Input
                             onChange={v => {
                                 this.setState(state => {
@@ -153,7 +171,12 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             placeholder="Beschreibung"
                         ></Input>
                         <br />
-                        Status
+                        <b>Beschreibung (Vorschau)</b>
+                        <br />
+                        <br />
+                        <Md plainText={em.description}></Md>
+                        <br />
+                        <b>Status</b>
                         <br />
                         <SelectPicker
                             value={em.status}
@@ -165,7 +188,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         ></SelectPicker>
                         <br />
                         <br />
-                        Zeit
+                        <b>Zeit</b>
                         <br />
                         <DatePicker
                             onChange={v => {
@@ -186,7 +209,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         />
                         <br />
                         <br />
-                        Ort (Name und Koordinaten)
+                        <b>Ort (Name und Koordinaten)</b>
                         <br />
                         <Input
                             onChange={v => {
@@ -218,7 +241,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         ></Input>
                         <br />
                         <br />
-                        Ansprechpersonen/Verantwortliche
+                        <b>Ansprechpersonen/Verantwortliche</b>
                         <br />
                         <Input
                             value={em.authority}
@@ -236,7 +259,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         ></Input>
                         <br />
                         <br />
-                        Triggerwarnungen
+                        <b>Triggerwarnungen</b>
                         <Input
                             value={em.trigger_warning}
                             onChange={v => {
@@ -251,7 +274,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             placeholder="Triggerwarnung"
                         ></Input>
                         <br />
-                        Ungefährer Preis (Von - Bis)
+                        <b>Ungefährer Preis (Von - Bis)</b>
                         <br />
                         <Input
                             value={em.price[0]}
@@ -289,7 +312,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         ></Input>
                         <br />
                         <br />
-                        Altersbeschränkungen (Von - Bis)
+                        <b>Altersbeschränkungen (Von - Bis)</b>
                         <br />
                         <Input
                             value={em.age_restriction[0]}
@@ -333,7 +356,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         ></Input>
                         <br />
                         <br />
-                        Art der Veranstaltung
+                        <b>Art der Veranstaltung</b>
                         <TagPicker
                             value={em.tags.common}
                             onChange={v => {
@@ -351,7 +374,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             data={commonTags.map(item => ({ label: item, value: item }))}
                         ></TagPicker>
                         <br />
-                        Für welche Gruppen
+                        <b>Für welche Gruppen</b>
                         <TagPicker
                             value={em.tags.queer}
                             onChange={v => {
@@ -369,7 +392,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             data={queerTags.map(item => ({ label: item, value: item }))}
                         ></TagPicker>
                         <br />
-                        Eigene Tags
+                        <b>Eigene Tags</b>
                         <TagInput
                             value={em.tags.freeform}
                             onChange={v => {
@@ -386,7 +409,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             }}
                             block
                         ></TagInput>
-                        Wie viele Menschen waren da?
+                        <b>Wie viele Menschen waren da?</b>
                         <Input
                             value={em.attendance}
                             onChange={v => {

@@ -3,7 +3,7 @@ use anyhow::bail;
 use hyper::{Body, Request, Response};
 
 pub async fn get_users(
-    mut req: Request<Body>,
+    req: Request<Body>,
     db: DB,
     auth: &Auth,
     res: hyper::http::response::Builder,
