@@ -23,6 +23,10 @@ const navItems = [
     {
         name: "Kontakt",
         href: "/kontakt"
+    },
+    {
+        name: "Impressum",
+        href: "/impressum"
     }
 ];
 

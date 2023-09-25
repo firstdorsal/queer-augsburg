@@ -52,7 +52,7 @@ export default class SingleUser extends Component<SingleUserProps, SingleUserSta
                         )}
                         <div>Email: {m.email}</div>
 
-                        <div className={"pronouns"}>Pronomen:{m.pronouns}</div>
+                        <div className={"pronouns"}>Pronomen: {m.pronouns}</div>
 
                         <div>Referenz: {m.reference}</div>
                         <div>Phone: {m.phone}</div>

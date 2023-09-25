@@ -17,6 +17,7 @@ import "rsuite/styles/index.less";
 import { CustomProvider } from "rsuite";
 import Admin from "./pages/Admin";
 import { prefersDarkMode } from "./utils";
+import Impressum from "./pages/Impressum";
 
 interface AppProps {}
 interface AppState {
@@ -114,6 +115,7 @@ export default class App extends Component<AppProps, AppState> {
                             <Kontakt path="/kontakt" />
                             <Ich g={this.state.g} path="/ich" />
                             <Admin g={this.state.g} path="/admin" />
+                            <Impressum path="/impressum" />
                             <Redirect default to="/" />
                         </Router>
                     </div>
