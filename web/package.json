@@ -5,7 +5,7 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "bash build.sh",
+        "build": "rm -rf node_modules/react-markdown/lib/complex-types.ts && tsc && vite build",
         "preview": "vite preview"
     },
     "dependencies": {
