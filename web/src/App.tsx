@@ -23,8 +23,19 @@ interface AppProps {}
 interface AppState {
     g: G;
 }
+
 export default class App extends Component<AppProps, AppState> {
     constructor(props: AppProps) {
+        try {
+            navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                for (let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        } catch (e) {
+            console.log(e);
+        }
+
         // parse ref query parameter and save it to localStorage
         const urlParams = new URLSearchParams(window.location.search);
         let ref = urlParams.get("ref");
