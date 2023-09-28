@@ -38,7 +38,15 @@ services:
                             rule: "Host(`{{ $qaWebHostname }}`)"
                             entrypoints: {{ ternary "websecure" "web" $config.tls }}
                             service: qa-web
-                            tls: {{ $config.tls }}
+                            {{- if eq $config.tls true }}
+                            tls:
+                                certresolver: "default"
+                                domains:
+                                    - main: "{{ $qaWebHostname }}"
+                                      sans: "*{{ $qaWebHostname }}"
+                            {{- end }}
+                            
+
                     services:
                         qa-web:
                             loadbalancer:
@@ -74,7 +82,13 @@ services:
                             rule: "Host(`{{ $qaServerHostname }}`)"
                             entrypoints: {{ ternary "websecure" "web" $config.tls }}
                             service: qa-server
-                            tls: {{ $config.tls }}
+                            {{- if eq $config.tls true }}
+                            tls:
+                                certresolver: "default"
+                                domains:
+                                    - main: "{{ $qaServerHostname }}"
+                                      sans: "*{{ $qaServerHostname  }}"
+                            {{- end }}
                     services:
                         qa-server:
                             loadbalancer:
@@ -134,7 +148,13 @@ services:
                             rule: "Host(`{{ $interosseaWebHostname }}`)"
                             entrypoints: {{ ternary "websecure" "web" $config.tls }}
                             service: qa-interossea-web
-                            tls: {{ $config.tls }}
+                            {{- if eq $config.tls true }}
+                            tls:
+                                certresolver: "default"
+                                domains:
+                                    - main: "{{ $interosseaWebHostname }}"
+                                      sans: "*{{ $interosseaWebHostname }}"
+                            {{- end }}
                     services:
                         qa-interossea-web:
                             loadbalancer:
@@ -199,7 +219,13 @@ services:
                             rule: "Host(`{{ $interosseaServerHostname }}`)"
                             entrypoints: {{ ternary "websecure" "web" $config.tls }}
                             service: qa-interossea-server
-                            tls: {{ $config.tls }}
+                            {{- if eq $config.tls true }}
+                            tls:
+                                certresolver: "default"
+                                domains:
+                                    - main: "{{ $interosseaServerHostname }}"
+                                      sans: "*{{ $interosseaServerHostname }}"
+                            {{- end }}
                     services:
                         qa-interossea-server:
                             loadbalancer:

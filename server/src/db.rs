@@ -179,9 +179,11 @@ impl DB {
         let collection = self.db.collection::<User>("users");
         let find_options = FindOptions::builder().limit(limit).skip(from_index).build();
 
+        // member exists and is not null
         let selector = doc! {
             "member": {
-                "$exists": true
+                "$exists": true,
+                "$ne": null
             }
         };
 
