@@ -4,9 +4,9 @@ reverseProxy:
     create: true
     network: rp
 
-tls: false
+tls: true
 
-routing: local
+routing: domain
 
 qa:
     web:

@@ -42,8 +42,8 @@ services:
                             tls:
                                 certresolver: "default"
                                 domains:
-                                    - main: "{{ $qaWebHostname }}"
-                                      sans: "*{{ $qaWebHostname }}"
+                                    - main: "{{ $config.qa.web.publicHostname.domain }}"
+                                      sans: "*.{{ $config.qa.web.publicHostname.domain }}"
                             {{- end }}
                             
 
@@ -86,8 +86,8 @@ services:
                             tls:
                                 certresolver: "default"
                                 domains:
-                                    - main: "{{ $qaServerHostname }}"
-                                      sans: "*{{ $qaServerHostname  }}"
+                                    - main: "{{ $config.qa.server.publicHostname.domain }}"
+                                      sans: "*.{{ $config.qa.server.publicHostname.domain  }}"
                             {{- end }}
                     services:
                         qa-server:
@@ -152,8 +152,8 @@ services:
                             tls:
                                 certresolver: "default"
                                 domains:
-                                    - main: "{{ $interosseaWebHostname }}"
-                                      sans: "*{{ $interosseaWebHostname }}"
+                                    - main: "{{ $config.interossea.web.publicHostname.domain }}"
+                                      sans: "*.{{ $config.interossea.web.publicHostname.domain }}"
                             {{- end }}
                     services:
                         qa-interossea-web:
@@ -223,8 +223,8 @@ services:
                             tls:
                                 certresolver: "default"
                                 domains:
-                                    - main: "{{ $interosseaServerHostname }}"
-                                      sans: "*{{ $interosseaServerHostname }}"
+                                    - main: "{{ $config.interossea.server.publicHostname.domain }}"
+                                      sans: "*.{{ $config.interossea.server.publicHostname.domain }}"
                             {{- end }}
                     services:
                         qa-interossea-server:
