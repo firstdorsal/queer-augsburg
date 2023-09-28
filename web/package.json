@@ -17,6 +17,7 @@
         "lodash": "^4.17.21",
         "preact": "^10.16.0",
         "preact-router": "^4.1.2",
+        "react-icalendar-link": "^3.0.2",
         "react-icons": "^4.11.0",
         "react-markdown": "^8.0.7",
         "react-qr-code": "^2.0.12",

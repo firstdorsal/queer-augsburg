@@ -152,6 +152,12 @@ body,
         }
     }
 
+    .Location,
+    .Time {
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
     .Description {
         white-space: pre-line;
         overflow-wrap: break-word;

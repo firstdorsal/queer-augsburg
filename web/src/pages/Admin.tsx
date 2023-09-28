@@ -12,7 +12,7 @@ export default class Admin extends Component<AdminProps, AdminState> {
             return <div></div>;
         }
         return (
-            <div className="Admin Pad">
+            <div className="Admin">
                 <UserList g={this.props.g} qaClient={this.props.g.qaClient} />
             </div>
         );

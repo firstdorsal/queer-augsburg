@@ -20,6 +20,7 @@ import MeetingList from "./MeetingList";
 import { Modal } from "rsuite";
 import QrCode from "./QrCode";
 import Md from "./Md";
+import ICalendarLink from "react-icalendar-link";
 
 interface SingleMeetingProps {
     readonly meeting: Meeting;
@@ -29,13 +30,17 @@ interface SingleMeetingProps {
 interface SingleMeetingState {
     readonly editing: boolean;
     readonly showQRCode: boolean;
+    readonly locationModalOpen: boolean;
+    readonly timeModalOpen: boolean;
 }
 export default class SingleMeeting extends Component<SingleMeetingProps, SingleMeetingState> {
     constructor(props: SingleMeetingProps) {
         super(props);
         this.state = {
             editing: false,
-            showQRCode: false
+            showQRCode: false,
+            locationModalOpen: false,
+            timeModalOpen: false
         };
     }
 
@@ -56,12 +61,64 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
 
         const isPast = Number(m.time) < Date.now();
 
+        // cut the cords after six decimal places
+        const lon = Number(m.location.lon).toFixed(6);
+        const lat = Number(m.location.lat).toFixed(6);
+
         return (
             <div
                 className={`SingleMeeting Pad${
                     this.props.g.meetingId === m._id ? " ShortHighlight" : ""
                 }`}
             >
+                <Modal
+                    open={this.state.locationModalOpen}
+                    onClose={() => {
+                        this.setState({ locationModalOpen: false });
+                    }}
+                >
+                    <Modal.Header>
+                        <Modal.Title>Ort</Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <h1>{m.location.name}</h1>
+                        <h2>
+                            <a href={`geo:${lat},${lon}`}>
+                                {lat}, {lon}
+                            </a>
+                        </h2>
+                        <h2>
+                            <a
+                                rel="no-referrer"
+                                target="_blank"
+                                href={`
+                            https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=16/${lat}/${lon}
+                                `}
+                            >
+                                OpenStreetMap
+                            </a>
+                        </h2>
+                        <h2>
+                            <a
+                                rel="no-referrer"
+                                target="_blank"
+                                href={`https://www.google.com/maps/place/${lat},${lon}`}
+                            >
+                                Google Maps
+                            </a>
+                        </h2>
+                        <h2>
+                            <a
+                                rel="no-referrer"
+                                target="_blank"
+                                href={`https://www.bing.com/maps?q=${lat},${lon}`}
+                            >
+                                Bing Maps
+                            </a>
+                        </h2>
+                    </Modal.Body>
+                </Modal>
+
                 <div className="Title">{m.title}</div>
                 <div className="Tags">
                     {m.tags.freeform.map(renderFreeformTag)}
@@ -70,7 +127,13 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                 </div>
                 <div className="Infos">
                     <div className="Left">
-                        <div className="Location" title="Ort">
+                        <div
+                            className="Location"
+                            title="Ort"
+                            onClick={() => {
+                                this.setState({ locationModalOpen: true });
+                            }}
+                        >
                             <IoLocation />
                             <span className="InfoText">{m.location.name}</span>
                         </div>
@@ -88,7 +151,42 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                             style={{ color: isPast ? "#fb0000" : "var(--text-color)" }}
                             className="Time"
                             title="Zeit"
+                            onClick={() => {
+                                this.setState({ timeModalOpen: true });
+                            }}
                         >
+                            <Modal
+                                open={this.state.timeModalOpen}
+                                onClose={() => {
+                                    this.setState({ timeModalOpen: false });
+                                }}
+                            >
+                                <Modal.Header>
+                                    <Modal.Title>Datum & Uhrzeit</Modal.Title>
+                                </Modal.Header>
+                                <Modal.Body>
+                                    <ICalendarLink
+                                        event={{
+                                            title: m.title,
+                                            description: m.description,
+                                            location:
+                                                m.location.name +
+                                                ", " +
+                                                m.location.lat +
+                                                ", " +
+                                                m.location.lon,
+                                            startTime: new Date(Number(m.time)).toISOString(),
+                                            endTime: new Date(
+                                                Number(m.time) + 3600000
+                                            ).toISOString()
+                                        }}
+                                        filename={m.title + ".ics"}
+                                    >
+                                        ICS herunterladen (Zum Kalender hinzufügen)
+                                    </ICalendarLink>
+                                </Modal.Body>
+                            </Modal>
+
                             <IoTime />
                             <span className="InfoText">{time}</span>
                         </div>
@@ -106,7 +204,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                 </div>
 
                 <div className="Description" style={{ position: "relative" }}>
-                    <Md plainText={m.description}></Md>
+                    <Md plainText={m.description} />
                 </div>
 
                 <div className="Actions">
@@ -114,7 +212,11 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                         <BsBookmark />
                     </button>
                     <button title="Hilfe zu diesem Treffen">
-                        <a href="mailto:mail@queer-augsburg.de">
+                        <a
+                            href={`mailto:mail@queer-augsburg.de
+                            ?subject=Hilfe zum Treffen: ${m.title}
+                        `}
+                        >
                             <LuMailQuestion style={{ transform: "scale(1.2)" }} />
                         </a>
                     </button>

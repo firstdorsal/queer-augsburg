@@ -37,7 +37,7 @@ export default class SingleUser extends Component<SingleUserProps, SingleUserSta
         const u = this.props.user;
         const m = u.member;
         return (
-            <div className="SingleUser">
+            <div className="SingleUser Pad">
                 <div>ID: {u._id}</div>
                 {m !== null && (
                     <div>
