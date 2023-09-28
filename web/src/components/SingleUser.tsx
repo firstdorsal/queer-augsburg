@@ -45,7 +45,6 @@ export default class SingleUser extends Component<SingleUserProps, SingleUserSta
                             <>
                                 <div>Vorname: {m.name?.first_name}</div>
                                 <div>Nachname: {m.name?.last_name}</div>
-                                <div>Passname: {m.name?.passport}</div>
                             </>
                         ) : (
                             <div>Institution: {m.institution}</div>
