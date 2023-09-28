@@ -138,6 +138,10 @@ export default class Impressum extends Component<ImpressumProps, ImpressumState>
                         satzungsmäßige Recht, Nachforschungen zu internen Vorgängen anzustellen.
                         Dafür darf sie alle nötigen Mitgliederdaten verarbeiten.
                     </li>
+                    <li>
+                        Die IT-beauftragte Person im Zuge des Datenbankmanagements und anderer
+                        Administrativer Aufgaben
+                    </li>
                 </ul>
                 <p>
                     Zweck für die Verarbeitung der Mitgliedsdaten ist die Verfolgung des

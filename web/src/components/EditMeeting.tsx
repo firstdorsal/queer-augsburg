@@ -135,7 +135,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             }}
                             value={em.title}
                             placeholder="Titel"
-                        ></Input>
+                        />
                         <br />
                         <b>
                             Beschreibung (
@@ -169,12 +169,12 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             as="textarea"
                             rows={10}
                             placeholder="Beschreibung"
-                        ></Input>
+                        />
                         <br />
                         <b>Beschreibung (Vorschau)</b>
                         <br />
                         <br />
-                        <Md plainText={em.description}></Md>
+                        <Md plainText={em.description} />
                         <br />
                         <b>Status</b>
                         <br />
@@ -185,7 +185,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                 { value: "Active", label: "Aktiv" }
                             ]}
                             searchable={false}
-                        ></SelectPicker>
+                        />
                         <br />
                         <br />
                         <b>Zeit</b>
@@ -226,7 +226,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             value={em.location.name}
                             style={{ width: "50%", display: "inline" }}
                             placeholder="Wittelsbacher Park"
-                        ></Input>
+                        />
                         <Input
                             onChange={v => {
                                 this.setState(state => {
@@ -238,7 +238,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             value={this.state.cords}
                             style={{ width: "50%", display: "inline" }}
                             placeholder="48.35725,10.88050"
-                        ></Input>
+                        />
                         <br />
                         <br />
                         <b>Ansprechpersonen/Verantwortliche</b>
@@ -256,7 +256,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             }}
                             style={{ width: "50%", display: "inline" }}
                             placeholder="Paul"
-                        ></Input>
+                        />
                         <br />
                         <br />
                         <b>Triggerwarnungen</b>
@@ -272,7 +272,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                 });
                             }}
                             placeholder="Triggerwarnung"
-                        ></Input>
+                        />
                         <br />
                         <b>Ungefährer Preis (Von - Bis)</b>
                         <br />
@@ -284,8 +284,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                         editingMeeting: {
                                             price: {
                                                 $set: [
-                                                    parseFloat(v),
-                                                    state.editingMeeting.price[1] ?? 0
+                                                    parseFloat(v.length ? v : "0"),
+                                                    state.editingMeeting.price[1]
                                                 ]
                                             }
                                         }
@@ -295,7 +295,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             type="number"
                             style={{ width: "50%", display: "inline" }}
                             placeholder="0"
-                        ></Input>
+                        />
                         <Input
                             value={em.price[1]}
                             onChange={v => {
@@ -304,8 +304,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                         editingMeeting: {
                                             price: {
                                                 $set: [
-                                                    state.editingMeeting.price[0] ?? 0,
-                                                    parseFloat(v)
+                                                    state.editingMeeting.price[0],
+                                                    ...(v === "" ? [] : [parseFloat(v)])
                                                 ]
                                             }
                                         }
@@ -315,10 +315,12 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             type="number"
                             style={{ width: "50%", display: "inline" }}
                             placeholder="0"
-                        ></Input>
+                        />
                         <br />
                         <br />
                         <b>Altersbeschränkungen (Von - Bis)</b>
+                        <br />
+                        Bis bitte leer lassen wenn es kein Maximalalter gibt
                         <br />
                         <Input
                             value={em.age_restriction[0]}
@@ -329,8 +331,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                         editingMeeting: {
                                             age_restriction: {
                                                 $set: [
-                                                    state.editingMeeting.age_restriction[0],
-                                                    parseInt(v)
+                                                    parseFloat(v.length ? v : "0"),
+                                                    state.editingMeeting.age_restriction[1]
                                                 ]
                                             }
                                         }
@@ -339,7 +341,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             }}
                             style={{ width: "50%", display: "inline" }}
                             placeholder="18"
-                        ></Input>
+                        />
                         <Input
                             value={em.age_restriction[1]}
                             type="number"
@@ -349,8 +351,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                         editingMeeting: {
                                             age_restriction: {
                                                 $set: [
-                                                    parseInt(v),
-                                                    state.editingMeeting.age_restriction[1]
+                                                    state.editingMeeting.age_restriction[0],
+                                                    ...(v === "" ? [] : [parseFloat(v)])
                                                 ]
                                             }
                                         }
@@ -359,7 +361,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             }}
                             style={{ width: "50%", display: "inline" }}
                             placeholder="31"
-                        ></Input>
+                        />
                         <br />
                         <br />
                         <b>Art der Veranstaltung</b>
@@ -378,7 +380,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             }}
                             block
                             data={commonTags.map(item => ({ label: item, value: item }))}
-                        ></TagPicker>
+                        />
                         <br />
                         <b>Für welche Gruppen</b>
                         <TagPicker
@@ -396,7 +398,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             }}
                             block
                             data={queerTags.map(item => ({ label: item, value: item }))}
-                        ></TagPicker>
+                        />
                         <br />
                         <b>Eigene Tags</b>
                         <TagInput
@@ -414,7 +416,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                 });
                             }}
                             block
-                        ></TagInput>
+                        />
                         <b>Wie viele Menschen waren da?</b>
                         <Input
                             value={em.attendance}
@@ -429,7 +431,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             }}
                             type="number"
                             placeholder="0"
-                        ></Input>
+                        />
                     </Modal.Body>
                     <Modal.Footer>
                         <Button

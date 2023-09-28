@@ -179,13 +179,19 @@ impl DB {
         let collection = self.db.collection::<User>("users");
         let find_options = FindOptions::builder().limit(limit).skip(from_index).build();
 
+        let selector = doc! {
+            "member": {
+                "$exists": true
+            }
+        };
+
         let (users, count) = (
             collection
-                .find(doc! {}, find_options)
+                .find(selector.clone(), find_options)
                 .await?
                 .try_collect::<Vec<_>>()
                 .await?,
-            collection.count_documents(doc! {}, None).await?,
+            collection.count_documents(selector, None).await?,
         );
 
         Ok((users, count as u32))
