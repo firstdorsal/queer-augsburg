@@ -198,7 +198,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                     return update(state, {
                                         editingMeeting: {
                                             time: {
-                                                $set: t ? BigInt(t) : null
+                                                $set: (t as unknown as bigint) ?? null
                                             }
                                         }
                                     });
@@ -283,7 +283,10 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                     return update(state, {
                                         editingMeeting: {
                                             price: {
-                                                $set: [parseFloat(v), state.editingMeeting.price[1]]
+                                                $set: [
+                                                    parseFloat(v),
+                                                    state.editingMeeting.price[1] ?? 0
+                                                ]
                                             }
                                         }
                                     });
@@ -300,7 +303,10 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                     return update(state, {
                                         editingMeeting: {
                                             price: {
-                                                $set: [state.editingMeeting.price[0], parseFloat(v)]
+                                                $set: [
+                                                    state.editingMeeting.price[0] ?? 0,
+                                                    parseFloat(v)
+                                                ]
                                             }
                                         }
                                     });

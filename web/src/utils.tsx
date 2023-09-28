@@ -10,7 +10,11 @@ export const withToasterHook = (Component: any) => {
 };
 
 export const getUtcTimeStampNow = () => {
-    return new Date(Date.now()).getTime();
+    // get the next day at 19:00 in utc seconds
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(19, 0, 0, 0);
+    return tomorrow.getTime();
 };
 
 export const defaultMeeting: Meeting = {
@@ -20,9 +24,9 @@ export const defaultMeeting: Meeting = {
     time: getUtcTimeStampNow() as unknown as bigint,
     attendance: null,
     authority: "Queer Augsburg",
-    age_restriction: [],
+    age_restriction: [0],
     location: { name: "Augsburg", lat: 48.36876, lon: 10.89929 },
-    price: [],
+    price: [0],
     trigger_warning: null,
     rating: null,
     tags: { freeform: [], common: [], queer: ["Everyone"] },
