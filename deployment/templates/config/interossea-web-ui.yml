@@ -6,3 +6,4 @@
 
 serverAddress: {{ ternary "https://" "http://" $config.tls true }}{{ $interosseaServerHostname}}
 uiAddress: {{ ternary "https://" "http://" $config.tls true }}{{ $interosseaWebHostname}}
+displayNav: {{ $config.interossea.web.displayNav }}

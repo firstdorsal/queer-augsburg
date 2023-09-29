@@ -30,6 +30,12 @@ $scrollbarWidth: 8px;
     background-color: var(--background-color) !important;
 }
 
+.rs-input {
+    &::placeholder {
+        opacity: 0.3;
+    }
+}
+
 // a modern looking darkmode scrollbar
 ::-webkit-scrollbar {
     width: $scrollbarWidth;
@@ -113,13 +119,6 @@ body,
         padding: 0px 20px;
         box-sizing: border-box;
     }
-}
-
-// a border arround the div that slowly fades away
-.ShortHighlight {
-}
-
-.Impressum {
 }
 
 .SingleMeeting {
@@ -246,7 +245,12 @@ body,
         ul,
         li {
             all: unset;
-            a {
+            button {
+                all: unset;
+            }
+            a,
+            button {
+                cursor: pointer;
                 font-size: 20px;
                 text-decoration: none;
                 color: var(--text-color);

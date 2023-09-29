@@ -4,9 +4,9 @@ reverseProxy:
     create: true
     network: rp
 
-tls: true
+tls: false
 
-routing: domain
+routing: local
 
 qa:
     web:
@@ -31,7 +31,7 @@ qa:
 
 interossea:
     server:
-        allowNewUsers: false
+        allowNewUsers: true
         createUsers: [mail@queer-augsburg.de, test@vindelicum.eu]
         makeUsersAdmin: [mail@queer-augsburg.de, test@vindelicum.eu]
         create: true
@@ -54,6 +54,7 @@ interossea:
             exposeToLocalhost: true
             port: 27019
     web:
+        displayNav: false
         create: true
         publicHostname:
             domain: queer-augsburg.de

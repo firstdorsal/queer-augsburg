@@ -4,6 +4,7 @@ import {
     Checkbox,
     CheckboxGroup,
     Form,
+    InputGroup,
     Message,
     Radio,
     RadioGroup,
@@ -15,6 +16,8 @@ import update from "immutability-helper";
 import cloneDeep from "lodash/cloneDeep";
 import { SubmittedMember } from "../apiTypes/SubmittedMember";
 import { withToasterHook } from "../utils";
+import EyeIcon from "@rsuite/icons/legacy/Eye";
+import EyeSlashIcon from "@rsuite/icons/legacy/EyeSlash";
 
 const nameRule = Schema.Types.StringType().isRequired("Diese Information ist nicht optional.");
 const emailRule = Schema.Types.StringType()
@@ -30,6 +33,8 @@ interface MyDataState {
     readonly loadedUserData: boolean;
     readonly responseMessage: string;
     readonly responseMessageType: "success" | "error" | null;
+    readonly isConfirmedMember: "approved" | "pending" | "none";
+    readonly passNameVisible: boolean;
 }
 class MyData extends Component<MyDataProps, MyDataState> {
     constructor(props: MyDataProps) {
@@ -41,7 +46,9 @@ class MyData extends Component<MyDataProps, MyDataState> {
             formData: newFormData,
             loadedUserData: false,
             responseMessage: "",
-            responseMessageType: null
+            responseMessageType: null,
+            isConfirmedMember: "none",
+            passNameVisible: false
         };
     }
 
@@ -55,6 +62,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
             this.setState(state => {
                 return update(state, {
                     loadedUserData: { $set: true },
+                    isConfirmedMember: { $set: memberData.approved ? "approved" : "pending" },
                     formData: {
                         $set: {
                             type: memberData.type,
@@ -140,6 +148,9 @@ class MyData extends Component<MyDataProps, MyDataState> {
         this.props.g.qaClient
             ?.update_own_member_data(m)
             .then(() => {
+                this.setState({
+                    isConfirmedMember: "pending"
+                });
                 this.props.toaster.push(
                     <Message showIcon type={"success"} closable>
                         Daten gespeichert
@@ -170,6 +181,22 @@ class MyData extends Component<MyDataProps, MyDataState> {
         return (
             <div className="MyData">
                 <h1>Mitgliedschaft</h1>
+                <p>Hier kannst du unseren Mitgliedsantrag ausfüllen oder deine Daten abändern.</p>
+                <h2>Status</h2>
+                {(() => {
+                    if (this.state.isConfirmedMember === "approved") {
+                        return <p>Du bist Mitglied von Queer Augsburg!</p>;
+                    } else if (this.state.isConfirmedMember === "pending") {
+                        return (
+                            <p>
+                                Dein Mitgliedsantrag ist eingegangen wurde aber noch nicht
+                                bestätigt.
+                            </p>
+                        );
+                    } else {
+                        return <p>Du bist noch kein Mitglied von Queer Augsburg.</p>;
+                    }
+                })()}
                 <div>
                     <h2>Meine Daten</h2>
                     <div>
@@ -194,7 +221,6 @@ class MyData extends Component<MyDataProps, MyDataState> {
                         </RadioGroup>
                     </div>
                     <Form formValue={this.state.formData} onChange={this.handleFormChange}>
-                        <br />
                         <div>
                             {this.state.formData.natural_person ? (
                                 <div>
@@ -221,28 +247,62 @@ class MyData extends Component<MyDataProps, MyDataState> {
                                         <Form.ControlLabel>
                                             Ganzer Name auf dem Personalausweis *
                                         </Form.ControlLabel>
-                                        <Form.Control rule={nameRule} name="passport" />
+                                        <InputGroup inside>
+                                            <Form.Control
+                                                rule={nameRule}
+                                                name="passport"
+                                                type={
+                                                    this.state.passNameVisible ? "text" : "password"
+                                                }
+                                                placeholder="Anna Mustermensch"
+                                            />
+                                            <InputGroup.Button
+                                                onClick={() => {
+                                                    this.setState(state => {
+                                                        return update(state, {
+                                                            passNameVisible: {
+                                                                $set: !state.passNameVisible
+                                                            }
+                                                        });
+                                                    });
+                                                }}
+                                            >
+                                                {this.state.passNameVisible ? (
+                                                    <EyeIcon />
+                                                ) : (
+                                                    <EyeSlashIcon />
+                                                )}
+                                            </InputGroup.Button>
+                                        </InputGroup>
                                         <Form.HelpText>
-                                            Aus rechtlichen Gründen benötigt.
+                                            Aus rechtlichen Gründen benötigt. 😔
                                         </Form.HelpText>
                                     </Form.Group>
                                     <Form.Group>
                                         <Form.ControlLabel>Vorname *</Form.ControlLabel>
-                                        <Form.Control rule={nameRule} name="first_name" />
+                                        <Form.Control
+                                            rule={nameRule}
+                                            name="first_name"
+                                            placeholder="Milan"
+                                        />
                                         <Form.HelpText>
                                             Dein Vorname mit dem du angesprochen werden möchtest.
                                         </Form.HelpText>
                                     </Form.Group>
                                     <Form.Group>
                                         <Form.ControlLabel>Nachname *</Form.ControlLabel>
-                                        <Form.Control rule={nameRule} name="last_name" />
+                                        <Form.Control
+                                            rule={nameRule}
+                                            placeholder="Mustermensch"
+                                            name="last_name"
+                                        />
                                         <Form.HelpText>
                                             Dein Nachname mit dem du angesprochen werden möchtest.
                                         </Form.HelpText>
                                     </Form.Group>
                                     <Form.Group>
                                         <Form.ControlLabel>Pronomen</Form.ControlLabel>
-                                        <Form.Control name="pronouns" />
+                                        <Form.Control name="pronouns" placeholder="er/ihm/seine" />
                                     </Form.Group>
                                 </div>
                             ) : (
@@ -257,53 +317,71 @@ class MyData extends Component<MyDataProps, MyDataState> {
                                 </div>
                             )}
                         </div>
-                        <br />
+
                         <div>
                             <h3>Kontakt</h3>
                             <div>
                                 <Form.Group>
                                     <Form.ControlLabel>E-Mail *</Form.ControlLabel>
-                                    <Form.Control rule={emailRule} type="email" name="email" />
+                                    <Form.Control
+                                        rule={emailRule}
+                                        type="email"
+                                        name="email"
+                                        placeholder="mail@example.com"
+                                    />
                                 </Form.Group>
-                            </div>
-                            <div>
+
                                 <Form.Group>
-                                    <Form.ControlLabel>Telefonnummer</Form.ControlLabel>
-                                    <Form.Control name="phone" />
+                                    <Form.ControlLabel>
+                                        Telefonnummer (Mit internationaler Vorwahl)
+                                    </Form.ControlLabel>
+                                    <Form.Control name="phone" placeholder="+49176..." />
                                 </Form.Group>
                             </div>
                         </div>
-                        <br />
+
                         <div>
                             <h3>Adresse</h3>
                             <div>
                                 <Form.Group name="address">
                                     <Form.ControlLabel>Straße *</Form.ControlLabel>
-                                    <Form.Control rule={nameRule} name="street" />
+                                    <Form.Control
+                                        rule={nameRule}
+                                        name="street"
+                                        placeholder="Regenbogenstraße"
+                                    />
                                 </Form.Group>
                                 <Form.Group>
                                     <Form.ControlLabel>Hausnummer *</Form.ControlLabel>
-                                    <Form.Control rule={nameRule} name="number" />
+                                    <Form.Control rule={nameRule} name="number" placeholder="69" />
                                 </Form.Group>
                                 <Form.Group>
                                     <Form.ControlLabel>Adresszusatz</Form.ControlLabel>
-                                    <Form.Control name="addition" />
+                                    <Form.Control name="addition" placeholder="Apartment 1999" />
                                 </Form.Group>
 
                                 <Form.Group>
                                     <Form.ControlLabel>PLZ *</Form.ControlLabel>
-                                    <Form.Control rule={nameRule} name="zip" />
+                                    <Form.Control rule={nameRule} name="zip" placeholder="86150" />
                                 </Form.Group>
                                 <Form.Group>
                                     <Form.ControlLabel>Stadt *</Form.ControlLabel>
-                                    <Form.Control rule={nameRule} name="city" />
+                                    <Form.Control
+                                        rule={nameRule}
+                                        name="city"
+                                        placeholder="Augsburg"
+                                    />
                                 </Form.Group>
                                 <Form.Group>
                                     <Form.ControlLabel>Land *</Form.ControlLabel>
-                                    <Form.Control rule={nameRule} name="country" />
+                                    <Form.Control
+                                        rule={nameRule}
+                                        name="country"
+                                        placeholder="Deutschland"
+                                    />
                                 </Form.Group>
                             </div>
-                            <br />
+
                             <div>
                                 <h3>Sonstiges</h3>
                                 <Form.Group>
@@ -319,7 +397,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
                                     </Form.HelpText>
                                 </Form.Group>
                             </div>
-                            <br />
+
                             <div>
                                 <h3>Zustimmung</h3>
                                 <Form.Group>
@@ -332,13 +410,18 @@ class MyData extends Component<MyDataProps, MyDataState> {
                                             Ich bin über 18 Jahre alt.
                                         </Checkbox>
                                         <Checkbox name="approved_charter" value="approved_charter">
-                                            Ich habe die <a href="/satzung.pdf">Satzung</a> gelesen
-                                            und stimme ihr zu.
+                                            Ich habe die{" "}
+                                            <a target={"_blank"} href="/Queer-Augsburg_Satzung.pdf">
+                                                Satzung
+                                            </a>{" "}
+                                            gelesen und stimme ihr zu.
                                         </Checkbox>
                                         <Checkbox name="approved_privacy" value="approved_privacy">
                                             Ich habe die{" "}
-                                            <a href="/impressum">Datenschutzerklärung</a> gelesen
-                                            und stimme ihr zu.
+                                            <a target={"_blank"} href="/impressum">
+                                                Datenschutzerklärung
+                                            </a>{" "}
+                                            gelesen und stimme ihr zu.
                                         </Checkbox>
                                     </Form.Control>
                                 </Form.Group>

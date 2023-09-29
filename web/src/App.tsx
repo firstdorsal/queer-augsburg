@@ -4,7 +4,6 @@ import Nav from "./components/Nav";
 import Redirect from "./components/Redirect";
 import Treffen from "./pages/Treffen";
 import Wir from "./pages/Wir";
-import Verein from "./pages/Verein";
 import Kontakt from "./pages/Kontakt";
 import Logo from "./components/Logo";
 import "@fontsource/inter/700.css";
@@ -122,7 +121,6 @@ export default class App extends Component<AppProps, AppState> {
                         <Router>
                             <Treffen g={this.state.g} path="/" />
                             <Wir g={this.state.g} path="/wir" />
-                            <Verein path="/verein" />
                             <Kontakt path="/kontakt" />
                             <Ich g={this.state.g} path="/ich" />
                             <Admin g={this.state.g} path="/admin" />

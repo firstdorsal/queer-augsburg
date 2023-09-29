@@ -13,14 +13,6 @@ const navItems = [
         href: "/wir"
     },
     {
-        name: "Ich",
-        href: "/ich"
-    },
-    {
-        name: "Verein",
-        href: "/verein"
-    },
-    {
         name: "Kontakt",
         href: "/kontakt"
     },
@@ -48,14 +40,52 @@ export default class Nav extends Component<NavProps, NavState> {
                             </li>
                         );
                     })}
-
-                    {this.props.g.admin && (
-                        <li>
-                            <Link draggable={false} activeClassName="active" href={"/admin"}>
-                                Admin
-                            </Link>
-                        </li>
-                    )}
+                    {(() => {
+                        if (this.props.g.loggedIn) {
+                            if (this.props.g.admin) {
+                                return (
+                                    <li>
+                                        <Link
+                                            draggable={false}
+                                            activeClassName="active"
+                                            href={"/admin"}
+                                        >
+                                            Admin
+                                        </Link>
+                                    </li>
+                                );
+                            } else {
+                                return (
+                                    <li>
+                                        <Link
+                                            draggable={false}
+                                            activeClassName="active"
+                                            href={"/ich"}
+                                        >
+                                            Ich
+                                        </Link>
+                                    </li>
+                                );
+                            }
+                        } else {
+                            return (
+                                <li>
+                                    <button
+                                        draggable={false}
+                                        onClick={() => {
+                                            if (this.props.g.uiConfig) {
+                                                window.location.href =
+                                                    this.props.g.uiConfig.interosseaWebAddress +
+                                                    "/login?rid=qa_ich";
+                                            }
+                                        }}
+                                    >
+                                        Login
+                                    </button>
+                                </li>
+                            );
+                        }
+                    })()}
                 </ul>
             </nav>
         );
