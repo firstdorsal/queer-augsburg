@@ -177,7 +177,11 @@ impl DB {
         from_index: u64,
     ) -> anyhow::Result<(Vec<User>, u32)> {
         let collection = self.db.collection::<User>("users");
-        let find_options = FindOptions::builder().limit(limit).skip(from_index).build();
+        let find_options = FindOptions::builder()
+            .limit(limit)
+            .skip(from_index)
+            .sort(doc! {"start_time_secs": -1})
+            .build();
 
         // member exists and is not null
         let selector = doc! {

@@ -50,7 +50,7 @@ export default class SingleUser extends Component<SingleUserProps, SingleUserSta
                             <div>Institution: {m.institution}</div>
                         )}
                         <div>Email: {m.email}</div>
-
+                        <div>Typ: {m.type}</div>
                         <div className={"pronouns"}>Pronomen: {m.pronouns}</div>
 
                         <div>Referenz: {m.reference}</div>
