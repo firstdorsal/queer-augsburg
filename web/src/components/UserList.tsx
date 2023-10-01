@@ -8,6 +8,7 @@ import SingleUser from "./SingleUser";
 import InfiniteLoader from "react-window-infinite-loader";
 import { AutoSizer } from "rsuite/esm/Windowing";
 import UserStats from "./UserStats";
+import { Meeting } from "../apiTypes/Meeting";
 
 interface UserListProps {
     readonly g: G;
@@ -16,6 +17,7 @@ interface UserListProps {
 interface UserListState {
     readonly users: User[];
     readonly userCount: number;
+    readonly meetings: Meeting[];
 }
 export default class UserList extends Component<UserListProps, UserListState> {
     moreLoading = false;
@@ -23,7 +25,8 @@ export default class UserList extends Component<UserListProps, UserListState> {
         super(props);
         this.state = {
             users: [],
-            userCount: 0
+            userCount: 0,
+            meetings: []
         };
     }
     componentDidMount = async () => {
@@ -32,7 +35,8 @@ export default class UserList extends Component<UserListProps, UserListState> {
 
     loadData = async () => {
         const res = await this.props.qaClient.get_users(0, 10);
-        this.setState({ users: res.users, userCount: res.total_count });
+        const { meetings } = await this.props.qaClient.get_meetings(0, null);
+        this.setState({ users: res.users, userCount: res.total_count, meetings });
     };
 
     loadMoreUsers = async (startIndex: number, limit: number) => {
@@ -97,6 +101,7 @@ export default class UserList extends Component<UserListProps, UserListState> {
                                                     reloadUserList={this.reloadUserList}
                                                     g={this.props.g}
                                                     user={currentItem}
+                                                    meetings={this.state.meetings}
                                                 />
                                             </div>
                                         );

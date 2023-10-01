@@ -39,6 +39,12 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
         await this.loadData();
     };
 
+    componentDidUpdate = async (prevProps: MeetingListProps) => {
+        if (prevProps.g.meetingId !== this.props.g.meetingId) {
+            await this.loadData();
+        }
+    };
+
     loadData = async () => {
         if (this.props.g.meetingId) {
             const res = await this.props.qaClient.get_meetings(0, null, this.props.type);

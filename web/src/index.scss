@@ -115,6 +115,20 @@ body,
     .UserStats {
         margin-bottom: 20px;
     }
+
+    .MeetingReference {
+        max-width: 250px;
+        display: inline-block;
+        vertical-align: middle;
+
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        background-color: var(--background-color-2);
+        border-radius: 10px;
+        padding: 0px 5px;
+        cursor: pointer;
+    }
 }
 
 .Pad {

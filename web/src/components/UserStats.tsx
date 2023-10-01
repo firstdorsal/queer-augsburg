@@ -4,6 +4,7 @@ import { G } from "../types";
 interface UserStatsProps {
     readonly g: G;
 }
+
 interface UserStatsState {
     readonly total: number;
     readonly active: number;
@@ -11,6 +12,7 @@ interface UserStatsState {
     readonly institutions: number;
     readonly natural_persons: number;
 }
+
 export default class UserStats extends Component<UserStatsProps, UserStatsState> {
     constructor(props: UserStatsProps) {
         super(props);

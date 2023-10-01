@@ -5,12 +5,14 @@ import { Button, Input, Message, Modal, SelectPicker, Toggle, useToaster } from 
 import { MembershipStatus } from "../apiTypes/MembershipStatus";
 import { withToasterHook } from "../utils";
 import UserList from "./UserList";
+import { Meeting } from "../apiTypes/Meeting";
 
 interface SingleUserProps {
     readonly user: User;
     readonly g: G;
     readonly toaster: ReturnType<typeof useToaster>;
     readonly reloadUserList: InstanceType<typeof UserList>["reloadUserList"];
+    readonly meetings: Meeting[];
 }
 interface SingleUserState {
     readonly awaitingResponse: boolean;
@@ -30,6 +32,19 @@ class SingleUser extends Component<SingleUserProps, SingleUserState> {
             updateStatusModalOpen: false
         };
     }
+
+    expandReference = (reference: string | null) => {
+        const maybeMeeting = this.props.meetings.find(m => m._id === reference);
+        if (maybeMeeting) {
+            return (
+                <a className="MeetingReference" href={`/?m=${maybeMeeting._id}`}>
+                    {maybeMeeting.title}
+                </a>
+            );
+        } else {
+            return <span>{reference}</span>;
+        }
+    };
 
     update_member_application_status = async () => {
         if (this.props.g.qaClient === null) {
@@ -94,7 +109,7 @@ class SingleUser extends Component<SingleUserProps, SingleUserState> {
                         <div>Typ: {m.type}</div>
                         <div className={"pronouns"}>Pronomen: {m.pronouns}</div>
 
-                        <div>Referenz: {m.reference}</div>
+                        <div>Referenz: {this.expandReference(m.reference)}</div>
                         <div>Phone: {m.phone}</div>
                         <div>User Notes: {m.user_notes}</div>
                         <div>
