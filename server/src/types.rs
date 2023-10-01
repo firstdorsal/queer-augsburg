@@ -131,7 +131,7 @@ pub struct InternalMember {
     pub phone: Option<String>,
     pub start_time_secs: i64,
     pub end_time_secs: Option<i64>,
-    pub approved: bool,
+    pub status: Option<MembershipStatus>,
     pub user_notes: Option<String>,
     pub admin_notes: Option<String>,
     pub reference: Option<String>,
@@ -139,6 +139,17 @@ pub struct InternalMember {
     pub approved_privacy: bool,
     pub above_18: bool,
     pub honorary: bool,
+}
+
+#[derive(TS)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+pub enum MembershipStatus {
+    Approved,
+    Rejected,
+    Pending,
+    Left,
+    Expelled,
 }
 
 #[derive(TS)]
@@ -232,6 +243,9 @@ pub struct SetOwnMemberDataRequestBody {
 #[derive(TS)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
-pub struct AcceptMemberApplicationRequestBody {
+pub struct UpdateMemberStatusRequestBody {
     pub user_id: String,
+    pub new_status: MembershipStatus,
+    pub send_mail: bool,
+    pub update_reason: Option<String>,
 }

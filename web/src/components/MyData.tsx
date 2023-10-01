@@ -18,6 +18,7 @@ import { SubmittedMember } from "../apiTypes/SubmittedMember";
 import { withToasterHook } from "../utils";
 import EyeIcon from "@rsuite/icons/legacy/Eye";
 import EyeSlashIcon from "@rsuite/icons/legacy/EyeSlash";
+import { MembershipStatus } from "../apiTypes/MembershipStatus";
 
 const nameRule = Schema.Types.StringType().isRequired("Diese Information ist nicht optional.");
 const emailRule = Schema.Types.StringType()
@@ -33,7 +34,7 @@ interface MyDataState {
     readonly loadedUserData: boolean;
     readonly responseMessage: string;
     readonly responseMessageType: "success" | "error" | null;
-    readonly isConfirmedMember: "approved" | "pending" | "none";
+    readonly status: MembershipStatus | null;
     readonly passNameVisible: boolean;
 }
 class MyData extends Component<MyDataProps, MyDataState> {
@@ -47,7 +48,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
             loadedUserData: false,
             responseMessage: "",
             responseMessageType: null,
-            isConfirmedMember: "none",
+            status: null,
             passNameVisible: false
         };
     }
@@ -62,7 +63,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
             this.setState(state => {
                 return update(state, {
                     loadedUserData: { $set: true },
-                    isConfirmedMember: { $set: memberData.approved ? "approved" : "pending" },
+                    status: { $set: memberData.status },
                     formData: {
                         $set: {
                             type: memberData.type,
@@ -149,7 +150,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
             ?.update_own_member_data(m)
             .then(() => {
                 this.setState({
-                    isConfirmedMember: "pending"
+                    status: "Pending"
                 });
                 this.props.toaster.push(
                     <Message showIcon type={"success"} closable>
@@ -184,15 +185,21 @@ class MyData extends Component<MyDataProps, MyDataState> {
                 <p>Hier kannst du unseren Mitgliedsantrag ausfüllen oder deine Daten abändern.</p>
                 <h2>Status</h2>
                 {(() => {
-                    if (this.state.isConfirmedMember === "approved") {
+                    if (this.state.status === "Approved") {
                         return <p>Du bist Mitglied von Queer Augsburg!</p>;
-                    } else if (this.state.isConfirmedMember === "pending") {
+                    } else if (this.state.status === "Pending") {
                         return (
                             <p>
                                 Dein Mitgliedsantrag ist eingegangen wurde aber noch nicht
                                 bestätigt.
                             </p>
                         );
+                    } else if (this.state.status === "Rejected") {
+                        return <p>Dein Mitgliedsantrag wurde abgelehnt.</p>;
+                    } else if (this.state.status === "Left") {
+                        return <p>Du hast Queer Augsburg verlassen.</p>;
+                    } else if (this.state.status === "Expelled") {
+                        return <p>Du wurdest von Queer Augsburg ausgeschlossen.</p>;
                     } else {
                         return <p>Du bist noch kein Mitglied von Queer Augsburg.</p>;
                     }

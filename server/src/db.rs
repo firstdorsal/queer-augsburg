@@ -1,6 +1,9 @@
-use crate::types::{InternalMember, Meeting, MeetingTypeQuery, User};
+use crate::types::{
+    InternalMember, Meeting, MeetingTypeQuery, MembershipStatus, SubmittedMember, User,
+};
 use crate::utils::generate_id;
 use anyhow::bail;
+use bson::bson;
 use futures::stream::TryStreamExt;
 use mongodb::options::FindOptions;
 use mongodb::{bson::doc, options::ClientOptions, Client, Database};
@@ -141,7 +144,7 @@ impl DB {
     pub async fn update_member_data(
         &self,
         user_id: &str,
-        member: InternalMember,
+        submitted_member: SubmittedMember,
     ) -> anyhow::Result<()> {
         let users = self.db.collection::<User>("users");
         let original_users = self.db.collection::<User>("originalUsers");
@@ -149,12 +152,41 @@ impl DB {
 
         match user {
             Some(mut user) => {
+                let present_member = user.member.clone();
+
+                let updated_member = InternalMember {
+                    _type: submitted_member._type,
+                    name: submitted_member.name,
+                    institution: submitted_member.institution,
+                    email: submitted_member.email,
+                    phone: submitted_member.phone,
+                    address: submitted_member.address,
+                    above_18: submitted_member.above_18,
+                    approved_charter: submitted_member.approved_charter,
+                    approved_privacy: submitted_member.approved_privacy,
+                    natural_person: submitted_member.natural_person,
+                    admin_notes: present_member.as_ref().and_then(|m| m.admin_notes.clone()),
+                    reference: submitted_member.reference,
+                    end_time_secs: present_member.as_ref().and_then(|m| m.end_time_secs),
+
+                    honorary: present_member.as_ref().map_or(false, |m| m.honorary),
+                    pronouns: submitted_member.pronouns,
+                    start_time_secs: present_member.as_ref().map_or_else(
+                        || chrono::Utc::now().timestamp() * 1000,
+                        |m| m.start_time_secs,
+                    ),
+                    status: present_member
+                        .as_ref()
+                        .map_or(Some(MembershipStatus::Pending), |m| m.status.clone()),
+                    user_notes: submitted_member.user_notes,
+                };
+
                 match user.member {
                     Some(_) => {
-                        user.member = Some(member);
+                        user.member = Some(updated_member);
                     }
                     None => {
-                        user.member = Some(member);
+                        user.member = Some(updated_member);
                         original_users.insert_one(user.clone(), None).await?;
                     }
                 }
@@ -203,9 +235,21 @@ impl DB {
         Ok((users, count as u32))
     }
 
-    pub async fn accept_member_application(&self, user_id: &str) -> anyhow::Result<()> {
+    pub async fn update_member_status(
+        &self,
+        user_id: &str,
+        new_status: &MembershipStatus,
+    ) -> anyhow::Result<()> {
         let users = self.db.collection::<User>("users");
         let user = users.find_one(doc! { "_id": user_id }, None).await?;
+
+        let new_status_string = match new_status {
+            MembershipStatus::Approved => "Approved",
+            MembershipStatus::Rejected => "Rejected",
+            MembershipStatus::Pending => "Pending",
+            MembershipStatus::Left => "Left",
+            MembershipStatus::Expelled => "Expelled",
+        };
 
         match user {
             Some(user) => {
@@ -215,7 +259,7 @@ impl DB {
                         users
                             .update_one(
                                 doc! { "_id": user_id },
-                                doc! { "$set": { "member.approved": true } },
+                                doc! { "$set": { "member.status": new_status_string } },
                                 None,
                             )
                             .await?;

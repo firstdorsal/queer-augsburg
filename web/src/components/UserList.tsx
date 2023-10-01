@@ -51,6 +51,11 @@ export default class UserList extends Component<UserListProps, UserListState> {
         }
     };
 
+    reloadUserList = async () => {
+        const res = await this.props.qaClient.get_users(0, null);
+        this.setState({ users: res.users, userCount: res.total_count });
+    };
+
     render = () => {
         return (
             <div className="UserList">
@@ -83,7 +88,11 @@ export default class UserList extends Component<UserListProps, UserListState> {
 
                                         return (
                                             <div style={style}>
-                                                <SingleUser g={this.props.g} user={currentItem} />
+                                                <SingleUser
+                                                    reloadUserList={this.reloadUserList}
+                                                    g={this.props.g}
+                                                    user={currentItem}
+                                                />
                                             </div>
                                         );
                                     }}

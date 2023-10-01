@@ -1,12 +1,12 @@
 use backend::config::SERVER_CONFIG;
 use backend::db::DB;
 use backend::interossea::{get_session_cookie, Auth, Interossea, UserAssertion, INTEROSSEA};
-use backend::methods::accept_member_application::accept_member_application;
 use backend::methods::create_own_user::create_own_user;
 use backend::methods::get_meetings::get_meetings;
 use backend::methods::get_own_user::get_own_user;
 use backend::methods::get_users::get_users;
 use backend::methods::update_meeting::update_meeting;
+use backend::methods::update_member_status::update_member_status;
 use backend::methods::update_own_member_data::update_own_member_data;
 use backend::utils::{get_token_from_query, import_old_meetings, is_allowed_origin};
 use hyper::server::conn::AddrStream;
@@ -168,8 +168,8 @@ async fn handle_inner(
         get_own_user(req, db, &auth, res).await
     } else if p.starts_with("/create_own_user/") && m == Method::POST {
         create_own_user(req, db, &auth, res).await
-    } else if p.starts_with("/accept_member_application/") && m == Method::POST {
-        accept_member_application(req, db, &auth, res).await
+    } else if p.starts_with("/update_member_status/") && m == Method::POST {
+        update_member_status(req, db, &auth, res).await
     } else if p.starts_with("/update_own_member_data/") && m == Method::POST {
         update_own_member_data(req, db, &auth, res).await
     } else if p == "/get_assertion_validity_seconds/" && m == Method::GET {

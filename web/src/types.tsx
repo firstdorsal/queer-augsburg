@@ -46,3 +46,5 @@ export const queerTags = [
     "Inter",
     "Poly"
 ];
+
+export const memberShipStatuses = ["Pending", "Approved", "Rejected", "Left", "Expelled"];

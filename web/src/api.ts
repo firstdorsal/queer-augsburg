@@ -5,6 +5,7 @@ import { User } from "./apiTypes/User";
 import { MeetingTypeQuery } from "./apiTypes/MeetingTypeQuery";
 import { SubmittedMember } from "./apiTypes/SubmittedMember";
 import { GetUsersResponseBody } from "./apiTypes/GetUsersResponseBody";
+import { MembershipStatus } from "./apiTypes/MembershipStatus";
 
 export class QaClient {
     interosseaClient: InterosseaClient;
@@ -48,8 +49,12 @@ export class QaClient {
         return meetings;
     };
 
-    get_users = async (from_index = 0, limit = 10) => {
-        const res = await fetch(`${this.qaEndpoint}/api/get_users/?i=${from_index}&l=${limit}`, {
+    get_users = async (from_index: number, limit: number | null) => {
+        const url = `${this.qaEndpoint}/api/get_users/?i=${from_index}${
+            limit === null ? "" : "&l=" + limit
+        }`;
+
+        const res = await fetch(url, {
             credentials: "include"
         });
         const users: GetUsersResponseBody = await res.json();
@@ -103,13 +108,21 @@ export class QaClient {
         return success;
     };
 
-    accept_member_application = async (user_id: string) => {
-        const res = await fetch(`${this.qaEndpoint}/api/accept_member_application/`, {
+    update_member_status = async (
+        user_id: string,
+        new_status: MembershipStatus,
+        send_mail: boolean,
+        update_reason?: string
+    ) => {
+        return fetch(`${this.qaEndpoint}/api/update_member_status/`, {
             method: "POST",
             credentials: "include",
-            body: JSON.stringify({ user_id })
+            body: JSON.stringify({
+                user_id,
+                new_status,
+                send_mail,
+                update_reason: update_reason?.length ? update_reason : null
+            })
         });
-        const success = res.status === 200;
-        return success;
     };
 }

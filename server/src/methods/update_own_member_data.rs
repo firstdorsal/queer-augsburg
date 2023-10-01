@@ -26,31 +26,7 @@ pub async fn update_own_member_data(
     // more valdiation
     validate_submitted_member(&uoub.member)?;
 
-    let sm = uoub.member;
-    let current_time = chrono::Utc::now().timestamp();
-
-    let internal_member = InternalMember {
-        _type: sm._type,
-        natural_person: sm.natural_person,
-        name: sm.name,
-        institution: sm.institution,
-        pronouns: sm.pronouns,
-        address: sm.address,
-        email: sm.email,
-        phone: sm.phone,
-        start_time_secs: current_time,
-        end_time_secs: None,
-        approved: false,
-        user_notes: sm.user_notes,
-        admin_notes: None,
-        reference: sm.reference,
-        approved_charter: sm.approved_charter,
-        approved_privacy: sm.approved_privacy,
-        above_18: sm.above_18,
-        honorary: false,
-    };
-
-    db.update_member_data(user_id, internal_member).await?;
+    db.update_member_data(user_id, uoub.member).await?;
 
     Ok(res.body(Body::from("Ok"))?)
 }
