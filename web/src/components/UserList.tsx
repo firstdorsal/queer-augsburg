@@ -7,6 +7,7 @@ import { FixedSizeList } from "react-window";
 import SingleUser from "./SingleUser";
 import InfiniteLoader from "react-window-infinite-loader";
 import { AutoSizer } from "rsuite/esm/Windowing";
+import UserStats from "./UserStats";
 
 interface UserListProps {
     readonly g: G;
@@ -59,6 +60,10 @@ export default class UserList extends Component<UserListProps, UserListState> {
     render = () => {
         return (
             <div className="UserList">
+                <div className={"Pad"}>
+                    <h1>Mitglieder</h1>
+                    <UserStats g={this.props.g} />
+                </div>
                 <AutoSizer>
                     {({ height, width }) => (
                         <InfiniteLoader

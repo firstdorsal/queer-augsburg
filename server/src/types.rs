@@ -192,7 +192,7 @@ pub struct Address {
     pub number: String,
     #[validate(length(min = 1, max = 50))]
     pub addition: Option<String>,
-    #[validate(length(min = 1, max = 5))]
+    #[validate(length(min = 5, max = 5))]
     pub zip: String,
     #[validate(length(min = 1, max = 50))]
     pub city: String,
