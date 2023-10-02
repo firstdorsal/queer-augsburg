@@ -3,7 +3,6 @@ use crate::types::{
 };
 use crate::utils::generate_id;
 use anyhow::bail;
-use bson::bson;
 use futures::stream::TryStreamExt;
 use mongodb::options::FindOptions;
 use mongodb::{bson::doc, options::ClientOptions, Client, Database};

@@ -174,6 +174,7 @@ export default class Wir extends Component<WirProps, WirState> {
                     Wir bieten einen offenen Austausch zu bestimmten queeren Thematiken. Beispiele
                     waren hier: Queere Repräsentation in Medien oder Queer Dating
                 </p>
+                <b>Queer Augsburg Ideas</b>
                 <p>
                     Bei Queer Augsburg Ideas sammeln wir Ideen, Wünsche und Vorschläge für kommende
                     Treffen und erarbeiten gemeinsam das Programm für die kommenden Monate.

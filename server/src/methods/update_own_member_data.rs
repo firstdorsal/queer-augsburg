@@ -1,7 +1,7 @@
 use crate::{
     db::DB,
     interossea::Auth,
-    types::{InternalMember, SetOwnMemberDataRequestBody, SubmittedMember},
+    types::{SetOwnMemberDataRequestBody, SubmittedMember},
 };
 use anyhow::bail;
 use hyper::{Body, Request, Response};

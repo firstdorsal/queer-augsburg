@@ -2,7 +2,7 @@ use crate::{db::DB, interossea::Auth};
 use hyper::{Body, Request, Response};
 
 pub async fn create_own_user(
-    req: Request<Body>,
+    _req: Request<Body>,
     db: DB,
     auth: &Auth,
     res: hyper::http::response::Builder,
