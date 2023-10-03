@@ -91,7 +91,7 @@ body,
     width: 100%;
     > div {
         height: 100%;
-        overflow: hidden;
+        overflow-x: hidden;
     }
     .MyData {
         padding: 0px 40px;
@@ -106,13 +106,20 @@ body,
 }
 
 .Wir,
+.Ich,
 .Impressum {
     padding-bottom: 40px !important;
 }
 
-.MeetingList,
 .UserList {
     height: calc(100% - 100px);
+}
+.MeetingList {
+    height: 100%;
+}
+
+.MeetingList,
+.UserList {
     width: 100%;
 
     overflow-x: hidden;

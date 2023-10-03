@@ -72,30 +72,6 @@ export default class App extends Component<AppProps, AppState> {
 
         await client.init().catch(() => {});
 
-        client
-            .create_own_user()
-            .then(async () => {
-                const account = await client.get_own_user();
-                this.setState(state => {
-                    return update(state, {
-                        g: {
-                            loggedIn: { $set: true },
-                            admin: { $set: account.admin }
-                        }
-                    });
-                });
-            })
-            .catch(() => {
-                this.setState(state => {
-                    return update(state, {
-                        g: {
-                            loggedIn: { $set: false },
-                            admin: { $set: false }
-                        }
-                    });
-                });
-            });
-
         this.setState(state => {
             return update(state, {
                 g: {
@@ -103,6 +79,34 @@ export default class App extends Component<AppProps, AppState> {
                     qaClient: {
                         $set: client
                     }
+                }
+            });
+        });
+
+        await client.create_own_user().catch(() => {
+            this.setState(state => {
+                return update(state, {
+                    g: {
+                        loggedIn: { $set: false },
+                        admin: { $set: false }
+                    }
+                });
+            });
+        });
+
+        // await timeout
+        // in ff this is needed to prevent a bug where the user is not logged in
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        const account = await client.get_own_user().catch(async () => {
+            return await client.get_own_user();
+        });
+
+        this.setState(state => {
+            return update(state, {
+                g: {
+                    loggedIn: { $set: true },
+                    admin: { $set: account.admin }
                 }
             });
         });
