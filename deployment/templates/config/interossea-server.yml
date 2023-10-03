@@ -16,7 +16,6 @@ createUsers:
 magicLink:
     cooldownMinutes: 1
     expirationMinutes: 10
-    skipIpCheck: true
 
 keyFolder: /keys/
 
@@ -24,6 +23,9 @@ services:
     - id: qa
       allowedOrigins: [{{ ternary "https://" "http://" $config.tls true }}{{ $qaWebHostname}}]
 
+security:
+    usePreSessionIds: false
+    useIpCheck: false
 
 mail:
     username: {{ $config.interossea.server.mail.username}}
