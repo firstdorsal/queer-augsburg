@@ -11,6 +11,7 @@ interface UserStatsState {
     readonly support: number;
     readonly institutions: number;
     readonly natural_persons: number;
+    readonly pending: number;
 }
 
 export default class UserStats extends Component<UserStatsProps, UserStatsState> {
@@ -21,7 +22,8 @@ export default class UserStats extends Component<UserStatsProps, UserStatsState>
             active: 0,
             support: 0,
             institutions: 0,
-            natural_persons: 0
+            natural_persons: 0,
+            pending: 0
         };
     }
 
@@ -36,22 +38,27 @@ export default class UserStats extends Component<UserStatsProps, UserStatsState>
         let support = 0;
         let institutions = 0;
         let natural_persons = 0;
+        let pending = 0;
 
         for (const user of all_users.users) {
             const member = user.member;
             if (member) {
-                total++;
-                if (member.type === "Active") {
-                    active++;
-                }
-                if (member.type === "Supporting") {
-                    support++;
-                }
+                if (member.status === "Approved") {
+                    total++;
+                    if (member.type === "Active") {
+                        active++;
+                    }
+                    if (member.type === "Supporting") {
+                        support++;
+                    }
 
-                if (member.natural_person) {
-                    natural_persons++;
-                } else {
-                    institutions++;
+                    if (member.natural_person) {
+                        natural_persons++;
+                    } else {
+                        institutions++;
+                    }
+                } else if (member.status === "Pending") {
+                    pending++;
                 }
             }
         }
@@ -60,18 +67,20 @@ export default class UserStats extends Component<UserStatsProps, UserStatsState>
             active,
             support,
             institutions,
-            natural_persons
+            natural_persons,
+            pending
         });
     };
 
     render = () => {
         return (
             <div className="UserStats">
-                <div>Alle Mitglieder: {this.state?.total}</div>
-                <div>Aktive Mitglieder: {this.state?.active}</div>
-                <div>Fördermitglieder: {this.state?.support}</div>
-                <div>Einrichtungen: {this.state?.institutions}</div>
-                <div>Natürliche Personen: {this.state?.natural_persons}</div>
+                <span>Alle: {this.state?.total}</span>
+                <span>Aktive: {this.state?.active}</span>
+                <span>Förder: {this.state?.support}</span>
+                <span>Einrichtungen: {this.state?.institutions}</span>
+                <span>Natürliche Personen: {this.state?.natural_persons}</span>
+                <span>Antrag gestellt: {this.state?.pending}</span>
             </div>
         );
     };

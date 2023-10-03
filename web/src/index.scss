@@ -91,7 +91,7 @@ body,
     width: 100%;
     > div {
         height: 100%;
-        overflow-x: hidden;
+        overflow: hidden;
     }
     .MyData {
         padding: 0px 40px;
@@ -112,14 +112,10 @@ body,
 
 .MeetingList,
 .UserList {
-    height: 100%;
+    height: calc(100% - 100px);
     width: 100%;
 
     overflow-x: hidden;
-
-    .UserStats {
-        margin-bottom: 20px;
-    }
 
     .MeetingReference {
         max-width: 250px;
@@ -141,6 +137,12 @@ body,
     @media (max-width: $bp1) {
         padding: 0px 20px;
         box-sizing: border-box;
+    }
+}
+
+.UserStats {
+    > span {
+        margin: 0px 5px;
     }
 }
 
