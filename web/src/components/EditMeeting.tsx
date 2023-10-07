@@ -211,6 +211,18 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <br />
                         <b>Ort (Name und Koordinaten)</b>
                         <br />
+                        <p>
+                            Rechtsklick/Lange drücken {">"} Adresse Anzeigen {">"} Koordinaten
+                            kopieren (Linktext Kopieren)
+                        </p>
+                        <a
+                            target="_blank"
+                            rel="noreferrer"
+                            href="https://www.openstreetmap.org/#map=14/48.3601/10.8934"
+                        >
+                            Open Street Map
+                        </a>
+                        <br />
                         <Input
                             onChange={v => {
                                 this.setState(state => {
