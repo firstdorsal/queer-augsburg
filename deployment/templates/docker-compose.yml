@@ -16,8 +16,9 @@ services:
         build:
             context: {{ $config.qa.web.build.path }}
             dockerfile: {{ $config.qa.web.build.dockerfile }}
-        {{- end }}
+        {{- else }}
         image: firstdorsal/queer-augsburg-web
+        {{- end }}        
         container_name: qa-web
         restart: always
         networks:
@@ -57,8 +58,10 @@ services:
         build:
             context: {{ $config.qa.server.build.path }}
             dockerfile: {{ $config.qa.server.build.dockerfile }}
-        {{- end }}
+        {{- else }}
         image: firstdorsal/queer-augsburg-server
+        {{- end }}
+        
         container_name: qa-server
         networks:
             - qadb
@@ -126,8 +129,10 @@ services:
         build:
             context: {{ $config.interossea.web.build.path }}
             dockerfile: {{ $config.interossea.web.build.dockerfile }}
-        {{- end }}
+        {{- else }}
         image: firstdorsal/interossea-web
+        {{- end }}
+        
         container_name: qa-interossea-web
         volumes:
             - ./config/interossea-web.yml:/config.yml:ro
@@ -193,8 +198,9 @@ services:
         build:
             context: {{ $config.interossea.server.build.path }}
             dockerfile: {{ $config.interossea.server.build.dockerfile }}
-        {{- end }}
+        {{- else }}
         image: firstdorsal/interossea-server
+        {{- end }}
         container_name: qa-interossea-server
         restart: always
         networks:
