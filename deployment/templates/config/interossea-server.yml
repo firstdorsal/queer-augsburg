@@ -16,6 +16,7 @@ createUsers:
 magicLink:
     cooldownMinutes: 1
     expirationMinutes: 10
+    maxUseCount: 10
 
 keyFolder: /keys/
 
