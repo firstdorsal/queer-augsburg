@@ -46,7 +46,7 @@ interossea:
         mail:
             username: no-reply@queer-augsburg.de
             smtpServer: mx.vindelicum.eu
-            fromName: Interossea Login
+            fromName: Queer Augsburg
             fromAddress: no-reply@queer-augsburg.de
             userAgent: Sugar-Free-Mail-2023
             replyTo: mail@queer-augsburg.de

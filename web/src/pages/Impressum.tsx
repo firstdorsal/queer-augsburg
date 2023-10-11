@@ -154,6 +154,15 @@ export default class Impressum extends Component<ImpressumProps, ImpressumState>
                     vorgesehen wurde oder für einen Vertragsabschluss oder eine Vertragserfüllung
                     erforderlich ist.
                 </p>
+                <br />
+                <b>Technische Details</b>
+                <p>
+                    Deine Mitgliedsdaten sind an die von dir angegebene E-Mail-Adresse bzw. an den
+                    Zugang zu dieser geknüpft. Jeder mit Zugang zu deiner E-Mail-Adresse hat Zugang
+                    zu deinen Daten (Das unterscheidet sich nicht zu den allermeisten anderen Online
+                    Services). Sobald du in einem Browser angemeldet bist bleibst du bis zur
+                    Löschung deiner Cookies angemeldet.
+                </p>
                 <h3>Fotos bei Veranstaltungen</h3>
                 <p>
                     Fotos über unser Vereinsgeschehen können zum Zweck der Außendarstellung auf

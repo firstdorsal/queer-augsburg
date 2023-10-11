@@ -1,5 +1,4 @@
 import { Component } from "preact";
-import MyData from "../components/MyData";
 import { G } from "../types";
 
 interface WirProps {
@@ -30,6 +29,22 @@ export default class Wir extends Component<WirProps, WirState> {
                     Queer Augsburg Ideas. Die aktuellen Senator*innen sind Aurora, Helena, Julia und
                     Lane.
                 </p>
+                <h1>Mitglied werden</h1>
+                <p>
+                    Du kannst Mitglied bei uns werden indem du Online einen Mitgliedsantrag an uns
+                    schickst.
+                    <br />
+                    <b>Die Mitgliedschaft ist kostenlos und jederzeit kündbar.</b>
+                    <br />
+                    Um zum Formular zu gelangen, kannst du <a href="/ich">hier</a> klicken um per
+                    Mail einen Anmeldelink zu erhalten. <br /> Nachdem du den Link in der Mail
+                    angeklickt hast, kommst du in deinen eigenen Bereich auf unserer Seite, in dem
+                    du deine Daten für den Antrag eintragen kannst. Nach dem Absenden des Antrags
+                    bestätigen wir dir den Erhalt sowie die Annahme per Mail. <br /> Sollten sich
+                    deine Daten künftig ändern kannst du diese im selben Formular anpassen und
+                    speichern.
+                </p>
+
                 <h1>Offen für Alle.</h1>
                 <p>
                     Wir sind offen für alle Menschen. Bei uns ist jede*r willkommen. Sexuelle und

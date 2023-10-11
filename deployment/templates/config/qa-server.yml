@@ -5,7 +5,7 @@ http:
     internalAddress: "[::]:80"
 
 db:
-    url: mongodb://root:$MONGO_INITDB_ROOT_PASSWORD@qadb.localhost:{{ $config.qa.db.port }}
+    url: mongodb://root:$MONGODB_ROOT_PASSWORD@qa-db.localhost:{{ $config.qa.db.port }}
 dev:
     insecureSkipInterossea: false
     importOldMeetings: false

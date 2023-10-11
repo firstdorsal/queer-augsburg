@@ -36,6 +36,10 @@ mail:
     fromAddress: {{ $config.interossea.server.mail.fromAddress}}
     userAgent: {{ $config.interossea.server.mail.userAgent}}
     replyTo: {{ $config.interossea.server.mail.replyTo}}
+    templateConfig:
+        defaultLanguage: de
+        templateFolder: /email-templates/
+        languages: [en, de]
 
 http:
     internalAddress: "[::]:80"
@@ -43,7 +47,7 @@ http:
     protocol: {{ ternary "https" "http" $config.tls }}
 
 db:
-    url: mongodb://root:$MONGO_INITDB_ROOT_PASSWORD@qainterosseadb.localhost:{{ $config.interossea.server.db.port }}
+    url: mongodb://root:$MONGODB_ROOT_PASSWORD@qa-interossea-db.localhost:{{ $config.interossea.server.db.port }}
 
 uiOrigin: {{ ternary "https://" "http://" $config.tls true }}{{ $interosseaWebHostname}}
 
