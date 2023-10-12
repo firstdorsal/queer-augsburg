@@ -31,18 +31,28 @@ export default class Wir extends Component<WirProps, WirState> {
                 </p>
                 <h1>Mitglied werden</h1>
                 <p>
-                    Du kannst Mitglied bei uns werden indem du Online einen Mitgliedsantrag an uns
-                    schickst.
+                    Werde Mitglied bei Queer Augsburg!
+                    <b>Die Mitgliedschaft ist kostenlos und kann jederzeit beendet werden.</b>
+                    Du musst lediglich mindestens 18 Jahre alt sein und dich mit unseren Werten
+                    Offenheit, Akzeptanz, Respekt, Vielfalt, Freiheit, Teilhabe, Transparenz und
+                    Zusammenhalt identifizieren.
                     <br />
-                    <b>Die Mitgliedschaft ist kostenlos und jederzeit kündbar.</b>
+                    Wir müssen aus rechtlichen Gründen deinen Passnamen speichern. Da es aber sehr
+                    unwahrscheinlich ist, dass wir die Passnamen je brauchen, wird dieser nicht mal
+                    dem Vorstand ohne guten Grund angezeigt.
                     <br />
                     Um zum Formular zu gelangen, kannst du <a href="/ich">hier</a> klicken um per
                     Mail einen Anmeldelink zu erhalten. <br /> Nachdem du den Link in der Mail
                     angeklickt hast, kommst du in deinen eigenen Bereich auf unserer Seite, in dem
                     du deine Daten für den Antrag eintragen kannst. Nach dem Absenden des Antrags
-                    bestätigen wir dir den Erhalt sowie die Annahme per Mail. <br /> Sollten sich
-                    deine Daten künftig ändern kannst du diese im selben Formular anpassen und
-                    speichern.
+                    bestätigen wir dir die Annahme per Mail. <br /> Sollten sich deine Daten künftig
+                    ändern kannst du diese im selben Formular anpassen und speichern.
+                    <br />
+                    Der Vorstand entscheidet über deinen Antrag. Dies kann mitunter länger dauern,
+                    da wir einen Safe Space bei Queer Augsburg wahren wollen. Wir wollen daher
+                    sichergehen, dass es sich um echte Personen handelt, die uns nicht schaden
+                    wollen. Dein Mitgliedsantrag wird daher schneller bearbeitet, wenn du bei einem
+                    unserer Treffen beitrittst.
                 </p>
 
                 <h1>Offen für Alle.</h1>
