@@ -172,7 +172,7 @@ services:
         container_name: qa-interossea-db
         hostname: qa-interossea-db.localhost
         volumes:
-            - qa-interossea-db:/bitnami
+            - qa-interossea-db:/bitnami:rw
         {{- if eq $config.interossea.server.db.exposeToLocalhost true}}
         ports:
             - 127.0.0.1:{{ $config.interossea.server.db.port }}:{{ $config.interossea.server.db.port }}

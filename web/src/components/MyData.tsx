@@ -4,11 +4,14 @@ import {
     Checkbox,
     CheckboxGroup,
     Form,
+    IconButton,
     InputGroup,
     Message,
     Radio,
     RadioGroup,
     Schema,
+    Tooltip,
+    Whisper,
     useToaster
 } from "rsuite";
 import { G } from "../types";
@@ -19,6 +22,7 @@ import { withToasterHook } from "../utils";
 import EyeIcon from "@rsuite/icons/legacy/Eye";
 import EyeSlashIcon from "@rsuite/icons/legacy/EyeSlash";
 import { MembershipStatus } from "../apiTypes/MembershipStatus";
+import { BsInfoCircle } from "react-icons/bs";
 
 const nameRule = Schema.Types.StringType().isRequired("Diese Information ist nicht optional.");
 const emailRule = Schema.Types.StringType()
@@ -182,7 +186,11 @@ class MyData extends Component<MyDataProps, MyDataState> {
         return (
             <div className="MyData">
                 <h1>Mitgliedschaft</h1>
-                <p>Hier kannst du unseren Mitgliedsantrag ausfüllen oder deine Daten abändern.</p>
+                <p>
+                    Hier kannst du unseren Mitgliedsantrag ausfüllen oder deine Daten abändern. Nach
+                    der Annahme deines Antrags erhältst du eine Mail zur Bestätigung. Die
+                    Mitgliedschaft ist kostenlos und jederzeit kündbar.
+                </p>
                 <h2>Status</h2>
                 {(() => {
                     if (this.state.status === "Approved") {
@@ -249,10 +257,26 @@ class MyData extends Component<MyDataProps, MyDataState> {
                                     >
                                         <Radio value="Active">Aktives Mitglied</Radio>
                                         <Radio value="Supporting">Fördermitglied</Radio>
+                                        <Whisper
+                                            placement="top"
+                                            trigger="click"
+                                            speaker={
+                                                <Tooltip>
+                                                    Aktive Mitglieder haben ein Stimmrecht in der
+                                                    Mitgliederversammlung. Fördermitglieder haben
+                                                    kein Stimmrecht.
+                                                </Tooltip>
+                                            }
+                                        >
+                                            <BsInfoCircle
+                                                style={{ cursor: "pointer", marginTop: "11px" }}
+                                            ></BsInfoCircle>
+                                        </Whisper>
                                     </RadioGroup>
+
                                     <Form.Group>
                                         <Form.ControlLabel>
-                                            Ganzer Name auf dem Personalausweis *
+                                            Ganzer Vor- und Nachname auf dem Personalausweis *
                                         </Form.ControlLabel>
                                         <InputGroup inside>
                                             <Form.Control
