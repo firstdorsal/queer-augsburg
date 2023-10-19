@@ -1,15 +1,25 @@
 import { Component } from "preact";
 import { route } from "preact-router";
 interface RedirectProps {
-    to: string;
+    readonly to: string;
+    readonly external?: boolean;
 }
 interface RedirectState {}
 export default class Redirect extends Component<RedirectProps, RedirectState> {
-    componentWillMount() {
-        route(this.props.to, true);
+    constructor(props: RedirectProps) {
+        super(props);
     }
 
-    render() {
+    componentWillMount = () => {
+        if (this.props.external) {
+            window.location.href = this.props.to;
+            return;
+        }
+
+        route(this.props.to, true);
+    };
+
+    render = () => {
         return null;
-    }
+    };
 }

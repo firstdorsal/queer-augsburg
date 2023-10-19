@@ -1,5 +1,5 @@
 import { Component } from "preact";
-import Router from "preact-router";
+import Router, { Route } from "preact-router";
 import Nav from "./components/Nav";
 import Redirect from "./components/Redirect";
 import Treffen from "./pages/Treffen";
@@ -129,7 +129,11 @@ export default class App extends Component<AppProps, AppState> {
                             <Ich g={this.state.g} path="/ich" />
                             <Admin g={this.state.g} path="/admin" />
                             <Impressum path="/impressum" />
-                            <Redirect default to="/" />
+                            <Redirect
+                                external={true}
+                                path="/data/"
+                                to="https://cloud.vindelicum.eu/s/rnTcKo9zrRkXR25"
+                            />
                         </Router>
                     </div>
                 </CustomProvider>
