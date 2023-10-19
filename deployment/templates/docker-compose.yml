@@ -237,6 +237,23 @@ services:
                                 server:
                                     port: 80
     {{- end }}
+    qa-backup:
+        container_name: qa-backup
+        build:
+            context: ../../backup
+            dockerfile: Dockerfile
+        restart: always
+        volumes:
+            - qa-db:/backup/db/:ro
+            - qa-interossea-db:/backup/db-interossea/:ro
+            - ./data/backup/app_data:/app_data/:rw
+        environment:
+            AWS_ACCESS_KEY_ID: ${BACKUP_AWS_ACCESS_KEY_ID}
+            AWS_SECRET_ACCESS_KEY: ${BACKUP_AWS_SECRET_ACCESS_KEY}
+            AWS_DEFAULT_REGION: eu-central-1
+            AWS_S3_BUCKET_NAME: ${BACKUP_AWS_S3_BUCKET_NAME}
+            ENCRYPTION_PASSWORD: ${BACKUP_ENCRYPTION_PASSWORD}
+
     {{- if eq $config.reverseProxy.create true }}
     rp:
         container_name: rp
