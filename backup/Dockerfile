@@ -5,9 +5,7 @@ RUN apk update \
     && pip install py7zr boto3 \
     && apk del gcc musl-dev linux-headers
 
-
 #RUN adduser -D worker
-
 
 COPY src /app
 RUN mkdir /backup
@@ -17,7 +15,7 @@ RUN chmod 0644 /etc/crontabs/crontab \
     && crontab /etc/crontabs/crontab
 
 # Health check every 1.5h.
-HEALTHCHECK --interval=5400s --timeout=10s --retries=3 CMD /usr/bin/env python3 /src/healthcheck.py
+HEALTHCHECK --interval=129600s --timeout=10s --retries=3 CMD /usr/bin/env python3 /src/healthcheck.py
 
 #USER worker
 # Do not change.
