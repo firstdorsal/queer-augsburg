@@ -7,6 +7,7 @@ export default class Kontakt extends Component<KontaktProps, KontaktState> {
         return (
             <div className="Kontakt Pad">
                 <div>
+                    <h1>Kontakt</h1>
                     <p>
                         Wir helfen euch bei all euren Anliegen weiter. Meldet euch über einen Kanal
                         eurer Wahl. Über die Mail erreicht ihr uns <b>zuverlässig.</b>

@@ -1,5 +1,6 @@
 $bp1: 900px;
 $scrollbarWidth: 8px;
+$maxWidth: 1200px;
 
 :root {
     font-family: "Inter Variable", system-ui, Avenir, Helvetica, Arial, sans-serif !important;
@@ -113,8 +114,12 @@ body,
 
 .Wir,
 .Ich,
-.Impressum {
+.Kontakt,
+.Impressum,
+.Admin {
     padding-bottom: 40px !important;
+    max-width: $maxWidth;
+    margin: 0px auto;
 }
 
 .UserList {
@@ -248,8 +253,8 @@ body,
 
     height: 110px;
     width: 100%;
-    //max-width: 900px;
-    //margin: 0px auto;
+    max-width: $maxWidth;
+    margin: 0px auto;
 
     @media (max-width: $bp1) {
         padding: 20px 20px;
