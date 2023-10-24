@@ -148,8 +148,6 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <br />
                         **fett**
                         <br />
-                        *kursiv*
-                        <br />
                         <Input
                             onChange={v => {
                                 this.setState(state => {
@@ -199,8 +197,19 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                     });
                                 });
                             }}
+                            onChangeCalendarDate={(v: Date) => {
+                                this.setState(state => {
+                                    return update(state, {
+                                        editingMeeting: {
+                                            time: {
+                                                $set: (v.getTime() as unknown as bigint) ?? null
+                                            }
+                                        }
+                                    });
+                                });
+                            }}
                             value={emTime}
-                            format="yyyy-MM-dd HH:mm:ss"
+                            format="dd.MM.yyyy HH:mm:ss"
                         />
                         <br />
                         <br />
