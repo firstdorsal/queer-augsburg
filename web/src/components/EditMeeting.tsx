@@ -144,11 +144,10 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             )
                         </b>
                         <br />
-                        [linkText](https://www.example.com)
+                        **fett** | *kursiv* | [linkText](https://www.example.com)
                         <br />
-                        **fett**
+                        2 Leerzeichen am Ende der Zeile für erzwungene Zeilenumbrüche
                         <br />
-                        *kursiv*
                         <br />
                         <Input
                             onChange={v => {
