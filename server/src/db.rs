@@ -29,41 +29,22 @@ impl DB {
 
     pub async fn get_meetings(
         &self,
-        limit: Option<i64>,
-        from_index: u64,
+
         meeting_type: MeetingTypeQuery,
     ) -> anyhow::Result<(Vec<Meeting>, u32)> {
         let collection = self.db.collection::<Meeting>("meetings");
-        let find_options = FindOptions::builder()
-            .limit(limit)
-            .skip(from_index)
-            .sort(doc! {"time": -1})
-            .build();
-
-        let current_time = chrono::Utc::now().timestamp() * 1000;
+        let find_options = FindOptions::builder().sort(doc! {"time": -1}).build();
 
         let filter = match meeting_type {
-            MeetingTypeQuery::Future => {
-                doc! {
-                    "time": {
-                        "$gt": current_time
-                    }
-                }
-            }
-            MeetingTypeQuery::Past => {
-                doc! {
-                    "time": {
-                        "$lt": current_time
-                    }
-                }
-            }
             MeetingTypeQuery::Planned => {
                 doc! {
                     "status": "Planned"
                 }
             }
-            MeetingTypeQuery::All => {
-                doc! {}
+            MeetingTypeQuery::Active => {
+                doc! {
+                    "status": "Active"
+                }
             }
         };
 

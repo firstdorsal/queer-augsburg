@@ -227,10 +227,8 @@ pub struct GetUsersResponseBody {
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone, Copy)]
 pub enum MeetingTypeQuery {
-    Past,
-    Future,
+    Active,
     Planned,
-    All,
 }
 
 #[derive(TS)]

@@ -26,33 +26,28 @@ interface EditMeetingProps {
     readonly reloadMeetingList: InstanceType<typeof MeetingList>["reloadMeetingList"];
     readonly toaster: ReturnType<typeof useToaster>;
     readonly newMeeting?: boolean;
+    readonly type: "Planned" | "Active";
 }
+
 interface EditMeetingState {
     readonly editingMeeting: Meeting;
-    readonly cords: string;
 }
+
 class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
     constructor(props: EditMeetingProps) {
         super(props);
+        const editingMeeting = cloneDeep(props.meeting);
+        editingMeeting.status = props.type;
+
         this.state = {
-            editingMeeting: cloneDeep(props.meeting),
-            cords: `${props.meeting.location.lat}, ${props.meeting.location.lon}`
+            editingMeeting
         };
     }
 
     updateMeeting = async () => {
         if (!this.props.g.qaClient) return;
 
-        const splitCords = this.state.cords.split(",");
-
-        const success = await this.props.g.qaClient.update_meeting({
-            ...this.state.editingMeeting,
-            location: {
-                ...this.state.editingMeeting.location,
-                lat: parseFloat(splitCords[0]),
-                lon: parseFloat(splitCords[1])
-            }
-        });
+        const success = await this.props.g.qaClient.update_meeting(this.state.editingMeeting);
         if (success) {
             await this.props.reloadMeetingList();
             this.props.changEditing(false);
@@ -109,8 +104,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
 
     reset = () => {
         this.setState({
-            editingMeeting: cloneDeep(this.props.meeting),
-            cords: `${this.props.meeting.location.lat}, ${this.props.meeting.location.lon}`
+            editingMeeting: cloneDeep(this.props.meeting)
         });
         this.props.changEditing(false);
     };
@@ -243,13 +237,35 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             onChange={v => {
                                 this.setState(state => {
                                     return update(state, {
-                                        cords: { $set: v }
+                                        editingMeeting: {
+                                            location: {
+                                                lon: { $set: parseFloat(v) }
+                                            }
+                                        }
                                     });
                                 });
                             }}
-                            value={this.state.cords}
-                            style={{ width: "50%", display: "inline" }}
-                            placeholder="48.35725,10.88050"
+                            type="number"
+                            value={this.state.editingMeeting.location.lon}
+                            style={{ width: "25%", display: "inline" }}
+                            placeholder="48.35725"
+                        />
+                        <Input
+                            onChange={v => {
+                                this.setState(state => {
+                                    return update(state, {
+                                        editingMeeting: {
+                                            location: {
+                                                lat: { $set: parseFloat(v) }
+                                            }
+                                        }
+                                    });
+                                });
+                            }}
+                            type="number"
+                            value={this.state.editingMeeting.location.lat}
+                            style={{ width: "25%", display: "inline" }}
+                            placeholder="48.35725"
                         />
                         <br />
                         <br />
@@ -343,7 +359,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                         editingMeeting: {
                                             age_restriction: {
                                                 $set: [
-                                                    parseFloat(v.length ? v : "0"),
+                                                    parseInt(v.length ? v : "0"),
                                                     state.editingMeeting.age_restriction[1]
                                                 ]
                                             }
@@ -364,7 +380,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                             age_restriction: {
                                                 $set: [
                                                     state.editingMeeting.age_restriction[0],
-                                                    ...(v === "" ? [] : [parseFloat(v)])
+                                                    ...(v === "" ? [] : [parseInt(v)])
                                                 ]
                                             }
                                         }

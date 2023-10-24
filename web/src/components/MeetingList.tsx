@@ -11,6 +11,7 @@ import { MeetingTypeQuery } from "../apiTypes/MeetingTypeQuery";
 import { Button } from "rsuite";
 import EditMeeting from "./EditMeeting";
 import { defaultMeeting } from "../utils";
+import { cloneDeep } from "lodash";
 
 interface MeetingListProps {
     readonly type: MeetingTypeQuery;
@@ -40,7 +41,10 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
     };
 
     componentDidUpdate = async (prevProps: MeetingListProps) => {
-        if (prevProps.g.meetingId !== this.props.g.meetingId) {
+        if (
+            prevProps.g.meetingId !== this.props.g.meetingId ||
+            prevProps.type !== this.props.type
+        ) {
             await this.loadData();
         }
     };
@@ -106,16 +110,19 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
                         >
                             Neues Treffen
                         </Button>
-                        <EditMeeting
-                            g={this.props.g}
-                            reloadMeetingList={this.reloadMeetingList}
-                            changEditing={(editing: boolean) => {
-                                this.setState({ newMeeting: editing });
-                            }}
-                            editing={this.state.newMeeting}
-                            meeting={defaultMeeting}
-                            newMeeting={true}
-                        />
+                        {this.state.newMeeting && (
+                            <EditMeeting
+                                g={this.props.g}
+                                reloadMeetingList={this.reloadMeetingList}
+                                changEditing={(editing: boolean) => {
+                                    this.setState({ newMeeting: editing });
+                                }}
+                                editing={this.state.newMeeting}
+                                meeting={defaultMeeting}
+                                type={this.props.type}
+                                newMeeting={true}
+                            />
+                        )}
                     </div>
                 )}
                 <AutoSizer>

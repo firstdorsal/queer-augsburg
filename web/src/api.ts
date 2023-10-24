@@ -36,7 +36,7 @@ export class QaClient {
     get_meetings = async (
         from_index: number,
         limit: number | null,
-        meeting_type: MeetingTypeQuery = "All"
+        meeting_type: MeetingTypeQuery = "Active"
     ) => {
         const url = `${this.qaEndpoint}/api/get_meetings/?i=${from_index}${
             limit === null ? "" : "&l=" + limit

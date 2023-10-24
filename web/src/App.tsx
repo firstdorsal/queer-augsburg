@@ -134,6 +134,11 @@ export default class App extends Component<AppProps, AppState> {
                                 path="/data/"
                                 to="https://cloud.vindelicum.eu/s/rnTcKo9zrRkXR25"
                             />
+                            <Redirect
+                                external={true}
+                                path="/shop/"
+                                to="https://queer-augsburg.myspreadshop.de/"
+                            />
                         </Router>
                     </div>
                 </CustomProvider>

@@ -22,7 +22,7 @@ keyFolder: /keys/
 
 services:
     - id: qa
-      allowedOrigins: [{{ ternary "https://" "http://" $config.tls true }}{{ $qaWebHostname}}]
+      allowedOrigins: [{{ ternary "https://" "http://" $config.tls true }}{{ $qaWebHostname}}, http://localhost:5173]
 
 security:
     usePreSessionIds: false
