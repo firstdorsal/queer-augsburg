@@ -4,6 +4,10 @@ import { TbRating18Plus } from "react-icons/tb";
 import {
     BsBellFill,
     BsBookmark,
+    BsChevronCompactDown,
+    BsChevronCompactUp,
+    BsChevronDown,
+    BsChevronUp,
     BsFillExclamationTriangleFill,
     BsFillPeopleFill,
     BsPencilSquare,
@@ -229,7 +233,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                     className="Description"
                     style={{
                         position: "relative",
-                        height: this.props.expanded ? "400px" : "100px",
+                        height: this.props.expanded ? "400px" : "50px",
                         overflowY: this.props.expanded ? "auto" : "hidden"
                     }}
                 >
@@ -241,7 +245,22 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                         this.props.switchExpand(this.props.index);
                     }}
                 >
-                    {this.props.expanded ? "Weniger anzeigen" : "Mehr anzeigen"}
+                    {this.props.expanded ? (
+                        <span>
+                            <span>Weniger anzeigen</span>
+
+                            <BsChevronUp
+                                style={{ marginLeft: "5px", transform: "translate(0px, 2.5px)" }}
+                            />
+                        </span>
+                    ) : (
+                        <span>
+                            <span>Mehr anzeigen</span>
+                            <BsChevronDown
+                                style={{ marginLeft: "5px", transform: "translate(0px, 2.5px)" }}
+                            />
+                        </span>
+                    )}
                 </a>
 
                 <div className="Actions">

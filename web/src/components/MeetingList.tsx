@@ -1,7 +1,7 @@
 import { Component, createRef } from "preact";
 import AutoSizer from "react-virtualized-auto-sizer";
 import InfiniteLoader from "react-window-infinite-loader";
-import { FixedSizeList, VariableSizeList } from "react-window";
+import { VariableSizeList } from "react-window";
 import { Meeting } from "../apiTypes/Meeting";
 import { QaClient } from "../api";
 import SingleMeeting from "./SingleMeeting";
@@ -129,7 +129,7 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
         if (this.state.meetingsStyle[index]?.expanded) {
             return 750;
         } else {
-            return 430;
+            return 390;
         }
     };
 
@@ -217,7 +217,13 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
                                             }
 
                                             return (
-                                                <div style={style}>
+                                                <div
+                                                    style={{
+                                                        ...style,
+                                                        //@ts-ignore
+                                                        top: `${parseFloat(style.top) + 50}px`
+                                                    }}
+                                                >
                                                     <SingleMeeting
                                                         switchExpand={this.switchExpand}
                                                         index={index}
