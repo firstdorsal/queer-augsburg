@@ -10,6 +10,7 @@
     },
     "dependencies": {
         "@firstdorsal/interossea-client": "^1.0.0",
+        "@fontsource-variable/inter": "^5.0.15",
         "@fontsource/inter": "^5.0.8",
         "@types/react": "^18.2.23",
         "@types/react-window-infinite-loader": "^1.0.6",
@@ -25,7 +26,8 @@
         "react-window": "^1.8.9",
         "react-window-infinite-loader": "^1.0.9",
         "rsuite": "^5.40.0",
-        "sass": "^1.66.1"
+        "sass": "^1.66.1",
+        "ts-pattern": "^5.0.5"
     },
     "devDependencies": {
         "@preact/preset-vite": "^2.5.0",

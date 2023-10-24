@@ -348,6 +348,11 @@
   resolved "https://registry.yarnpkg.com/@firstdorsal/interossea-client/-/interossea-client-1.0.1.tgz#a8baabb12850a86c8d560c41af92026bfa21df36"
   integrity sha512-pidoeOFXIWgEv+syQT9WjOGiqQwPO71F0Bk9CvSFYzNgT1vsm1lxS/ChqqBjo+VvrhnAl73JnEZhP9JT9Q1xAQ==
 
+"@fontsource-variable/inter@^5.0.15":
+  version "5.0.15"
+  resolved "https://registry.yarnpkg.com/@fontsource-variable/inter/-/inter-5.0.15.tgz#f478ca30aa5ac275a45fe8c600654dc8eb0db279"
+  integrity sha512-CdQPQQgOVxg6ifmbrqYZeUqtQf7p2wPn6EvJ4M+vdNnsmYZgYwPPPQDNlIOU7LCUlSGaN26v6H0uA030WKn61g==
+
 "@fontsource/inter@^5.0.8":
   version "5.0.8"
   resolved "https://registry.yarnpkg.com/@fontsource/inter/-/inter-5.0.8.tgz#61b50cb0eb72b14ae1938d47c4a9a91546d2a50c"
@@ -1852,6 +1857,11 @@ trough@^2.0.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/trough/-/trough-2.1.0.tgz#0f7b511a4fde65a46f18477ab38849b22c554876"
   integrity sha512-AqTiAOLcj85xS7vQ8QkAV41hPDIJ71XJB4RCUrzo/1GM2CQwhkJGaf9Hgr7BOugMRpgGUrqRg/DrBDl4H40+8g==
+
+ts-pattern@^5.0.5:
+  version "5.0.5"
+  resolved "https://registry.yarnpkg.com/ts-pattern/-/ts-pattern-5.0.5.tgz#20f82d50ea56c1d9cd1aa772911f7bb545d9607d"
+  integrity sha512-tL0w8U/pgaacOmkb9fRlYzWEUDCfVjjv9dD4wHTgZ61MjhuMt46VNWTG747NqW6vRzoWIKABVhFSOJ82FvXrfA==
 
 tslib@^2.3.0:
   version "2.6.2"

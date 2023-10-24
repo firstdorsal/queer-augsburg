@@ -148,6 +148,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <br />
                         **fett**
                         <br />
+                        *kursiv*
+                        <br />
                         <Input
                             onChange={v => {
                                 this.setState(state => {
@@ -213,7 +215,10 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         />
                         <br />
                         <br />
-                        <b>Ort (Name und Koordinaten)</b>
+                        <b>
+                            Ort (Name und Koordinaten(Latitude/Longitude für Augsburg immer ca.
+                            48/10))
+                        </b>
                         <br />
                         <p>
                             Rechtsklick/Lange drücken {">"} Adresse Anzeigen {">"} Koordinaten
@@ -245,23 +250,9 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         />
                         <Input
                             onChange={v => {
-                                this.setState(state => {
-                                    return update(state, {
-                                        editingMeeting: {
-                                            location: {
-                                                lon: { $set: parseFloat(v) }
-                                            }
-                                        }
-                                    });
-                                });
-                            }}
-                            type="number"
-                            value={this.state.editingMeeting.location.lon}
-                            style={{ width: "25%", display: "inline" }}
-                            placeholder="48.35725"
-                        />
-                        <Input
-                            onChange={v => {
+                                v = v.replace(",", ".");
+                                console.log(v);
+
                                 this.setState(state => {
                                     return update(state, {
                                         editingMeeting: {
@@ -272,10 +263,28 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                     });
                                 });
                             }}
-                            type="number"
+                            type="text"
                             value={this.state.editingMeeting.location.lat}
                             style={{ width: "25%", display: "inline" }}
                             placeholder="48.35725"
+                        />
+                        <Input
+                            onChange={v => {
+                                v = v.replace(",", ".");
+                                this.setState(state => {
+                                    return update(state, {
+                                        editingMeeting: {
+                                            location: {
+                                                lon: { $set: parseFloat(v) }
+                                            }
+                                        }
+                                    });
+                                });
+                            }}
+                            type="text"
+                            value={this.state.editingMeeting.location.lon}
+                            style={{ width: "25%", display: "inline" }}
+                            placeholder="10.89929"
                         />
                         <br />
                         <br />
@@ -339,7 +348,9 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                             price: {
                                                 $set: [
                                                     parseFloat(v.length ? v : "0"),
-                                                    state.editingMeeting.price[1]
+                                                    ...(state.editingMeeting.price[1] === undefined
+                                                        ? []
+                                                        : [state.editingMeeting.price[1]])
                                                 ]
                                             }
                                         }
@@ -386,7 +397,10 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                             age_restriction: {
                                                 $set: [
                                                     parseInt(v.length ? v : "0"),
-                                                    state.editingMeeting.age_restriction[1]
+                                                    ...(state.editingMeeting.age_restriction[1] ===
+                                                    undefined
+                                                        ? []
+                                                        : [state.editingMeeting.age_restriction[1]])
                                                 ]
                                             }
                                         }

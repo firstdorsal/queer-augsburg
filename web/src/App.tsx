@@ -1,13 +1,13 @@
 import { Component } from "preact";
-import Router, { Route } from "preact-router";
+import Router from "preact-router";
 import Nav from "./components/Nav";
 import Redirect from "./components/Redirect";
 import Treffen from "./pages/Treffen";
 import Wir from "./pages/Wir";
 import Kontakt from "./pages/Kontakt";
 import Logo from "./components/Logo";
-import "@fontsource/inter/700.css";
-import "@fontsource/inter/400.css";
+import "@fontsource-variable/inter/slnt.css";
+
 import { QaClient } from "./api";
 import { G, UiConfig } from "./types";
 import update from "immutability-helper";

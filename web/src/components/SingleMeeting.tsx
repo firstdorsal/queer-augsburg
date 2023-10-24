@@ -27,6 +27,7 @@ import { Modal } from "rsuite";
 import QrCode from "./QrCode";
 import Md from "./Md";
 import ICalendarLink from "react-icalendar-link";
+import { match } from "ts-pattern";
 
 interface SingleMeetingProps {
     readonly meeting: Meeting;
@@ -360,7 +361,24 @@ const renderFreeformTag = (tag: string) => {
 };
 
 const renderCommonTag = (tag: CommonMeetingTag) => {
-    return <span className="Tag">{tag}</span>;
+    const tag2 = match(tag)
+        .with("Kultur", () => "Kultur 📖")
+        .with("Party", () => "Party 🪩")
+        .with("Orga", () => "Orga 💡")
+        .with("Sport", () => "Sport 🏃")
+        .with("Education", () => "Education 🏫")
+        .with("Meet", () => "Meet 🟢")
+        .with("Students", () => "Students 🧑‍🎓")
+        .with("Marketing", () => "Marketing 📸")
+        .with("Cinema", () => "Cinema 🍿")
+        .with("Talks", () => "Talks 🗣️")
+        .with("Open", () => "Open 👐")
+        .with("Explores", () => "Explores 🏞️")
+        .with("Connect", () => "Connect 🔗")
+        .with("Ostqueer", () => "Ostqueer ➡️")
+        .exhaustive();
+
+    return <span className="Tag">{tag2}</span>;
 };
 
 const renderQueerTag = (tag: QueerMeetingTag) => {

@@ -2,9 +2,10 @@ $bp1: 900px;
 $scrollbarWidth: 8px;
 
 :root {
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+    font-family: "Inter Variable", system-ui, Avenir, Helvetica, Arial, sans-serif !important;
     line-height: 1.5;
     font-weight: 400;
+    font-variation-settings: "wght" 420;
 
     color-scheme: light dark;
 
@@ -28,6 +29,10 @@ $scrollbarWidth: 8px;
 
     color: var(--text-color) !important;
     background-color: var(--background-color) !important;
+}
+
+em {
+    font-variation-settings: "slnt" -10;
 }
 
 .rs-input {
@@ -65,7 +70,7 @@ html,
 body,
 #root,
 .App {
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif !important;
+    font-family: "Inter Variable", system-ui, Avenir, Helvetica, Arial, sans-serif !important;
     padding: 0px;
     margin: 0px;
     height: 100%;
@@ -76,6 +81,7 @@ body,
 }
 
 .bold {
+    font-variation-settings: "wght" 600;
     font-weight: 600;
 }
 
@@ -167,6 +173,7 @@ body,
 
     .Title {
         font-size: 20px;
+        font-variation-settings: "wght" 700;
         font-weight: 700;
         overflow: hidden;
         white-space: nowrap;
@@ -300,7 +307,13 @@ body,
     }
 }
 
-.Everyone {
+.Tag {
+    font-weight: 500;
+    font-variation-settings: "wght" 500;
+}
+
+.Everyone,
+.Queer {
     // pride rainbow with 6 colors
     background: linear-gradient(
         60deg,
@@ -311,5 +324,81 @@ body,
         #3988ff 66.666%,
         #a42dff 83.333%
     ) !important;
+    color: black;
+}
+
+.Pan {
+    background: linear-gradient(60deg, #ff218c 10%, #ffd800 50%, #21b1ff 90%) !important;
+    color: black;
+}
+
+.Bi {
+    background: linear-gradient(60deg, #d60270 10%, #9b4f96 50%, #0038a8 90%) !important;
+    color: white;
+}
+
+.Gay {
+    background: linear-gradient(
+        60deg,
+        #078d70 10%,
+        #26ceaa 23%,
+        #98e8c1 36%,
+        #ffffff 49%,
+        #7bade2 62%,
+        #5049cc 75%,
+        #3d1a78 90%
+    ) !important;
+    color: black;
+}
+
+.Lesbian {
+    background: linear-gradient(
+        60deg,
+        #d52d00 10%,
+        #ef7627 23%,
+        #ff9a56 36%,
+        #ffffff 49%,
+        #d162a4 62%,
+        #b55690 75%,
+        #a30262 90%
+    ) !important;
+    color: black;
+}
+
+.Asexual {
+    background: linear-gradient(
+        60deg,
+        #000000 10%,
+        #a3a3a3 30%,
+        #ffffff 60%,
+        #800080 90%
+    ) !important;
+    color: black;
+}
+
+.Aromantic {
+    background: linear-gradient(
+        60deg,
+        #3da542 10%,
+        #a7d379 30%,
+        #ffffff 50%,
+        #a9a9a9 70%,
+        #000000 90%
+    ) !important;
+    color: black;
+}
+
+.Inter {
+    background: linear-gradient(60deg, #ffd800 30%, #7902aa 70%) !important;
+    color: black;
+}
+
+.Poly {
+    background: linear-gradient(60deg, #f714ba 10%, #01d66a 50%, #1594f6 90%) !important;
+    color: black;
+}
+
+.Trans {
+    background: linear-gradient(60deg, #5bcefa 10%, #ffffff 50%, #f5a9b8 90%) !important;
     color: black;
 }

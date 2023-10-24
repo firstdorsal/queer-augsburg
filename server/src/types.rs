@@ -80,6 +80,7 @@ pub enum QueerMeetingTag {
     Aromantic,
     Inter,
     Poly,
+    Pan,
 }
 
 #[derive(TS)]
