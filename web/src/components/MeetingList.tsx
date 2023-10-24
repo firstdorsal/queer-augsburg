@@ -1,7 +1,7 @@
 import { Component, createRef } from "preact";
 import AutoSizer from "react-virtualized-auto-sizer";
 import InfiniteLoader from "react-window-infinite-loader";
-import { FixedSizeList } from "react-window";
+import { FixedSizeList, VariableSizeList } from "react-window";
 import { Meeting } from "../apiTypes/Meeting";
 import { QaClient } from "../api";
 import SingleMeeting from "./SingleMeeting";
@@ -11,7 +11,10 @@ import { MeetingTypeQuery } from "../apiTypes/MeetingTypeQuery";
 import { Button } from "rsuite";
 import EditMeeting from "./EditMeeting";
 import { defaultMeeting } from "../utils";
-import { cloneDeep } from "lodash";
+import update from "immutability-helper";
+interface MeetingStyle {
+    expanded: boolean;
+}
 
 interface MeetingListProps {
     readonly type: MeetingTypeQuery;
@@ -20,6 +23,7 @@ interface MeetingListProps {
 }
 interface MeetingListState {
     readonly meetings: Meeting[];
+    readonly meetingsStyle: MeetingStyle[];
     readonly meetingCount: number;
     readonly newMeeting: boolean;
 }
@@ -32,7 +36,8 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
         this.state = {
             meetings: [],
             meetingCount: 0,
-            newMeeting: false
+            newMeeting: false,
+            meetingsStyle: []
         };
     }
 
@@ -64,15 +69,35 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
                 }
             })();
 
-            this.setState({ meetings, meetingCount: res.selected_total_count }, () => {
-                //@ts-ignore
-                this.listRef?.current?._listRef?.scrollToItem(meetingIndex ?? 0, "center");
-            });
+            this.setState(
+                {
+                    meetings,
+                    meetingCount: res.selected_total_count,
+                    meetingsStyle: meetings.map(() => {
+                        return {
+                            expanded: false
+                        };
+                    })
+                },
+                () => {
+                    //@ts-ignore
+                    this.listRef?.current?._listRef?.scrollToItem(meetingIndex ?? 0, "center");
+                }
+            );
+
             return;
         }
 
         const res = await this.props.qaClient.get_meetings(0, 10, this.props.type);
-        this.setState({ meetings: res.meetings, meetingCount: res.selected_total_count });
+        this.setState({
+            meetings: res.meetings,
+            meetingCount: res.selected_total_count,
+            meetingsStyle: res.meetings.map(() => {
+                return {
+                    expanded: false
+                };
+            })
+        });
     };
 
     loadMoreMeetings = async (startIndex: number, limit: number) => {
@@ -83,11 +108,14 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
             const newMeetings = res.meetings;
             this.moreLoading = false;
 
-            this.setState(({ meetings }) => {
+            this.setState(({ meetings, meetingsStyle }) => {
                 for (let i = 0; i < newMeetings.length; i++) {
                     meetings[startIndex + i] = newMeetings[i];
+                    meetingsStyle[startIndex + i] = {
+                        expanded: false
+                    };
                 }
-                return { meetings };
+                return { meetings, meetingsStyle };
             });
         }
     };
@@ -95,6 +123,34 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
     reloadMeetingList = async () => {
         const res = await this.props.qaClient.get_meetings(0, null, this.props.type);
         this.setState({ meetings: res.meetings, meetingCount: res.selected_total_count });
+    };
+
+    getItemHeight = (index: number) => {
+        if (this.state.meetingsStyle[index]?.expanded) {
+            return 750;
+        } else {
+            return 430;
+        }
+    };
+
+    switchExpand = (index: number) => {
+        this.setState(
+            state => {
+                return update(state, {
+                    meetingsStyle: {
+                        [index]: {
+                            expanded: {
+                                $set: !state.meetingsStyle[index]?.expanded
+                            }
+                        }
+                    }
+                });
+            },
+            () => {
+                //@ts-ignore
+                this.listRef?.current?._listRef?.resetAfterIndex(index);
+            }
+        );
     };
 
     render = () => {
@@ -137,8 +193,8 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
                         >
                             {({ onItemsRendered, ref }) => {
                                 return (
-                                    <FixedSizeList
-                                        itemSize={420}
+                                    <VariableSizeList
+                                        itemSize={this.getItemHeight}
                                         height={height}
                                         itemCount={this.state.meetingCount}
                                         width={width}
@@ -163,6 +219,12 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
                                             return (
                                                 <div style={style}>
                                                     <SingleMeeting
+                                                        switchExpand={this.switchExpand}
+                                                        index={index}
+                                                        expanded={
+                                                            this.state.meetingsStyle[index]
+                                                                ?.expanded
+                                                        }
                                                         g={this.props.g}
                                                         meeting={currentItem}
                                                         reloadMeetingList={this.reloadMeetingList}
@@ -170,7 +232,7 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
                                                 </div>
                                             );
                                         }}
-                                    </FixedSizeList>
+                                    </VariableSizeList>
                                 );
                             }}
                         </InfiniteLoader>

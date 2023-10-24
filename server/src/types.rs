@@ -17,6 +17,7 @@ pub struct Meeting {
     pub trigger_warning: Option<String>,
     pub attendance: Option<u16>,
     pub rating: Option<f32>,
+    pub accessibility: Option<String>,
     pub tags: MeetingTags,
     pub status: MeetingStatus,
 }

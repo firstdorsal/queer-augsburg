@@ -30,7 +30,8 @@ export const defaultMeeting: Meeting = {
     trigger_warning: null,
     rating: null,
     tags: { freeform: [], common: [], queer: ["Everyone"] },
-    status: "Active"
+    status: "Active",
+    accessibility: null
 };
 
 export const prefersDarkMode = () => {

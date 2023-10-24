@@ -10,6 +10,8 @@ import {
     BsQrCode,
     BsShareFill
 } from "react-icons/bs";
+import { MdWheelchairPickup } from "react-icons/md";
+import { IoMdStats } from "react-icons/io";
 import { Meeting } from "../apiTypes/Meeting";
 import { CommonMeetingTag } from "../apiTypes/CommonMeetingTag";
 import { QueerMeetingTag } from "../apiTypes/QueerMeetingTag";
@@ -26,6 +28,9 @@ interface SingleMeetingProps {
     readonly meeting: Meeting;
     readonly g: G;
     readonly reloadMeetingList: InstanceType<typeof MeetingList>["reloadMeetingList"];
+    readonly expanded: boolean;
+    readonly index: number;
+    readonly switchExpand: InstanceType<typeof MeetingList>["switchExpand"];
 }
 interface SingleMeetingState {
     readonly editing: boolean;
@@ -145,6 +150,12 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                             <BsFillExclamationTriangleFill />
                             <span className="InfoText">{m.trigger_warning ?? "Keine"}</span>
                         </div>
+                        <div className="Accessibility">
+                            <MdWheelchairPickup />
+                            <span title="Barrierefreiheit" className="InfoText">
+                                {m.accessibility ?? "Unbekannt"}
+                            </span>
+                        </div>
                     </div>
                     <div className="Right">
                         <div
@@ -200,12 +211,37 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                                 {ageRestrictionToString(m.age_restriction)}
                             </span>
                         </div>
+                        <div className={"Attendance"}>
+                            <IoMdStats />
+                            <span title="Anwesende" className="InfoText">
+                                {isPast
+                                    ? m.attendance
+                                        ? m.attendance
+                                        : "Unbekannt"
+                                    : "Ausstehend"}
+                            </span>
+                        </div>
                     </div>
                 </div>
 
-                <div className="Description" style={{ position: "relative" }}>
+                <div
+                    className="Description"
+                    style={{
+                        position: "relative",
+                        height: this.props.expanded ? "400px" : "100px",
+                        overflowY: this.props.expanded ? "auto" : "hidden"
+                    }}
+                >
                     <Md plainText={m.description} />
                 </div>
+                <a
+                    style={{ cursor: "pointer" }}
+                    onClick={() => {
+                        this.props.switchExpand(this.props.index);
+                    }}
+                >
+                    {this.props.expanded ? "Weniger anzeigen" : "Mehr anzeigen"}
+                </a>
 
                 <div className="Actions">
                     <button title="Lesezeichen">

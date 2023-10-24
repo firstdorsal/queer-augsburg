@@ -37,8 +37,9 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
     constructor(props: EditMeetingProps) {
         super(props);
         const editingMeeting = cloneDeep(props.meeting);
-        editingMeeting.status = props.type;
-
+        if (props.newMeeting) {
+            editingMeeting.status = props.type;
+        }
         this.state = {
             editingMeeting
         };
@@ -268,6 +269,22 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             placeholder="48.35725"
                         />
                         <br />
+                        <br />
+                        <b>Barrierefreiheit</b>
+                        <br />
+                        <Input
+                            value={em.accessibility}
+                            onChange={v => {
+                                this.setState(state => {
+                                    return update(state, {
+                                        editingMeeting: {
+                                            accessibility: { $set: v }
+                                        }
+                                    });
+                                });
+                            }}
+                            placeholder="Barrierefreiheit"
+                        />
                         <br />
                         <b>Ansprechpersonen/Verantwortliche</b>
                         <br />
