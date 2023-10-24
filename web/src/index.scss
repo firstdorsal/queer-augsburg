@@ -36,6 +36,12 @@ em {
     font-variation-settings: "slnt" -10;
 }
 
+b,
+strong {
+    font-variation-settings: "wght" 600;
+    font-weight: 600;
+}
+
 .rs-input {
     &::placeholder {
         opacity: 0.3;
