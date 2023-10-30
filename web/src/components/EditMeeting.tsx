@@ -144,7 +144,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             )
                         </b>
                         <br />
-                        **fett** | *kursiv* | [linkText](https://www.example.com)
+                        **fett** | *kursiv* | [linkText](https://www.example.com) | \ (Backslash)
+                        vor Sonderzeichen damit sie normal angezeigt werden
                         <br />
                         2 Leerzeichen am Ende der Zeile für erzwungene Zeilenumbrüche
                         <br />

@@ -62,8 +62,8 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
         const m = this.props.meeting;
 
         const time = new Intl.DateTimeFormat(["ban", "de-de"], {
-            weekday: "long",
-            year: "numeric",
+            weekday: "short",
+            year: "2-digit",
             month: "2-digit",
             day: "2-digit",
             hour: "numeric",
