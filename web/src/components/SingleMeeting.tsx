@@ -265,9 +265,6 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                 </a>
 
                 <div className="Actions">
-                    <button title="Lesezeichen">
-                        <BsBookmark />
-                    </button>
                     <button title="Hilfe zu diesem Treffen">
                         <a
                             href={`mailto:mail@queer-augsburg.de
@@ -283,18 +280,14 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                                 navigator.share({
                                     url: this.props.g.uiConfig?.qaWebAddress + `/?m=${m._id}`
                                 });
-                            } else {
-                                // change the url
-                                window.history.pushState({}, "", `/?m=${m._id}`);
                             }
+                            window.history.pushState({}, "", `/?m=${m._id}`);
                         }}
                         title="Teilen"
                     >
                         <BsShareFill />
                     </button>
-                    <button title="Notifications">
-                        <BsBellFill />
-                    </button>
+
                     {this.props.g.admin && (
                         <>
                             <span className={"Admin"}>

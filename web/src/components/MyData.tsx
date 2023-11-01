@@ -208,7 +208,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
                     } else if (this.state.status === "Expelled") {
                         return <p>Du wurdest von Queer Augsburg ausgeschlossen.</p>;
                     } else {
-                        return <p>Du bist noch kein Mitglied von Queer Augsburg.</p>;
+                        return <p>Du hast noch keinen Mitgliedsantrag gestellt.</p>;
                     }
                 })()}
                 <div>
@@ -305,7 +305,8 @@ class MyData extends Component<MyDataProps, MyDataState> {
                                             </InputGroup.Button>
                                         </InputGroup>
                                         <Form.HelpText>
-                                            Aus rechtlichen Gründen benötigt. 😔
+                                            Wird aus rechtlichen Gründen benötigt. 😔 <br />
+                                            Dieser Name wird nichtmal dem Vorstand angezeigt.
                                         </Form.HelpText>
                                     </Form.Group>
                                     <Form.Group>
@@ -417,13 +418,18 @@ class MyData extends Component<MyDataProps, MyDataState> {
                                 <Form.Group>
                                     <Form.ControlLabel>Zusätzliche Informationen</Form.ControlLabel>
                                     <Form.Control name="user_notes" />
+                                    <Form.HelpText>
+                                        Hier kannst du uns noch etwas mitteilen, was du uns sonst
+                                        noch sagen möchtest.
+                                    </Form.HelpText>
                                 </Form.Group>
                                 <Form.Group>
                                     <Form.ControlLabel>Woher kennst du uns?</Form.ControlLabel>
                                     <Form.Control name="reference" />
                                     <Form.HelpText>
-                                        Wenn du einen QR-Code gescannt hast automatisch <br />{" "}
-                                        eingetragene ID des Treffens, ansonsten bitte eintragen.
+                                        Wenn du einen QR-Code gescannt hast, wird automatisch <br />{" "}
+                                        die ID des Treffens eingetragen. Ansonsten gib bitte an,
+                                        woher du uns kennst.
                                     </Form.HelpText>
                                 </Form.Group>
                             </div>

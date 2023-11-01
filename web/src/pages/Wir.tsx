@@ -32,7 +32,7 @@ export default class Wir extends Component<WirProps, WirState> {
                 <h1>Mitglied werden</h1>
                 <p>
                     Werde Mitglied bei Queer Augsburg!
-                    <b>Die Mitgliedschaft ist kostenlos und kann jederzeit beendet werden.</b>
+                    <b> Die Mitgliedschaft ist kostenlos und kann jederzeit beendet werden.</b>
                     Du musst lediglich mindestens 18 Jahre alt sein und dich mit unseren Werten
                     Offenheit, Akzeptanz, Respekt, Vielfalt, Freiheit, Teilhabe, Transparenz und
                     Zusammenhalt identifizieren.
@@ -53,6 +53,11 @@ export default class Wir extends Component<WirProps, WirState> {
                     sichergehen, dass es sich um echte Personen handelt, die uns nicht schaden
                     wollen. Dein Mitgliedsantrag wird daher schneller bearbeitet, wenn du bei einem
                     unserer Treffen beitrittst.
+                    <br />
+                    Wenn du bereits bei einem unserer Treffen warst und in unseren internen
+                    WhatsApp- oder Signal-Gruppen bist, gib bitte deine Handynummer an, mit der du
+                    in der Gruppe bist, und trage unter "Woher kennst du uns?" den jeweiligen
+                    Messaging-Dienst ein: "WhatsApp" oder "Signal".
                 </p>
 
                 <h1>Offen für Alle.</h1>
@@ -308,7 +313,7 @@ export default class Wir extends Component<WirProps, WirState> {
                 <a rel="noreferrer" href="https://www.queerbeet-augsburg.de/">
                     <h2>Queerbeet</h2>
                 </a>
-                <p>Queerbeet ist eine Jugendgruppe, die sich früher jede Woche getroffen hat.</p>
+                <p>Queerbeet ist eine Jugendgruppe, die sich jede Woche trifft.</p>
                 <a rel="noreferrer" href="https://www.csd-augsburg.de/">
                     <h2>CSD-Verein</h2>
                 </a>

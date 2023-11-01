@@ -126,12 +126,12 @@ export default class Impressum extends Component<ImpressumProps, ImpressumState>
                     </li>
                     <li>
                         Die finanzbeauftragte Person und von ihr explizit Bevollmächtigte
-                        verarbeiten die Mitgliedsdaten, die für den Einzug der Mitgliedsbeiträge und
-                        Spenden und die Kassenprüfung relevant sind. Darunter können abhängig von
-                        der Zahlungsart Vorname, Nachname, Name im Personenstandsregister, Anschrift
-                        und Zahlungsinformationen (z.B. IBAN oder Kreditkartennummer) sowie ggf.
-                        Zugriff auf die Lastschriftsverfahrensgenehmigung inklusive Unterschrift,
-                        sofern das Mitglied dem Verein ein Lastschriftmandat erteilt hat, fallen.
+                        verarbeiten die Mitgliedsdaten, die für Spenden und die Kassenprüfung
+                        relevant sind. Darunter können abhängig von der Zahlungsart Vorname,
+                        Nachname, E-Mail, Telefonnummer, Anschrift und Zahlungsinformationen (z.B.
+                        IBAN oder Kreditkartennummer) sowie ggf. Zugriff auf die
+                        Lastschriftsverfahrensgenehmigung inklusive Unterschrift, sofern das
+                        Mitglied dem Verein ein Lastschriftmandat erteilt hat, fallen.
                     </li>
                     <li>
                         Die transparenzbeauftragte Person hat als Hüterin des Vereins das besondere
@@ -139,8 +139,9 @@ export default class Impressum extends Component<ImpressumProps, ImpressumState>
                         Dafür darf sie alle nötigen Mitgliederdaten verarbeiten.
                     </li>
                     <li>
-                        Die IT-beauftragte Person im Zuge des Datenbankmanagements und anderer
-                        Administrativer Aufgaben
+                        Die Digital- und Datenschutzbeauftragte und die mit der Vereinsverwaltung
+                        beauftragte Person hat im Zuge des Datenbankmanagements und anderer
+                        administrativer Aufgaben Zugriff auf alle Mitgliedsdaten.
                     </li>
                 </ul>
                 <p>
