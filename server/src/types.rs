@@ -111,7 +111,7 @@ pub struct SubmittedMember {
     pub phone: Option<String>,
     #[validate(length(min = 1, max = 500))]
     pub user_notes: Option<String>,
-    #[validate(length(min = 1, max = 20))]
+    #[validate(length(min = 1, max = 100))]
     pub reference: Option<String>,
     pub approved_charter: bool,
     pub approved_privacy: bool,
