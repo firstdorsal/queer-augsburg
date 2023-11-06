@@ -305,8 +305,8 @@ class MyData extends Component<MyDataProps, MyDataState> {
                                             </InputGroup.Button>
                                         </InputGroup>
                                         <Form.HelpText>
-                                            Wird aus rechtlichen Gründen benötigt. 😔 <br />
-                                            Dieser Name wird nichtmal dem Vorstand angezeigt.
+                                            Wird aus rechtlichen Gründen benötigt. <br />
+                                            Dieser Name wird nicht mal dem Vorstand angezeigt.
                                         </Form.HelpText>
                                     </Form.Group>
                                     <Form.Group>
