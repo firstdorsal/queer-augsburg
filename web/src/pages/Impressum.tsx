@@ -8,7 +8,7 @@ export default class Impressum extends Component<ImpressumProps, ImpressumState>
             <div className="Impressum Pad">
                 <h1>Impressum</h1>
                 <h2>Angaben gemäß §5 TMG</h2>
-                <div>Queer Augsburg e.V.i.G.</div>
+                <div>Queer Augsburg e.V.</div>
                 <div>Apothekergäßchen 6</div>
                 <div>86150 Augsburg</div>
                 <h2>Kontakt</h2>
