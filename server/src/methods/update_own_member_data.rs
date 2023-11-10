@@ -21,10 +21,16 @@ pub async fn update_own_member_data(
     let body = hyper::body::to_bytes(req.into_body()).await?;
     let uoub: SetOwnMemberDataRequestBody = serde_json::from_slice(&body)?;
 
-    uoub.member.validate()?;
+    match uoub.member.validate() {
+        Ok(_) => {}
+        Err(e) => return Ok(res.status(400).body(Body::from(e.to_string()))?),
+    };
 
     // more valdiation
-    validate_submitted_member(&uoub.member)?;
+    match validate_submitted_member(&uoub.member) {
+        Ok(_) => {}
+        Err(e) => return Ok(res.status(400).body(Body::from(e.to_string()))?),
+    };
 
     db.update_member_data(user_id, uoub.member).await?;
 
