@@ -151,28 +151,43 @@ class MyData extends Component<MyDataProps, MyDataState> {
 
         this.props.g.qaClient
             ?.update_own_member_data(m)
-            .then(() => {
-                this.setState({
-                    status: "Pending"
-                });
-                this.props.toaster.push(
-                    <Message showIcon type={"success"} closable>
-                        Daten gespeichert
-                    </Message>,
-                    {
-                        placement: "bottomCenter",
-                        duration: 5000
-                    }
-                );
+            .then(async v => {
+                if (v.status === 200) {
+                    this.setState({
+                        status: "Pending"
+                    });
+                    this.props.toaster.push(
+                        <Message showIcon type={"success"} closable>
+                            Daten gespeichert
+                        </Message>,
+                        {
+                            placement: "bottomCenter",
+                            duration: 5000
+                        }
+                    );
+                } else {
+                    const text = await v.text();
+                    console.log(text);
+
+                    this.props.toaster.push(
+                        <Message showIcon type={"error"} closable>
+                            Fehler beim speichern der Daten: {text}
+                        </Message>,
+                        {
+                            placement: "bottomCenter",
+                            duration: 0
+                        }
+                    );
+                }
             })
-            .catch(() => {
+            .catch(e => {
                 this.props.toaster.push(
                     <Message showIcon type={"error"} closable>
-                        Fehler beim speichern der Daten
+                        Fehler beim speichern der Daten: {e.message}
                     </Message>,
                     {
                         placement: "bottomCenter",
-                        duration: 5000
+                        duration: 0
                     }
                 );
             });

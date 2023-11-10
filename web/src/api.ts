@@ -104,8 +104,7 @@ export class QaClient {
             credentials: "include",
             body: JSON.stringify({ member: submitted_member })
         });
-        const success = res.status === 200;
-        return success;
+        return res;
     };
 
     update_member_status = async (
