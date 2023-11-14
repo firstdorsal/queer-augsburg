@@ -30,6 +30,7 @@ export default class Wir extends Component<WirProps, WirState> {
                     Lane.
                 </p>
                 <h1>Mitglied werden</h1>
+
                 <p>
                     Werde Mitglied bei Queer Augsburg!
                     <b> Die Mitgliedschaft ist kostenlos und kann jederzeit beendet werden.</b>
@@ -58,6 +59,9 @@ export default class Wir extends Component<WirProps, WirState> {
                     WhatsApp- oder Signal-Gruppen bist, gib bitte deine Handynummer an, mit der du
                     in der Gruppe bist, und trage unter "Woher kennst du uns?" den jeweiligen
                     Messaging-Dienst ein: "WhatsApp" oder "Signal".
+                </p>
+                <p>
+                    Unsere Satzung findest du <a href="/Queer-Augsburg_Satzung.pdf">hier</a>
                 </p>
 
                 <h1>Offen für Alle.</h1>

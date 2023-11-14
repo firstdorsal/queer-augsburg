@@ -61,7 +61,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
 
         if (!user) return;
         const memberData = user.member;
-        //
+
         if (memberData) {
             this.setState(state => {
                 return update(state, {
