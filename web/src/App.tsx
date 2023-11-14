@@ -25,6 +25,7 @@ interface AppState {
 
 export default class App extends Component<AppProps, AppState> {
     constructor(props: AppProps) {
+        /*
         try {
             navigator.serviceWorker.getRegistrations().then(function (registrations) {
                 for (let registration of registrations) {
@@ -34,6 +35,7 @@ export default class App extends Component<AppProps, AppState> {
         } catch (e) {
             console.log(e);
         }
+        */
 
         // parse ref query parameter and save it to localStorage
         const urlParams = new URLSearchParams(window.location.search);
