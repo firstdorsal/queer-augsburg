@@ -20,24 +20,17 @@ export default class Logo extends Component<LogoProps, LogoState> {
     };
 }
 
-/*
-Immer vom 13.11. bis 19.11. und dann machen wir 20.11. auch noch wegen Transremembrance.
-
-Also immer vom 13.11. bis zum 20.11. trans Logo :)
-
-*/
 export const selectLogo = () => {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth();
     const currentDay = currentDate.getDate();
-    console.log(currentMonth, currentDay);
 
     // dates also start from 0!
     const logos = [
         {
             dateFrom: new Date(0, 10, 13),
             dateTo: new Date(0, 10, 20),
-            logoPath: "logos/trans.png"
+            logoPath: "logos/variants/trans.png"
         }
     ];
 
@@ -53,6 +46,6 @@ export const selectLogo = () => {
     if (logo) {
         return logo.logoPath;
     } else {
-        return "icon.png";
+        return "logos/variants/queer.png";
     }
 };

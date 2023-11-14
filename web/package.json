@@ -6,7 +6,8 @@
     "scripts": {
         "dev": "vite",
         "build": "rm -rf node_modules/react-markdown/lib/complex-types.ts && tsc && vite build",
-        "preview": "vite preview"
+        "preview": "vite preview",
+        "generate-pwa-assets": "pwa-assets-generator -p minimal public/logos/logo_full_size.png"
     },
     "dependencies": {
         "@firstdorsal/interossea-client": "^1.0.0",
@@ -31,8 +32,10 @@
     },
     "devDependencies": {
         "@preact/preset-vite": "^2.5.0",
+        "@vite-pwa/assets-generator": "^0.0.10",
         "less": "^4.2.0",
         "typescript": "^5.0.2",
-        "vite": "^4.4.5"
+        "vite": "^4.4.5",
+        "vite-plugin-pwa": "^0.16.7"
     }
 }
