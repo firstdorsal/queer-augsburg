@@ -62,6 +62,8 @@ export default class App extends Component<AppProps, AppState> {
     }
 
     componentDidMount = async () => {
+        console.log("App.componentDidMount");
+
         const uiConfig: UiConfig = await fetch("/config.json").then(res => res.json());
 
         const client = new QaClient(
@@ -100,18 +102,28 @@ export default class App extends Component<AppProps, AppState> {
         // in ff this is needed to prevent a bug where the user is not logged in
         await new Promise(resolve => setTimeout(resolve, 200));
 
-        const account = await client.get_own_user().catch(async () => {
-            return await client.get_own_user();
-        });
-
-        this.setState(state => {
-            return update(state, {
-                g: {
-                    loggedIn: { $set: true },
-                    admin: { $set: account.admin }
-                }
+        client
+            .get_own_user()
+            .then(account => {
+                this.setState(state => {
+                    return update(state, {
+                        g: {
+                            loggedIn: { $set: true },
+                            admin: { $set: account?.admin ?? false }
+                        }
+                    });
+                });
+            })
+            .catch(async () => {
+                this.setState(state => {
+                    return update(state, {
+                        g: {
+                            loggedIn: { $set: false },
+                            admin: { $set: false }
+                        }
+                    });
+                });
             });
-        });
     };
 
     render = () => {

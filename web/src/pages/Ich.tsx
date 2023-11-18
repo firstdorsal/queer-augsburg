@@ -8,10 +8,14 @@ interface IchProps {
 interface IchState {}
 export default class Ich extends Component<IchProps, IchState> {
     componentDidMount = () => {
+        console.log("Ich.componentDidMount");
+
         this.redirectIfNotLoggedIn();
     };
 
     componentDidUpdate = () => {
+        console.log("Ich.componentDidUpdate");
+
         this.redirectIfNotLoggedIn();
     };
 
