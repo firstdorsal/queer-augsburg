@@ -1,4 +1,6 @@
 import { QaClient } from "./api";
+import { CommonMeetingTag } from "./apiTypes/CommonMeetingTag";
+import { QueerMeetingTag } from "./apiTypes/QueerMeetingTag";
 
 export interface UiConfig {
     interosseaServerAddress: string;
@@ -17,7 +19,7 @@ export interface G {
     meetingId: string | null;
 }
 
-export const commonTags = [
+export const commonTags: CommonMeetingTag[] = [
     "Kultur",
     "Party",
     "Orga",
@@ -31,10 +33,11 @@ export const commonTags = [
     "Open",
     "Explores",
     "Connect",
-    "Ostqueer"
+    "Ostqueer",
+    "Queermas"
 ];
 
-export const queerTags = [
+export const queerTags: QueerMeetingTag[] = [
     "Everyone",
     "Queer",
     "Gay",
