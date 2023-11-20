@@ -26,10 +26,11 @@ export const selectLogo = () => {
     const currentDay = currentDate.getDate();
 
     // dates also start from 0!
+
     const logos = [
         {
             dateFrom: new Date(0, 10, 13),
-            dateTo: new Date(0, 10, 20),
+            dateTo: new Date(0, 10, 19),
             logoPath: "logos/variants/trans.png"
         }
     ];

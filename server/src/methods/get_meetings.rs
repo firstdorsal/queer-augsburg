@@ -37,6 +37,12 @@ pub async fn get_meetings(
         MeetingTypeQuery::Active => {
             let current_time_ms = chrono::Utc::now().timestamp() * 1000;
 
+            // 6h
+            // don't mark meetings as old if they are less than 6h old
+            let time_before_old_ms = 6 * 60 * 60 * 1000;
+
+            let time_barrier = current_time_ms - time_before_old_ms;
+
             // Sort the meetings
             // first come the future meetings from earliest to latest
             // then come the past meetings from latest to earliest
@@ -45,7 +51,7 @@ pub async fn get_meetings(
                 .iter()
                 .filter(|m| {
                     if let Some(t) = m.time {
-                        t > current_time_ms
+                        t > time_barrier
                     } else {
                         false
                     }
@@ -58,7 +64,7 @@ pub async fn get_meetings(
                 .iter()
                 .filter(|m| {
                     if let Some(t) = m.time {
-                        t <= current_time_ms
+                        t <= time_barrier
                     } else {
                         false
                     }
