@@ -369,13 +369,16 @@ const renderCommonTag = (tag: CommonMeetingTag) => {
         .with("Explores", () => "Explores 🏞️")
         .with("Connect", () => "Connect 🔗")
         .with("Ostqueer", () => "Ostqueer ➡️")
+        .with("Queermas", () => "Queermas 🎄")
         .exhaustive();
 
     return <span className="Tag">{tag2}</span>;
 };
 
 const renderQueerTag = (tag: QueerMeetingTag) => {
-    return <span className={`Tag ${tag}`}>{tag}</span>;
+    let t = tag as string;
+    if (tag === "Everyone") t = "Alle";
+    return <span className={`Tag ${tag}`}>{t}</span>;
 };
 
 const priceToString = (price: number[]) => {

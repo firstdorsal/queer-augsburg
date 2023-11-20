@@ -65,6 +65,7 @@ pub enum CommonMeetingTag {
     Explores,
     Connect,
     Ostqueer,
+    Queermas,
 }
 #[derive(TS)]
 #[ts(export, export_to = "../web/src/apiTypes/")]

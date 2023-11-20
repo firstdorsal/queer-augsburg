@@ -4,6 +4,7 @@ import {
     Button,
     DatePicker,
     Input,
+    InputPicker,
     Message,
     Modal,
     SelectPicker,
@@ -15,7 +16,7 @@ import { Meeting } from "../apiTypes/Meeting";
 import { cloneDeep } from "lodash";
 import update from "immutability-helper";
 import MeetingList from "./MeetingList";
-import { withToasterHook } from "../utils";
+import { commonPlaces, withToasterHook } from "../utils";
 import Md from "./Md";
 
 interface EditMeetingProps {
@@ -232,6 +233,28 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             Open Street Map
                         </a>
                         <br />
+                        <b>Häufig genutzte Orte</b>
+                        <br />
+                        <InputPicker
+                            data={commonPlaces.map(item => ({
+                                label: item.name,
+                                value: item.name
+                            }))}
+                            onChange={v => {
+                                const selectedPlace = commonPlaces.find(item => item.name === v);
+                                this.setState(state => {
+                                    return update(state, {
+                                        editingMeeting: {
+                                            location: {
+                                                name: { $set: v },
+                                                lat: { $set: selectedPlace?.lat ?? 0 },
+                                                lon: { $set: selectedPlace?.lon ?? 0 }
+                                            }
+                                        }
+                                    });
+                                });
+                            }}
+                        />
                         <Input
                             onChange={v => {
                                 this.setState(state => {
