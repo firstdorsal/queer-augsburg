@@ -9,7 +9,8 @@ tls: false
 routing: local
 
 backup:
-    create: false
+    create: true
+    schedule: "@every 30s" #"@weekly"
 
 qa:
     web:

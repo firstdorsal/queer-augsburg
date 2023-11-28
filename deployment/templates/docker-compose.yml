@@ -104,6 +104,9 @@ services:
         hostname: qa-db.localhost
         volumes:
             - qa-db:/bitnami:rw
+        {{- if eq $config.backup.create true }}
+            - qa-backup:/backup/:rw
+        {{- end }}
         networks:
             - qa-db
         {{- if eq $config.qa.db.exposeToLocalhost true}}
@@ -173,6 +176,9 @@ services:
         hostname: qa-interossea-db.localhost
         volumes:
             - qa-interossea-db:/bitnami:rw
+        {{- if eq $config.backup.create true }}
+            - qa-backup:/backup/:rw
+        {{- end }}
         {{- if eq $config.interossea.server.db.exposeToLocalhost true}}
         ports:
             - 127.0.0.1:{{ $config.interossea.server.db.port }}:{{ $config.interossea.server.db.port }}
@@ -245,8 +251,7 @@ services:
             dockerfile: Dockerfile
         restart: always
         volumes:
-            - qa-db:/backup/db/:ro
-            - qa-interossea-db:/backup/db-interossea/:ro
+            - qa-backup:/backup/:rw
             - ./data/backup/app_data:/app_data/:rw
         environment:
             AWS_ACCESS_KEY_ID: ${BACKUP_AWS_ACCESS_KEY_ID}
@@ -254,6 +259,17 @@ services:
             AWS_DEFAULT_REGION: eu-central-1
             AWS_S3_BUCKET_NAME: ${BACKUP_AWS_S3_BUCKET_NAME}
             ENCRYPTION_PASSWORD: ${BACKUP_ENCRYPTION_PASSWORD}
+    qa-chadburn:
+        container_name: qa-chadburn
+        image: premoweb/chadburn:latest
+        restart: always
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock:ro
+            - ./config/chadburn.conf:/etc/chadburn.conf:ro
+        depends_on:
+            - qa-backup
+            - qa-db
+            - qa-interossea-db
     {{- end }}
     {{- if eq $config.reverseProxy.create true }}
     rp:
@@ -290,6 +306,10 @@ volumes:
     {{- if eq $config.interossea.server.create true }}
     qa-interossea-keys:
         name: qa-interossea-keys
+    {{- end }}
+    {{- if eq $config.backup.create true }}
+    qa-backup:
+        name: qa-backup
     {{- end }}
 networks:
     qa-interossea-db:
