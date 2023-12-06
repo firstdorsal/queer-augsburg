@@ -2,6 +2,7 @@ use crate::{
     db::DB,
     interossea::Auth,
     types::{SetOwnMemberDataRequestBody, SubmittedMember},
+    utils::send_mail,
 };
 use anyhow::bail;
 use hyper::{Body, Request, Response};
@@ -32,7 +33,21 @@ pub async fn update_own_member_data(
         Err(e) => return Ok(res.status(400).body(Body::from(e.to_string()))?),
     };
 
-    db.update_member_data(user_id, uoub.member).await?;
+    let email = uoub.member.email.clone();
+
+    let first_time = db.update_member_data(user_id, uoub.member).await?;
+
+    if first_time {
+        let subject = "Dein Mitgliedsantrag bei Queer Augsburg wurde eingereicht!".to_string();
+        let body_text = "Dein Mitgliedsantrag bei Queer Augsburg wurde eingereicht!".to_string();
+
+        send_mail(&email, &subject, body_text.clone(), body_text).await?;
+    } else {
+        let subject = "Deine Mitgliedsdaten bei Queer Augsburg wurden aktualisiert!".to_string();
+        let body_text = "Deine Mitgliedsdaten bei Queer Augsburg wurden aktualisiert!".to_string();
+
+        send_mail(&email, &subject, body_text.clone(), body_text).await?;
+    }
 
     Ok(res.body(Body::from("Ok"))?)
 }

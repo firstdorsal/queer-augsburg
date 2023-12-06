@@ -125,10 +125,11 @@ impl DB {
         &self,
         user_id: &str,
         submitted_member: SubmittedMember,
-    ) -> anyhow::Result<()> {
+    ) -> anyhow::Result<bool> {
         let users = self.db.collection::<User>("users");
         let original_users = self.db.collection::<User>("originalUsers");
         let user = users.find_one(doc! { "_id": user_id }, None).await?;
+        let mut first_time = false;
 
         match user {
             Some(mut user) => {
@@ -168,6 +169,7 @@ impl DB {
                     None => {
                         user.member = Some(updated_member);
                         original_users.insert_one(user.clone(), None).await?;
+                        first_time = true;
                     }
                 }
 
@@ -180,7 +182,7 @@ impl DB {
             }
         }
 
-        Ok(())
+        Ok(first_time)
     }
 
     pub async fn get_users(
