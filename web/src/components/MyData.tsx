@@ -203,7 +203,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
                 <p>
                     Hier kannst du unseren Mitgliedsantrag ausfüllen oder deine Daten abändern. Nach
                     der Annahme deines Antrags erhältst du eine Mail zur Bestätigung. Die
-                    Mitgliedschaft ist kostenlos und jederzeit kündbar.
+                    Mitgliedschaft ist kostenlos und kann jederzeit beendet werden.
                 </p>
                 <h2>Status</h2>
                 {(() => {
