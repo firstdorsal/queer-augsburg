@@ -19,7 +19,8 @@ mozart render templates/admin.yml -o results/admin.yml
 cp -r templates/email-templates results/
 cp -r templates/data results/
 find results/data -type f -exec chmod 0644 {} \;
-
+#mkdir -p results/config/mattermost
+#chmod 0777 results/config/mattermost/
 
 
 docker compose -p qa --project-directory results/ up --build -d --remove-orphans 

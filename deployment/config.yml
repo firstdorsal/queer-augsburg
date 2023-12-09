@@ -12,6 +12,12 @@ backup:
     create: true
     schedule: "@every 30s" #"@weekly"
 
+internal:
+    mattermost:
+        enabled: true
+        domain: queer-augsburg.de
+        subdomain: mm
+
 qa:
     web:
         build:

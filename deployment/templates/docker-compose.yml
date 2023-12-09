@@ -8,6 +8,8 @@
 
 {{- $qaServerHostname := joindomain $config.qa.server.publicHostname.subdomain (ternary "localhost" $config.qa.server.publicHostname.domain (eq $config.routing "local")) -}}
 
+{{- $matterMostHostname := joindomain $config.internal.mattermost.subdomain (ternary "localhost" $config.internal.mattermost.domain (eq $config.routing "local")) -}}
+
 version: "3.9"
 
 services:
@@ -298,6 +300,64 @@ services:
                         {{- end }}
         
     {{- end }}
+    {{- if eq $config.internal.mattermost.enabled true }}
+    qa-mattermost-postgres:
+        image: postgres:13-alpine
+        restart: always
+        container_name: qa-mattermost-postgres
+        volumes:
+            - qa-mattermost-postgres:/var/lib/postgresql/data
+        environment:
+            POSTGRES_USER: $MATTERMOST_POSTGRES_USER
+            POSTGRES_PASSWORD: $MATTERMOST_POSTGRES_PASSWORD
+            POSTGRES_DB: db
+            TZ: Europe/Berlin
+        security_opt:
+            - no-new-privileges:true
+        networks:
+            - qa-mattermost-postgres
+    qa-mattermost:
+        image: mattermost/mattermost-team-edition:latest
+        depends_on:
+            - qa-mattermost-postgres
+        networks:
+            - qa-mattermost-postgres
+            - {{ $config.reverseProxy.network }}
+        restart: always
+        container_name: qa-mattermost
+        volumes:
+            - qa-mattermost-data:/mattermost/data
+        #    - ./config/mattermost/:/mattermost/config:rw
+        environment:
+            TZ: Europe/Berlin
+            MM_SQLSETTINGS_DRIVERNAME:
+            MM_SQLSETTINGS_DATASOURCE: postgres://$MATTERMOST_POSTGRES_USER:$MATTERMOST_POSTGRES_PASSWORD@qa-mattermost-postgres/db?sslmode=disable&connect_timeout=10
+            MM_EMAILSETTINGS_ENABLESMTPAUTH: true
+        labels:
+            traefik:
+                docker:
+                    network: {{ $config.reverseProxy.network }}
+                enable: true
+                http:
+                    routers:
+                        qa-mattermost:
+                            rule: "Host(`{{ $matterMostHostname }}`)"
+                            entrypoints: {{ ternary "websecure" "web" $config.tls }}
+                            service: qa-mattermost
+                            {{- if eq $config.tls true }}
+                            tls:
+                                certresolver: "default"
+                                domains:
+                                    - main: "{{ $config.internal.mattermost.domain }}"
+                                      sans: "*.{{ $config.internal.mattermost.domain }}"
+                            {{- end }}
+                    services:
+                        qa-mattermost:
+                            loadbalancer:
+                                server:
+                                    port: 8065
+
+    {{- end }}
 volumes:
     qa-db:
         name: qa-db
@@ -311,6 +371,12 @@ volumes:
     qa-backup:
         name: qa-backup
     {{- end }}
+    {{- if eq $config.internal.mattermost.enabled true }}
+    qa-mattermost-postgres:
+        name: qa-mattermost-postgres
+    qa-mattermost-data:
+        name: qa-mattermost-data
+    {{- end }}
 networks:
     qa-interossea-db:
         name: qa-interossea-db
@@ -320,3 +386,7 @@ networks:
         name: {{ $config.reverseProxy.network }}
     qa-interossea-server:
         name: qa-interossea-server
+    {{- if eq $config.internal.mattermost.enabled true }}
+    qa-mattermost-postgres:
+        name: qa-mattermost-postgres
+    {{- end }}
