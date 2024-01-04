@@ -144,7 +144,8 @@ export default class Wir extends Component<WirProps, WirState> {
                     <br />
                     ...erklären? - Halte einen Themenabend!
                     <br />
-                    ...organisieren? - Realisiere ein Kennentreffen oder eine MItgliederversammlung!
+                    ...organisieren? - Realisiere ein Kennenlerntreffen oder eine
+                    Mitgliederversammlung!
                     <br />
                     ...zeichnen? - Gestalte unsere Social Media Posts, Plakate, Sticker und
                     Infomaterialien!
@@ -169,7 +170,7 @@ export default class Wir extends Component<WirProps, WirState> {
                     Wir stellen dir für dein Engagment aussagekräftige Ehrenamtsbestätigungen für
                     Bewerbungen und Stipendien aus.
                 </p>
-                <h1>Queer Augsburg Senat</h1>
+                <h1>Senat</h1>
                 <Image
                     image={senatBild}
                     alt="Gruppe von Menschen die in bunte Flaggen gehüllt ein Banner mit der Aufschrift Queer Augsburg Halten"
@@ -190,7 +191,7 @@ export default class Wir extends Component<WirProps, WirState> {
                     <li> Helena Kosch (sie/ihr) - Öffentlichkeitsarbeit und Vernetzung</li>
                     <li> Jerome Petrov (er/ihm) - Recht</li>
                     <li> Kübra Karakuzu (sie/ihr) - Studierende</li>
-                    <li> Paul Kunstmann - Recht, Studierende</li>
+                    <li> Paul Kunstmann (er/ihm) - Recht, Studierende</li>
                     <li> Paul Colin Hennig (er/ihm) - Digitales und Datenschutz, Party</li>
                     <li> Anna Görlitz (sie/ihr) - Finanzen</li>
                     <li> Julia Stöckner (sie/ihr) - Transparenz</li>
@@ -207,7 +208,8 @@ export default class Wir extends Component<WirProps, WirState> {
                 </p>
                 <p>
                     Du kannst sie unter ihrer eigenen Mailadresse, auf die der Vorstand keinen
-                    Zugriff hat, erreichen: transparenz@queer-augsburg.de
+                    Zugriff hat, erreichen:{" "}
+                    <a href="mailto:transparenz@queer-augsburg.de">transparenz@queer-augsburg.de</a>
                 </p>
                 <p>
                     Die transparenz- sowie die finanzbeazftragte(n) Person(en) werden direkt von der
@@ -215,15 +217,15 @@ export default class Wir extends Component<WirProps, WirState> {
                     ernannt und können zusätzlich von der Mitgliederversamlung bestätigt werden.
                 </p>
 
-                <h1>Queer Augsburg Vorstand</h1>
+                <h1>Vorstand</h1>
                 <Image
                     image={vorstandBild}
                     alt="Drei Personen die Lächeln, eine hält die Satzung in der Hand. Aufgenommen bei der Gründungsversammlung 2023."
                 />
                 <p>
                     Der Vorstand ist das Leitungsorgan des Vereins. Er vertritt den Verein rechtlich
-                    nach außen und legt nach innen die Leitnien der Vereinsarbeit fest. Der Vorstand
-                    wird jedes Jahr von der Mitgliederversammlung neu gewählt.
+                    nach außen und legt nach innen die Leitlinien der Vereinsarbeit fest. Der
+                    Vorstand wird jedes Jahr von der Mitgliederversammlung neu gewählt.
                 </p>
                 <p>Unser Vorstand besteht zurzeit aus drei Personen, von links nach rechts:</p>
 

@@ -8,9 +8,38 @@ export default class Impressum extends Component<ImpressumProps, ImpressumState>
             <div className="Impressum Pad">
                 <h1>Impressum</h1>
                 <h2>Angaben gemäß §5 TMG</h2>
-                <div>Queer Augsburg e.V.</div>
-                <div>Apothekergäßchen 6</div>
-                <div>86150 Augsburg</div>
+                <p>
+                    Queer Augsburg e.V.
+                    <br />
+                    Apothekergäßchen 6
+                    <br />
+                    86150 Augsburg
+                </p>
+                <p>
+                    Queer Augsburg ist eingetragen im Vereinsregister des Amtsgerichts Augsburg: VR
+                    202787
+                    <p>
+                        Der Verein ist gemeinnützig nach §§ 51 ff. AO, Finanzamt Augsburg-Stadt:
+                        St.-Nr. 103/110/21937
+                    </p>
+                    <p>
+                        Du kannst steuerlich absetzbar spenden an:
+                        <br />
+                        Kontoinhaber: Queer Augsburg e.V.
+                        <br />
+                        IBAN: DE30 8306 5408 0005 3703 96
+                        <br />
+                        BIC: GENODEF1SLR
+                    </p>
+                    <p>
+                        Unser Vorstand nach § 26 BGB:
+                        <ul>
+                            <li>Aiden Lane Ziegler (er/ihm)</li>
+                            <li>Paul Kunstmann (er/ihm)</li>
+                            <li>Lara Kosch (sie/ihr)</li>
+                        </ul>
+                    </p>
+                </p>
                 <h2>Kontakt</h2>
                 <p>
                     <a href="mailto:mail@queer-augsburg.de">mail@queer-augsburg.de</a>
