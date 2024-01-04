@@ -1,5 +1,9 @@
 import { Component } from "preact";
 import { G } from "../types";
+import weihnachtsbild from "../assets/weihnachten.jpg?w=1000&format=jpg&as=metadata";
+import vorstandBild from "../assets/vorstand.jpg?w=1000&format=jpg&as=metadata";
+import senatBild from "../assets/senat.jpg?w=1000&format=jpg&as=metadata";
+import Image from "../components/Image";
 
 interface WirProps {
     readonly g: G;
@@ -9,472 +13,237 @@ export default class Wir extends Component<WirProps, WirState> {
     render = () => {
         return (
             <div className="Wir Pad">
-                <h1>"Wir" Queer Augsburg</h1>
+                <h1>Wir</h1>
                 <p>
-                    Wir sind eine Gruppe von motivierten und aufgeschlossenen Menschen, die sich für
-                    alle queeren Personen in und um Augsburg einsetzen.
+                    Queer Augsburg ein gemeinnütziger eingetragener Verein, der sich für lesbische,
+                    schwule, trans*, bi+, a_sexuelle, a_romantische, inter* und queere
+                    Augsburger*innen sowie ihre Freund*innen und Unterstützer*innen in der Stadt und
+                    im Herzen einsetzt. Wir sind offen für alle und veranstalten Treffen für queeres
+                    Leben und Lernen im Geiste der Vielfalt, Transparenz und Teilhabe. Du bist bei
+                    uns willkommen, unabhängig von geschlechtlicher Identität, sexueller und
+                    romantischer Orientierung, Alter, Behinderung, parteipolitischer Zugehörigkeit,
+                    Religion, (Wieder-) Einwanderungsgeschichte, Ethnie, Abstammung, Heimat,
+                    Aussehen und Sprache. Bei Queer Augsburg finden alle eine Heimat, die unsere
+                    Werte Akzeptanz, Freiheit, Respekt und Zusammenhalt teilen. Gemeinsam setzen wir
+                    uns tagtäglich dafür ein, ein buntes, friedliches und vielfältiges Augsburg für
+                    alle zu erschaffen.
                 </p>
-                <p>
-                    Wir bieten einen Safe Space, in dem sich alle willkommen, sicher und gehört
-                    fühlen und in dem jede*r an sich wachsen kann. Wir wollen Treffen und Gruppen
-                    für alle Menschen im Geiste der Vielfalt, Transparenz und Teilhabe und im Sinne
-                    unserer Werte Akzeptanz, Freiheit, Gleichstellung, Offenheit und Respekt
-                    organisieren.
-                </p>
-                <h2>Queer Augsburg Senat</h2>
-                <p>
-                    Der Senat ist das leitende Arbeitsorgan von Queer Augsburg. Der Senat tauscht
-                    sich regelmäßig mit den Teilnehmenden bei Queer Augsburg Open aus. Ideen,
-                    Vorschläge und Feedback können jederzeit vorgebracht werden, insbesondere bei
-                    Queer Augsburg Ideas. Die aktuellen Senator*innen sind Aurora, Helena, Julia und
-                    Lane.
-                </p>
-                <h1>Mitglied werden</h1>
+                <h1>Komm vorbei!</h1>
+                <Image
+                    image={weihnachtsbild}
+                    alt="Große Gruppe von Menschen die Lächeln, aufgenommen bei der Weihnachtsfeier 2023"
+                />
 
                 <p>
-                    Werde Mitglied bei Queer Augsburg!
-                    <b> Die Mitgliedschaft ist kostenlos und kann jederzeit beendet werden.</b>
-                    Du musst lediglich mindestens 18 Jahre alt sein und dich mit unseren Werten
-                    Offenheit, Akzeptanz, Respekt, Vielfalt, Freiheit, Teilhabe, Transparenz und
-                    Zusammenhalt identifizieren.
-                    <br />
-                    Wir müssen aus rechtlichen Gründen deinen Passnamen speichern. Da es aber sehr
-                    unwahrscheinlich ist, dass wir die Passnamen je brauchen, wird dieser nicht mal
-                    dem Vorstand ohne guten Grund angezeigt.
-                    <br />
-                    Um zum Formular zu gelangen, kannst du <a href="/ich">hier</a> klicken um per
-                    Mail einen Anmeldelink zu erhalten. <br /> Nachdem du den Link in der Mail
-                    angeklickt hast, kommst du in deinen eigenen Bereich auf unserer Seite, in dem
-                    du deine Daten für den Antrag eintragen kannst. Nach dem Absenden des Antrags
-                    bestätigen wir dir die Annahme per Mail. <br /> Sollten sich deine Daten künftig
-                    ändern kannst du diese im selben Formular anpassen und speichern.
-                    <br />
-                    Der Vorstand entscheidet über deinen Antrag. Dies kann mitunter länger dauern,
-                    da wir einen Safe Space bei Queer Augsburg wahren wollen. Wir wollen daher
-                    sichergehen, dass es sich um echte Personen handelt, die uns nicht schaden
-                    wollen. Dein Mitgliedsantrag wird daher schneller bearbeitet, wenn du bei einem
-                    unserer Treffen beitrittst.
-                    <br />
-                    Wenn du bereits bei einem unserer Treffen warst und in unseren internen
-                    WhatsApp- oder Signal-Gruppen bist, gib bitte deine Handynummer an, mit der du
-                    in der Gruppe bist, und trage unter "Woher kennst du uns?" den jeweiligen
-                    Messaging-Dienst ein: "WhatsApp" oder "Signal".
+                    Triff bei Queer Augsburg lesbische, schwule, trans*, bi+, a_sexuelle,
+                    a_romantische, inter* und queere Menschen aus Augsburg und Umgebung. Lerne neue
+                    Leute kennen und lerne etwas dazu bei unseren Veranstaltungen. Normalerweise
+                    warten wir eine bunte Viertelstunde bevor wir mit dem Treffen beginnen. (Du
+                    kannst auch nachkommen, wenn es mal später wird.) In dieser Zeit fertigen sich
+                    die meisten mit unserem mitgebrachten Kreppband und Filzstift ein Namensschild
+                    mitsamt Pronomen an. Anschließend stellt sich Veranstaltungsleitung sowie alle,
+                    die wollen, vor. Dann geht es mit dem Treffen los: Es wird geredet, gespielt,
+                    zugehört und mitgemacht. Während des Treffens kannst du dich mit Fragen und all
+                    deinen Belangen an die Veranstaltungsleitung wenden. Alles ist freiwillig. Bei
+                    uns muss kein Mensch müssen. Du kannst dich jederzeit zurückziehen und auch
+                    gehen. In der Regel werden die Veranstaltungen nach circa zwei Stunden offiziell
+                    beendet. Du kannst meist noch bleiben, aber es ist auch eine gute Gelegenheit,
+                    um zu gehen und allen ein &quot;Bis zum nächsten Mal!&quot; zu wünschen.
                 </p>
-                <p>
-                    Unsere Satzung findest du <a href="/Queer-Augsburg_Satzung.pdf">hier</a>
-                </p>
-
-                <h1>Offen für Alle.</h1>
-                <p>
-                    Wir sind offen für alle Menschen. Bei uns ist jede*r willkommen. Sexuelle und
-                    romantische Orientierung, Geschlechtsidentität, Religionszugehörigkeit und/oder
-                    Weltanschauung, Alter und Beruf spielen keine Rolle. Wir nehmen jede*n herzlich
-                    auf!
-                </p>
-                <h1>Transparenz.</h1>
-                <p>
-                    Wir sind offen in unserer Struktur. Bei uns weißt du immer, wer wieso welche
-                    Entscheidung getroffen hat.
-                </p>
-                <p>
-                    Auf unserer Website findest du die Teilnehmendenzahlen und Bewertungen
-                    bisheriger Treffen.
-                </p>
-                <p>
-                    Der Senat von Queer Augsburg versucht größtmögliche Transparenz zu bieten. Alle
-                    Senator*innen stehen jederzeit für Nachfragen zur Verfügung. Zudem bieten wir in
-                    regelmäßigen Abständen unser Format Senat Open an, wo du dich direkt über die
-                    aktuellen Entwicklungen und anfallenden Aufgaben des Senats informieren kannst.
-                </p>
-                <h1>Teilhabe.</h1>
-                <p>
-                    Wir sind offen für alle Ideen. Neue Vorschläge sind immer gern willkommen; denn
-                    unsere Gruppe lebt von den Interaktionen der Mitglieder. Mit uns kannst du alles
-                    umsetzen. Egal ob Orga, Vortrag, Veranstaltung oder Gründung einer neuen
-                    Untergruppe. Wir helfen dir dabei, deine Ziele zu erreichen!
-                </p>
-                <h2>Ziele</h2>
-                <p>
-                    Wir wollen für mehr Sichtbarkeit queerer Menschen sorgen und uns für Diversität
-                    in Augsburg und Umgebung einsetzen.
-                </p>
-                <p>
-                    Mit ‘Queer Augsburg’ wollen wir queeren Menschen in der Gesellschaft sichtbar
-                    machen, queeren Aktivismus fördern und die Gleichbehandlung queerer Menschen
-                    erreichen.
-                </p>
-                <p>
-                    Den Ausgangspunkt dafür bieten regelmäßige und abwechslungsreiche Treffen. Wir
-                    lernen Menschen kennen, tauschen Ideen aus und vernetzen uns. Wir lernen
-                    Verantwortung zu übernehmen, für uns und andere einzustehen und wachsen an den
-                    Herausforderungen, die das mit sich bringt.
-                </p>
-                <p>Zusammen entwickeln wir Ideen und Projekte, die wir gemeinsam umsetzen.</p>
-                <p>
-                    Queer Augsburg lebt von unseren engagierten Mitgliedern und Verantwortlichen.
-                    Ein großer Dank gilt: Paul, Paul, Kai, Martin, Nina, Wolle/Marie, Lane, Amelie,
-                    Sophie, Luna, Aurora, Theo, Julia, Luce, Leo, Matthis, Manuel, Miles, Kübra,
-                    Theresa, Kamil, Helli, Kae, Jenny, Patrick, Jordan und allen anderen, die einen
-                    konstruktiven und positiven Beitrag zu Augsburgs queerer Community leisten
-                    ❤️🏳‍🌈.
-                </p>
-                <br />
-                <br />
                 <h1>Du</h1>
                 <p>
-                    Du hast die Möglichkeit, dich bei uns mit Gleichgesinnten zu vernetzen, sowie
-                    eigene Ideen für Treffen einzubringen. Queer Augsburg bietet dir die Möglichkeit
-                    zur Umsetzung deiner Ideen. Du kannst sie bei uns ganz einfach und stressfrei
-                    umsetzen. Wir stehen dir bei der Organisation eines Treffens mit Rat und Tat zur
-                    Seite. Gerne helfen wir dir auch dabei, eine neue queere Gruppe zu gründen.
-                    Kontaktiere uns ganz einfach und formlos per E-Mail oder auf unseren
-                    Social-Media Kanälen:
+                    Du kannst queere Menschen in Augsburg unterstützen, indem du Mitglied wirst,
+                    spendest und mitmachst.
                 </p>
-                <a href="mailto:mail@queer-augsburg.de">mail@queer-augsburg.de</a>
+                <h1>Gratis Mitglied werden</h1>
                 <p>
-                    Wir bieten mehrere WhatsApp- und Signal-Gruppen zum Austausch mit den
-                    Mitgliedern an. Um unseren Safe Space zu wahren fügen wir dich gerne hinzu,
-                    nachdem du mindestens einmal an einer unserer Veranstaltungen teilgenommen hast.
-                    Du hast durch unsere News-Gruppe auf Whatsapp die Möglichkeit nur Infos zu
-                    unseren Veranstaltungen und Aktionen zu erhalten, ohne an Interaktionen
-                    teilzunehmen. Mehr Eindrücke und Infos findest du auch auf unseren
-                    Instagram/Twitter/Dbna/Facebook Accounts:
+                    Werde Mitglied bei Queer Augsburg! Die Mitgliedschaft ist kostenlos und kann
+                    jederzeit beendet werden. Du musst lediglich mindestens 18 Jahre alt sein und
+                    dich mit unseren Werten Offenheit, Akzeptanz, Respekt, Vielfalt, Freiheit,
+                    Teilhabe, Transparenz und Zusammenhalt identifizieren. Bei uns gibt es keinen
+                    Spam: Pro Jahr wirst du voraussichtlich fünf E-Mails von uns bekommen. Als
+                    aktives Mitglied hast du Stimm- und Mitgestaltungsrechte bei der
+                    Mitgliederversammlung. Fördernde MItglieder haben kein Stimmrecht. Sie helfen
+                    genauso wie aktive Mitglieder, die Sichtbarkeit der queeren Community in
+                    Augsburg zu stärken und unterstützen uns dabei, Augsburg zu einem bunten,
+                    friedlichen und vielfältigen Ort für alle zu machen. Juristische Personen wie
+                    andere Vereine oder Unternehmen können auch förderndes Mitglied von Queer
+                    Augsburg werden. Sobald wir genug Spenden gesammelt haben, bekommen Mitglieder
+                    Vergünstigungen bei Eintritten und ein erstes alkoholfreies Getränk bei unseren
+                    Meets umsonst.
                 </p>
                 <p>
-                    <a rel="noreferrer" href="https://instagram.com/queer_augsburg">
-                        @queer_augsburg
-                    </a>{" "}
-                    /{" "}
-                    <a rel="noreferrer" href="https://twitter.com/queeraugsburg?lang=de">
-                        @queeraugsburg{" "}
-                    </a>{" "}
-                    /{" "}
-                    <a rel="noreferrer" href="https://www.facebook.com/QueerAugsburg/">
-                        @queeraugsburg{" "}
+                    Wir müssen aus rechtlichen Gründen deinen Passnamen speichern. Da es aber sehr
+                    unwahrscheinlich ist, dass wir die Passnamen je brauchen, wird dieser nicht mal
+                    dem Vorstand ohne besonders guten Grund angezeigt. Um zum Formular zu gelangen,
+                    kannst du <a href="/ich">hier</a> klicken, um per Mail einen Anmeldelink zu
+                    erhalten. Nachdem du den Link in der Mail innerhalb von 10 Minuten angeklickt
+                    hast, kommst du in deinen eigenen Bereich auf unserer Seite. Dort kannst du
+                    deine Daten für den Antrag eintragen. Sollten sich deine Daten künftig ändern
+                    kannst du diese im selben Formular anpassen und speichern. Nach dem Absenden des
+                    Antrags bestätigen wir dir die Annahme per Mail. Der Vorstand entscheidet über
+                    deinen Antrag. Dies kann mitunter länger dauern, da wir einen Safe Space bei
+                    Queer Augsburg wahren wollen. Wir wollen daher sichergehen, dass es sich um
+                    echte Personen handelt, die uns nicht schaden wollen. Dein Mitgliedsantrag wird
+                    daher schneller bearbeitet, wenn du bei einem unserer Treffen beitrittst. Wenn
+                    du bereits bei einem unserer Treffen warst und in unseren internen WhatsApp-
+                    oder Signal-Gruppen bist, gib bitte deine Handynummer an, mit der du in der
+                    Gruppe bist, und trage unter &quot;Woher kennst du uns?&quot; den jeweiligen
+                    Messaging-Dienst ein: &quot;WhatsApp&quot; oder &quot;Signal&quot;. Anträge auf
+                    fördernde Mitgliedschaft nehmen wir in der Regel schneller an.
+                </p>
+                <p>
+                    Unsere Satzung findest du{" "}
+                    <a href="/Queer-Augsburg_Satzung.pdf" target="_blank">
+                        hier
                     </a>
+                    .
+                </p>
+
+                <h1>Spenden</h1>
+                <p>
+                    Mit deiner steuerlich absetzbaren Spende unterstützt du direkt queere Menschen
+                    in Augsburg! Wir planen viele Projekte. In naher Zukunft wollen wir mit deiner
+                    Spende zB einen Zoom-Account für digitale Events, neue Werbemittel, attraktivere
+                    Events sowie Infomaterialien zu queeren Themen ermöglichen.
                 </p>
                 <p>
-                    Du willst auch einen eigenen queeren Schüler*innentreff an deiner Schule
-                    etablieren? Dann helfen wir dir gerne weiter! Schreibe uns einfach eine formlose
-                    Mail und Queer Augsburg und der Queerspace Königsbrunn werden dich unterstützen!
-                </p>
-                <b>Wo kannst du dich konkret engagieren?</b>
-                <p>
-                    Du willst dich bei Queer Augsburg als Senator*in engagieren? Dann schreibe uns
-                    eine Mail an <a href="mailto:mail@queer-augsburg.de">mail@queer-augsburg.de</a>!
-                </p>
-                <p>Weitere Möglichkeiten sich bei Queer Augsburg zu engagieren sind:</p>
-                <b>Queer Augsburg Students</b>
-                <p>
-                    Du organisierst Kennenlerntreffen, Campuswerbung und Aktionen spezifisch für
-                    Studierende mit.
-                </p>
-                <b>Queer Augsburg Marketing</b>
-                <p>
-                    Du unterstützt bei der Betreuung von Insta-, Twitter-, Dbna- oder
-                    Facebookaccount oder designst Posts, Plakate und Sticker mit.
+                    Am einfachsten ist eine Überweisung an:
+                    <br />
+                    Kontoinhaber: Queer Augsburg e.V.
+                    <br />
+                    IBAN: DE30 8306 5408 0005 3703 96
+                    <br />
+                    BIC: GENODEF1SLR
                 </p>
                 <p>
-                    Wir bieten unterschiedliche Arten von Treffen an, bei deren Gestaltung du dich
-                    gerne engagieren kannst. Die meisten fallen unter wiederkehrende Formate:
+                    Bargeld sowie sonstige Sachspenden kannst du bei einem Treffen in Präsenz
+                    spenden.
                 </p>
-                <b>Queer Augsburg Meet</b>
+                <p>An weiteren Spendemöglichkeiten arbeiten wir gerade. :)</p>
                 <p>
-                    Meets sind formlose Treffen in Cafés/Bars und teilweise über Zoom, um gemeinsam
-                    Zeit verbringen zu können.
+                    Wir stellen dir auf Anfrage an{" "}
+                    <a href="mailto:finanzen@queer-augsburg.de">finanzen@queer-augsburg.de</a> eine
+                    offizielle Spendenbescheinigung aus. Bis zu einer Spendenhöhe von 300 €
+                    akzeptiert das Finanzamt aber auch einen Kontoauszug als Nachweis.
                 </p>
-                <b>Queer Augsburg Educates</b>
+
+                <h1>Mitmachen</h1>
                 <p>
-                    Unter die “Educates”-Reihe zählen Vorträge und Veranstaltungen, die Awareness
-                    und Sichtbarkeit für queere Themen und Intersektionalität zu schaffen. Beispiele
-                    hierfür sind: Gatekeeping in der Queeren Community, Aktion gegen Rassismus,
-                    Microlabels und Neopronomina, Welt-AIDS-Tag, Mental Health Matters,
-                    Feministischer Kampftag, Trans Day of Rememberance, Asexual Awareness Week,
-                    Lesbian Visibility Day.
+                    Entfalte dich selbst, gib etwas zurück und gestalte die Stadt, die Gesellschaft
+                    und den Verein mit deinem Beitrag zu einem bunten Augsburg! Wir brauchen jede
+                    helfende Hand, denn es gibt viel zu tun.
                 </p>
-                <b>Queer Augsburg Cinema</b>
                 <p>
-                    Wir schauen gemeinsam queere Filme im Kino und tauschen uns anschließend in
-                    einem Cafe oder einer Bar über den Film aus.
+                    Du kannst gut...
+                    <br />
+                    ...mit Menschen umgehen? - Leite ein Queer Augsburg Meet treffen!
+                    <br />
+                    ...erklären? - Halte einen Themenabend!
+                    <br />
+                    ...organisieren? - Realisiere ein Kennentreffen oder eine MItgliederversammlung!
+                    <br />
+                    ...zeichnen? - Gestalte unsere Social Media Posts, Plakate, Sticker und
+                    Infomaterialien!
+                    <br />
+                    ...programmieren? - Baue unsere Website und internen Systeme aus!
+                    <br />
+                    ...juristische Sachverhalte erfassen? - Reformiere unsere Satzung und internen
+                    Abläufe!
+                    <br />
+                    ...netzwerken? - Vernetze dich mit Akteur*innen aus Politik und Gesellschaft!
+                    <br />
+                    ...mit Zahlen? - Prüfe unsere Konten und Kassen!
+                    <br />
+                    ...fundraisen? - Sammle Spenden für einen bunten Zweck!
+                    <br />
+                    ...planen? - Koordiniere unseren Terminkalender!
+                    <br />
+                    ...schreiben? - Schreib an unseren Texten auf der Website, auf Social Media und
+                    unseren Infomaterialien!
                 </p>
-                <b>Queer Augsburg Kultur</b>
                 <p>
-                    Wir schauen (queere) Theaterstücke, gehen zusammen ins Museum oder nähern uns
-                    der queeren Thematik auf historische oder literarische Weise. Beispiele waren
-                    hier: Queeres Griechenland
+                    Wir stellen dir für dein Engagment aussagekräftige Ehrenamtsbestätigungen für
+                    Bewerbungen und Stipendien aus.
                 </p>
-                <b>Queer Augsburg Talks</b>
+                <h1>Queer Augsburg Senat</h1>
+                <Image
+                    image={senatBild}
+                    alt="Gruppe von Menschen die in bunte Flaggen gehüllt ein Banner mit der Aufschrift Queer Augsburg Halten"
+                />
                 <p>
-                    Wir bieten einen offenen Austausch zu bestimmten queeren Thematiken. Beispiele
-                    waren hier: Queere Repräsentation in Medien oder Queer Dating
+                    Der Senat ist das Arbeitsorgan des Vereins. All unsere Beauftragten koordinieren
+                    hier die Vereinsarbeit.
                 </p>
-                <b>Queer Augsburg Ideas</b>
                 <p>
-                    Bei Queer Augsburg Ideas sammeln wir Ideen, Wünsche und Vorschläge für kommende
-                    Treffen und erarbeiten gemeinsam das Programm für die kommenden Monate.
+                    Unser Senat besteht zurzeit aus elf Personen, von links nach rechts mitsamt
+                    Fachbereich(en):
                 </p>
-                <b>Queer Augsburg Open</b>
+                <ul>
+                    <li> Aiden Lane Ziegler (er/ihm) - trans*, Kultur, Disability</li>
+                    <li> Emmanuel Fleischer (er/ihm) - Aro_Ace</li>
+                    <li> Aurora Schupp (it/its) - trans*, Aro_Ace</li>
+                    <li> Annabel W. (sie/ihr) - Vereinsverwaltung</li>
+                    <li> Helena Kosch (sie/ihr) - Öffentlichkeitsarbeit und Vernetzung</li>
+                    <li> Jerome Petrov (er/ihm) - Recht</li>
+                    <li> Kübra Karakuzu (sie/ihr) - Studierende</li>
+                    <li> Paul Kunstmann - Recht, Studierende</li>
+                    <li> Paul Colin Hennig (er/ihm) - Digitales und Datenschutz, Party</li>
+                    <li> Anna Görlitz (sie/ihr) - Finanzen</li>
+                    <li> Julia Stöckner (sie/ihr) - Transparenz</li>
+                </ul>
+
                 <p>
-                    Das Open ist ein offenes Treffen um den Senatsmitgliedern alle möglichen Fragen
-                    zu stellen: von Organisation zu Plänen über mögliche Ideen, alles darf gefragt
-                    werden!
+                    Eine besondere Rolle nimmt bei Queer Augsburg die Transparenzperson ein. Sie ist
+                    die unabhängige und freie Hüterin des Vereins. Im Auftrag der
+                    Mitgliederversammlung wahrt sie die Integrität des Vereins und des Vorstandes
+                    sowie den friedlichen Umgang miteinander. Unsere derzeitige Transparenzperson
+                    ist Julia Stöckner (sie/ihr). Julia studiert Lehramt und arbeitet im
+                    Verlagswesen. Sie liebt die Allgäuer Bergwelt und italienisches Essen und
+                    interessiert sich für intersektionalen Feminismus.
                 </p>
-                <b>Queer Augsburg Party</b>
                 <p>
-                    Wir treffen und in den angesagten Kneipen und Clubs der Stadt zum Tanzen und
-                    Feiern.
+                    Du kannst sie unter ihrer eigenen Mailadresse, auf die der Vorstand keinen
+                    Zugriff hat, erreichen: transparenz@queer-augsburg.de
                 </p>
-                <b>Queer Augsburg Explores</b>
                 <p>
-                    Wir organisieren Outdooraktivitäten. Beispiele waren: Zoobesuch mit queeren
-                    Pinguinen und Flamingos und Botanischer Garten mit Lichterzauber.
+                    Die transparenz- sowie die finanzbeazftragte(n) Person(en) werden direkt von der
+                    Mitgliederversammlung gewählt. Alle weiteren Beauftragten werden vom Vorstand
+                    ernannt und können zusätzlich von der Mitgliederversamlung bestätigt werden.
                 </p>
-                <b>Queer Augsburg Connects</b>
+
+                <h1>Queer Augsburg Vorstand</h1>
+                <Image
+                    image={vorstandBild}
+                    alt="Drei Personen die Lächeln, eine hält die Satzung in der Hand. Aufgenommen bei der Gründungsversammlung 2023."
+                />
                 <p>
-                    Wir vernetzen uns mit anderen queeren Gruppen und Organisationen aus
-                    deutschsprachigen Ländern und den USA. Ein Beispiel hierfür war das
-                    Transatlantic Queer Meeting oder das D-A-CH Vernetzungstreffen.
+                    Der Vorstand ist das Leitungsorgan des Vereins. Er vertritt den Verein rechtlich
+                    nach außen und legt nach innen die Leitnien der Vereinsarbeit fest. Der Vorstand
+                    wird jedes Jahr von der Mitgliederversammlung neu gewählt.
                 </p>
-                <b>Schulprojekt</b>
-                <p>
-                    Wir haben ein Schulprojekt für die Sekundarstufe entwickelt. Dieses setzen wir
-                    an Schulen um. Wir freuen uns, wenn wir unser Wissen teilen können!
-                </p>
-                <p>Wir freuen uns über deinen Beitrag zu einem bunten Augsburg!</p>
-                <br />
-                <hr />
-                <h1>Partner</h1>
-                <p>
-                    Queer Augsburg ist gut vernetzt und kooperiert mit vielen Organisationen, um
-                    sich für queere Themen und Belange einzusetzen und gemeinsame Ziele zu
-                    erreichen. Unterstütze auch du unsere Partner bei ihrer wertvollen Arbeit!
-                </p>
-                <a rel="noreferrer" href="https://www.rechts-der-wertach.de/">
-                    <h2>ProjektRaum</h2>
-                </a>
-                <p>Quartiersmanagement Rechts-der-Wertach</p>
-                <p>Integreat</p>
-                <p>Cafe Tür an Tür</p>
-                <a rel="noreferrer" href="https://www.esg-augsburg.de/">
-                    <h2>ESG Augsburg</h2>
-                </a>
-                <p>
-                    Die Evangelische Studierendengemeinde Augsburg bietet nicht nur ein vielseitiges
-                    Semesterprogramm, sondern auch eine Cafete für ein Mittagessen unter
-                    Gleichgesinnten.
-                </p>
-                <a rel="noreferrer" href="https://www.freiwilligen-zentrum-augsburg.de/">
-                    <h2>Freiwilligen-Zentrum Augsburg</h2>
-                </a>
-                <p>Botschafter*innen der Vielfalt</p>
-                <p>weitere Projekte</p>
-                <p>perfekte Ausgangsstelle, um sich ehrenamtlich zu engagieren</p>
-                <a rel="noreferrer" href="https://qcaux.de/">
-                    <h2>Queere Christ*innen Augsburg</h2>
-                </a>
-                <p>
-                    Die queeren Christen treffen sich einmal im Monat zum Austausch, Diskutieren und
-                    Singen. Gemeinsam mit dem moritzpunkt wollen wir ein Café Queer in Augsburg
-                    etablieren.
-                </p>
-                <a rel="noreferrer" href="https://www.instagram.com/queerspace_koenigsbrunn/?hl=de">
-                    <h2>Queerspace Königsbrunn</h2>
-                </a>
-                <p>
-                    Am Gymnasium Königsbrunn gibt es einen queeren Schüler*innentreff von queeren
-                    Schüler*innen für queere Schüler*innen. Schreibt dem Queerspace Königsbrunn für
-                    weitere Infos auf Instagram!
-                </p>
-                <a rel="noreferrer" href="https://augsburg.aidshilfe.de/de">
-                    <h2>Aidshilfe Augsburg</h2>
-                </a>
-                <p>
-                    Die Augsburger Aidshilfe berät und betreut HIV-positive Menschen und ist euer
-                    Ansprechpartner für Prävention und sexuelle Gesundheit.
-                </p>
-                <br />
-                <hr />
-                <h1>Freunde in Augsburg</h1>
-                <p>
-                    Queer Augsburg hat viele Freunde, zusammen setzen wie und für queer Sichtbarkeit
-                    die sich für queere Menschen in Augsburg einsetzen.
-                </p>
-                <a
-                    rel="noreferrer"
-                    href="https://www.uni-augsburg.de/de/studium/studentisches-leben/studierendenvertretung/asta/referat-fur-gender-und-gleichstellung/"
-                >
-                    <h2>Gender- und Gleichstellungsreferat</h2>
-                </a>
-                <p>
-                    Das Gender und Gleichstellungsreferat der Universität Augsburg setzt sich für
-                    geschlechtergerechte Sprache und die Gleichstellung aller Menschen an der Uni
-                    ein.
-                </p>
-                <a rel="noreferrer" href="https://www.lovepop.info/augsburg/">
-                    <h2>Lovepop</h2>
-                </a>
-                <p>Die Lovepop bietet regelmäßige Parties für queere Menschen an.</p>
-                <a rel="noreferrer" href="https://www.queerbeet-augsburg.de/">
-                    <h2>Queerbeet</h2>
-                </a>
-                <p>Queerbeet ist eine Jugendgruppe, die sich jede Woche trifft.</p>
-                <a rel="noreferrer" href="https://www.csd-augsburg.de/">
-                    <h2>CSD-Verein</h2>
-                </a>
-                <p>
-                    Der CSD Augsburg e.V. organisiert den Christopher Street Day, den IDAHIT* und
-                    weitere kleinere Veranstaltungen. Auf Instagram und der CSD-Website findet Ihr
-                    unter anderem Infos über queere Geschichte und aktuelle Themen.
-                </p>
-                <h2>
-                    {" "}
-                    <a rel="noreferrer" href="https://www.stadtraumev.de/queerosaurus">
-                        <h2>Queerosaurus</h2>
-                    </a>
-                </h2>
-                <br />
-                <a rel="noreferrer" href="https://www.instagram.com/l_in_aux/?hl=de">
-                    <h2>L*AUX</h2>
-                </a>
-                <br />
-                <a
-                    rel="noreferrer"
-                    href="https://www.uni-augsburg.de/de/studium/studentisches-leben/studierendenvertretung/asta/queerreferat/"
-                >
-                    <h2>Queerreferat</h2>
-                </a>
-                <p>
-                    Vertritt queere Themen in der Hochschulpolitik. Setzt sich dort für
-                    All-Gender-Toiletten, Namensänderung und Regenbogenflaggen am Campus ein.
-                </p>
-                <a
-                    rel="noreferrer"
-                    href="https://www.uni-augsburg.de/de/studium/studentisches-leben/studierendenvertretung/asta/"
-                >
-                    <h2>AStA</h2>
-                </a>
-                <p>Hochschulpolitische Vertretung aller Studierender der Uni Augsburg.</p>
-                <a rel="noreferrer" href="https://www.hs-augsburg.de/Studentische-Vertretung.html">
-                    <h2>SV Hochschule Augsburg</h2>
-                </a>
-                <p>
-                    Die Studentische Vertretung der Hochschule Augsburg setzt sich für für
-                    Studierende an der FH ein und sorgt dort für ein lebendiges Campusleben.
-                </p>
-                <hr />
-                <a href="/friends">
-                    <h1>Freunde außerhalb Augsburgs</h1>
-                </a>
-                <p>
-                    Unsere Fühler erstrecken sich weit über die Grenzen von Augsburg Stadt und Land.
-                    Das sorgsam aufgebaute Netzwerk von Queer Augsburg spannt sich über die gesamte
-                    Bundesrepublik und darüber hinaus. Falls du mal vor Ort bist, schau vorbei und
-                    sag Hallo von Queer Augsburg!
-                </p>
-                <hr />
-                <h1>Queere Links</h1>
-                <h2>Websites</h2>
-                <a class="smg" rel="noreferrer" href="https://queer-lexikon.net">
-                    Queer-Lexikon
-                </a>
-                <br />
-                <a class="smg" rel="noreferrer" title="KEIN TLS" href="https://polyamorie-muc.de">
-                    Polyamorie München
-                </a>
-                <br />
-                <h2>Artikel</h2>
-                <a
-                    class="smg"
-                    rel="noreferrer"
-                    href="https://presstige.org/2019/07/denken-wir-queer/"
-                >
-                    {" "}
-                    Denken wir queer! - Presstige
-                </a>
-                <br />
-                <h2>Video</h2>
-                <a class="smg" rel="noreferrer" href="https://www.youtube.com/user/ToaLingLing">
-                    YouTube Channel DE: Tommy Toalingling
-                </a>
-                <br />
-                <a class="smg" rel="noreferrer" href="https://www.youtube.com/user/KUNTERGRAUserie">
-                    YouTube Channel DE: KUNTERGRAU
-                </a>
-                <br />
-                <a class="smg" rel="noreferrer" href="https://www.youtube.com/user/KostaasKind">
-                    YouTube Channel DE: Kostas Kind
-                </a>
-                <br />
-                <a class="smg" rel="noreferrer" href="https://www.youtube.com/user/Teilzeitnerd">
-                    YouTube Channel DE: Elliott Tender
-                </a>
-                <br />
-                <a
-                    class="smg"
-                    rel="noreferrer"
-                    href="https://www.youtube.com/channel/UC4YM0NX86SgxJRf8y0lQ3gA"
-                >
-                    YouTube Channel EN: Messy Elliott
-                </a>
-                <br />
-                <a class="smg" rel="noreferrer" href="https://www.youtube.com/user/wickydkewl">
-                    YouTube Channel EN: wickydkewl
-                </a>
-                <br />
-                <a
-                    class="smg"
-                    rel="noreferrer"
-                    href="https://www.youtube.com/user/Zeitverschwender1986"
-                >
-                    YouTube Channel DE: Wanda Lismus
-                </a>
-                <br />
-                <a
-                    class="smg"
-                    rel="noreferrer"
-                    href="https://www.youtube.com/watch?v=OGmYZCtwpq4&amp;list=PLp9fNwgw6RDtgTtcuA_I6VHNioEbYeeMJ"
-                >
-                    YouTube Playlist DE/EN: Dokus und Videos
-                </a>
-                <br />
-                <a
-                    class="smg"
-                    rel="noreferrer"
-                    href="https://www.youtube.com/watch?v=fl5xurWyV2o&amp;list=PLp9fNwgw6RDvweDXbg23lgwvV3DjPtbun"
-                >
-                    YouTube Playlist DE/EN: Coming Out Playlist mit Tim Cook, Thomas Hitzlsperger
-                    uvm.
-                </a>
-                <br />
-                <h2>Musik</h2>
-                <a
-                    class="smg"
-                    rel="noreferrer"
-                    href="https://www.youtube.com/watch?v=hlVBg7_08n0&amp;list=PLp9fNwgw6RDuu6dkmQGjHhqyKJYv7fxyg"
-                >
-                    YouTube Playlist: Queer Music{" "}
-                </a>
-                <br />
-                <a
-                    class="smg"
-                    rel="noreferrer"
-                    href="https://open.spotify.com/user/bh1113/playlist/4EXHb2202rJZla0mY1acl1?si=BpRV1RgFTA6abCLvuojgfQ"
-                >
-                    Spotify Playlist: LGBTQ+ Pride{" "}
-                </a>
-                <br />
-                <h2>Aufklärung</h2>
-                <a class="smg" rel="noreferrer" href="https://www.aidshilfe.de/safer-sex">
-                    Safer Sex
-                </a>
-                <br />
-                <a class="smg" rel="noreferrer" href="https://www.aidshilfe.de/hiv-aids">
-                    HIV/AIDS und andere STI
-                </a>
-                <br />
-                <a class="smg" rel="noreferrer" href="https://www.aidshilfe.de/hiv-prep">
-                    Prä-Expositions-Prophylaxe
-                </a>
+                <p>Unser Vorstand besteht zurzeit aus drei Personen, von links nach rechts:</p>
+
+                <ul>
+                    <li>
+                        Aiden Lane Ziegler (er/ihm) ist intersectional Activist, Dramenautor und
+                        Künstler mit Schwerpunkt Film, Theater und bildender Kunst mit den
+                        wissenschaftlichen Disziplinen Ethik der Textkulturen, Kunst, Philosophie
+                        und Rechtswissenschaften. Seine Hobbys sind Krimidinner, good Food and
+                        lovely company.
+                    </li>
+                    <li>
+                        Helena Kosch (sie/ihr) studiert soziale Arbeit und arbeitet in der
+                        Jugendhilfe. Sie liebt Pflanzen, networking und ist bei Kreativem (fast)
+                        immer gern dabei.
+                    </li>
+                    <li>
+                        Paul Kunstmann (er/ihm) studiert Jura mit dem Schwerpunkt Geistiges
+                        Eigentum. Er liebt es Fahrrad zu fahren, Sprachen zu lernen und in der
+                        Augsburger Altstadt spazieren zu gehen. Für eine Runde Ga(y)ming ist Paul
+                        immer zu haben.
+                    </li>
+                </ul>
             </div>
         );
     };

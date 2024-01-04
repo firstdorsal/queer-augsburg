@@ -1,11 +1,13 @@
 import { defineConfig } from "vite";
 import preact from "@preact/preset-vite";
 import { VitePWA } from "vite-plugin-pwa";
+import { imagetools } from 'vite-imagetools'
 
 // https://vitejs.dev/config/
 export default defineConfig({
     plugins: [
         preact(),
+        imagetools(),
         VitePWA({
             registerType: "autoUpdate",
             includeAssets: ["icon.png"],
