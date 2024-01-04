@@ -1,7 +1,10 @@
 import { Component } from "preact";
 import { G } from "../types";
+//@ts-ignore
 import weihnachtsbild from "../assets/weihnachten.jpg?w=1000&format=jpg&as=metadata";
+//@ts-ignore
 import vorstandBild from "../assets/vorstand.jpg?w=1000&format=jpg&as=metadata";
+//@ts-ignore
 import senatBild from "../assets/senat.jpg?w=1000&format=jpg&as=metadata";
 import Image from "../components/Image";
 
