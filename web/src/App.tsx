@@ -62,8 +62,6 @@ export default class App extends Component<AppProps, AppState> {
     }
 
     componentDidMount = async () => {
-        console.log("App.componentDidMount");
-
         const uiConfig: UiConfig = await fetch("/config.json").then(res => res.json());
 
         const client = new QaClient(

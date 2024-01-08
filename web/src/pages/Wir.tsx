@@ -97,7 +97,7 @@ export default class Wir extends Component<WirProps, WirState> {
                 </p>
                 <p>
                     Unsere Satzung findest du{" "}
-                    <a href="/Queer-Augsburg_Satzung.pdf" data-native target="_blank">
+                    <a href="/Queer-Augsburg_Satzung.pdf" data-native>
                         hier
                     </a>
                     .
