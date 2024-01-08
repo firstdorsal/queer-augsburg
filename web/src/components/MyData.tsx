@@ -462,7 +462,11 @@ class MyData extends Component<MyDataProps, MyDataState> {
                                         </Checkbox>
                                         <Checkbox name="approved_charter" value="approved_charter">
                                             Ich habe die{" "}
-                                            <a target={"_blank"} href="/Queer-Augsburg_Satzung.pdf">
+                                            <a
+                                                target="_blank"
+                                                data-native
+                                                href="/Queer-Augsburg_Satzung.pdf"
+                                            >
                                                 Satzung
                                             </a>{" "}
                                             gelesen und stimme ihr zu.
