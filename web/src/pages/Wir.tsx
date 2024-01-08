@@ -191,10 +191,14 @@ export default class Wir extends Component<WirProps, WirState> {
                     <li> Helena Kosch (sie/ihr) - Öffentlichkeitsarbeit und Vernetzung</li>
                     <li> Jerome Petrov (er/ihm) - Recht</li>
                     <li> Kübra Karakuzu (sie/ihr) - Studierende</li>
-                    <li> Paul Kunstmann (er/ihm) - Recht, Studierende</li>
-                    <li> Paul Colin Hennig (er/ihm) - Digitales und Datenschutz, Party</li>
+                    <li> Paul Kunstmann (er/ihm) - Recht</li>
+                    <li> Paul Hennig (er/ihm) - Digitales, Datenschutz, Party</li>
                     <li> Anna Görlitz (sie/ihr) - Finanzen</li>
                     <li> Julia Stöckner (sie/ihr) - Transparenz</li>
+                </ul>
+                <p>Nach der Vereinsgründung wurde beauftragt:</p>
+                <ul>
+                    <li>Leon Tokan (er/ihm) - Studierende</li>
                 </ul>
 
                 <p>
