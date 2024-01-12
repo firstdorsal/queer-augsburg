@@ -466,7 +466,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
                                                 data-native
                                                 target={"_blank"}
                                                 rel={"noopener noreferrer"}
-                                                href="/Queer-Augsburg_Satzung.pdf"
+                                                href="/static/Queer-Augsburg_Satzung.pdf"
                                             >
                                                 Satzung
                                             </a>{" "}

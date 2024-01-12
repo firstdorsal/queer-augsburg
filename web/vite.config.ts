@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import preact from "@preact/preset-vite";
 import { VitePWA } from "vite-plugin-pwa";
-import { imagetools } from 'vite-imagetools'
+import { imagetools } from "vite-imagetools";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -11,9 +11,19 @@ export default defineConfig({
         VitePWA({
             registerType: "autoUpdate",
             includeAssets: ["icon.png"],
+            srcDir: "src",
+            filename: "sw.ts",
+            devOptions: {
+                enabled: true,
+                navigateFallbackAllowlist: [/^index.html$/]
+            },
+            workbox: {
+                globPatterns: ["**/*.{js,css,html,ico,png,svg}"]
+            },
             manifest: {
                 name: "Queer Augsburg",
                 short_name: "Queer Augsburg",
+                start_url: "/",
                 description: "Alle treffen von Queer Augsburg auf einen Blick!",
                 theme_color: "#ffffff",
                 icons: [
