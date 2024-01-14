@@ -44,14 +44,15 @@ export default class Wir extends Component<WirProps, WirState> {
                     warten wir eine bunte Viertelstunde bevor wir mit dem Treffen beginnen. (Du
                     kannst auch nachkommen, wenn es mal später wird.) In dieser Zeit fertigen sich
                     die meisten mit unserem mitgebrachten Kreppband und Filzstift ein Namensschild
-                    mitsamt Pronomen an. Anschließend stellt sich Veranstaltungsleitung sowie alle,
-                    die wollen, vor. Dann geht es mit dem Treffen los: Es wird geredet, gespielt,
-                    zugehört und mitgemacht. Während des Treffens kannst du dich mit Fragen und all
-                    deinen Belangen an die Veranstaltungsleitung wenden. Alles ist freiwillig. Bei
-                    uns muss kein Mensch müssen. Du kannst dich jederzeit zurückziehen und auch
-                    gehen. In der Regel werden die Veranstaltungen nach circa zwei Stunden offiziell
-                    beendet. Du kannst meist noch bleiben, aber es ist auch eine gute Gelegenheit,
-                    um zu gehen und allen ein &quot;Bis zum nächsten Mal!&quot; zu wünschen.
+                    mitsamt Pronomen an. Anschließend stellt sich die Veranstaltungsleitung sowie
+                    alle, die wollen, vor. Dann geht es mit dem Treffen los: Es wird geredet,
+                    gespielt, zugehört und mitgemacht. Während des Treffens kannst du dich mit
+                    Fragen und all deinen Belangen an die Veranstaltungsleitung wenden. Alles ist
+                    freiwillig. Bei uns muss kein Mensch müssen. Du kannst dich jederzeit
+                    zurückziehen und auch gehen. In der Regel werden die Veranstaltungen nach circa
+                    zwei Stunden offiziell beendet. Du kannst meist noch bleiben, aber es ist auch
+                    eine gute Gelegenheit, um zu gehen und allen ein &quot;Bis zum nächsten
+                    Mal!&quot; zu wünschen.
                 </p>
                 <h1>Du</h1>
                 <p>
