@@ -186,7 +186,7 @@ export default class Wir extends Component<WirProps, WirState> {
                     hier die Vereinsarbeit.
                 </p>
                 <p>
-                    Unser Senat besteht zurzeit aus elf Personen, von links nach rechts mitsamt
+                    Unser Senat besteht zurzeit aus 13 Personen, von links nach rechts mitsamt
                     Fachbereich(en):
                 </p>
                 <ul>
@@ -205,6 +205,7 @@ export default class Wir extends Component<WirProps, WirState> {
                 <p>Nach der Vereinsgründung wurde beauftragt:</p>
                 <ul>
                     <li>Leon Tokan (er/ihm) - Studierende</li>
+                    <li>Leon Ohnesorg (er/ihm) - Marketing</li>
                 </ul>
 
                 <p>
