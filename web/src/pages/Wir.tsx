@@ -202,7 +202,7 @@ export default class Wir extends Component<WirProps, WirState> {
                     <li> Anna Görlitz (sie/ihr) - Finanzen</li>
                     <li> Julia Stöckner (sie/ihr) - Transparenz</li>
                 </ul>
-                <p>Nach der Vereinsgründung wurde beauftragt:</p>
+                <p>Nach der Vereinsgründung wurden beauftragt:</p>
                 <ul>
                     <li>Leon Tokan (er/ihm) - Studierende</li>
                     <li>Leon Ohnesorg (er/ihm) - Marketing</li>
