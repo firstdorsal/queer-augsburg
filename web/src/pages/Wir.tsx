@@ -205,7 +205,7 @@ export default class Wir extends Component<WirProps, WirState> {
                 <p>Nach der Vereinsgründung wurden beauftragt:</p>
                 <ul>
                     <li>Leon Tokan (er/ihm) - Studierende</li>
-                    <li>Leon Ohnesorg (er/ihm) - Marketing</li>
+                    <li>Leon Ohnesorge (er/ihm) - Marketing</li>
                 </ul>
 
                 <p>
