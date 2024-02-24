@@ -11,9 +11,9 @@ export default class Impressum extends Component<ImpressumProps, ImpressumState>
                 <p>
                     Queer Augsburg e.V.
                     <br />
-                    Apothekergäßchen 6
+                    Postfach 10 22 07
                     <br />
-                    86150 Augsburg
+                    86012 Augsburg
                 </p>
                 <p>
                     Queer Augsburg ist eingetragen im Vereinsregister des Amtsgerichts Augsburg: VR

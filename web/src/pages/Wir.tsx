@@ -26,7 +26,7 @@ export default class Wir extends Component<WirProps, WirState> {
                     uns willkommen, unabhängig von geschlechtlicher Identität, sexueller und
                     romantischer Orientierung, Alter, Behinderung, parteipolitischer Zugehörigkeit,
                     Religion, (Wieder-) Einwanderungsgeschichte, Ethnie, Abstammung, Heimat,
-                    Aussehen und Sprache. Bei Queer Augsburg finden alle eine Heimat, die unsere
+                    Aussehen und Sprache. Bei Queer Augsburg finden alle ein Zuhause, die unsere
                     Werte Akzeptanz, Freiheit, Respekt und Zusammenhalt teilen. Gemeinsam setzen wir
                     uns tagtäglich dafür ein, ein buntes, friedliches und vielfältiges Augsburg für
                     alle zu erschaffen.
@@ -62,19 +62,20 @@ export default class Wir extends Component<WirProps, WirState> {
                 <h1>Gratis Mitglied werden</h1>
                 <p>
                     Werde Mitglied bei Queer Augsburg! Die Mitgliedschaft ist kostenlos und kann
-                    jederzeit beendet werden. Du musst lediglich mindestens 18 Jahre alt sein und
-                    dich mit unseren Werten Offenheit, Akzeptanz, Respekt, Vielfalt, Freiheit,
-                    Teilhabe, Transparenz und Zusammenhalt identifizieren. Bei uns gibt es keinen
-                    Spam: Pro Jahr wirst du voraussichtlich fünf E-Mails von uns bekommen. Als
-                    aktives Mitglied hast du Stimm- und Mitgestaltungsrechte bei der
-                    Mitgliederversammlung. Fördernde MItglieder haben kein Stimmrecht. Sie helfen
-                    genauso wie aktive Mitglieder, die Sichtbarkeit der queeren Community in
-                    Augsburg zu stärken und unterstützen uns dabei, Augsburg zu einem bunten,
-                    friedlichen und vielfältigen Ort für alle zu machen. Juristische Personen wie
-                    andere Vereine oder Unternehmen können auch förderndes Mitglied von Queer
-                    Augsburg werden. Sobald wir genug Spenden gesammelt haben, bekommen Mitglieder
-                    Vergünstigungen bei Eintritten und ein erstes alkoholfreies Getränk bei unseren
-                    Meets umsonst.
+                    jederzeit beendet werden. Du musst dich lediglich mit unseren Werten Offenheit,
+                    Akzeptanz, Respekt, Vielfalt, Freiheit, Teilhabe, Transparenz und Zusammenhalt
+                    identifizieren. Vereinsmitglieder müssen außerdem mindestens 18 Jahre alt sein.
+                    An unseren Treffen kannst du aber meist schon davor teilnehmen. Beachte dazu die
+                    angegebenen Altersgrenzen. Bei uns gibt es keinen Spam: Pro Jahr wirst du
+                    voraussichtlich fünf E-Mails von uns bekommen. Als aktives Mitglied hast du
+                    Stimm- und Mitgestaltungsrechte bei der Mitgliederversammlung. Fördernde
+                    MItglieder haben kein Stimmrecht. Sie helfen genauso wie aktive Mitglieder, die
+                    Sichtbarkeit der queeren Community in Augsburg zu stärken und unterstützen uns
+                    dabei, Augsburg zu einem bunten, friedlichen und vielfältigen Ort für alle zu
+                    machen. Juristische Personen wie andere Vereine oder Unternehmen können auch
+                    förderndes Mitglied von Queer Augsburg werden. Sobald wir genug Spenden
+                    gesammelt haben, bekommen Mitglieder Vergünstigungen bei Eintritten und ein
+                    erstes alkoholfreies Getränk bei unseren Meets umsonst.
                 </p>
                 <p>
                     Wir müssen aus rechtlichen Gründen deinen Passnamen speichern. Da es aber sehr

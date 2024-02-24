@@ -24,7 +24,7 @@ export default class Kontakt extends Component<KontaktProps, KontaktState> {
                     <br />
                     <br />
                     <a rel="noreferrer" href="https://twitter.com/QueerAugsburg">
-                        X (ehemals Twitter)
+                        Twitter
                     </a>
                     <br />
                     <br />
