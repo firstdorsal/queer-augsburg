@@ -18,8 +18,8 @@ export default class Wir extends Component<WirProps, WirState> {
             <div className="Wir Pad">
                 <h1>Wir</h1>
                 <p>
-                    Queer Augsburg ein gemeinnütziger eingetragener Verein, der sich für lesbische,
-                    schwule, trans*, bi+, a_sexuelle, a_romantische, inter* und queere
+                    Queer Augsburg ist ein gemeinnütziger eingetragener Verein, der sich für
+                    lesbische, schwule, trans*, bi+, a_sexuelle, a_romantische, inter* und queere
                     Augsburger*innen sowie ihre Freund*innen und Unterstützer*innen in der Stadt und
                     im Herzen einsetzt. Wir sind offen für alle und veranstalten Treffen für queeres
                     Leben und Lernen im Geiste der Vielfalt, Transparenz und Teilhabe. Du bist bei
@@ -51,8 +51,8 @@ export default class Wir extends Component<WirProps, WirState> {
                     freiwillig. Bei uns muss kein Mensch müssen. Du kannst dich jederzeit
                     zurückziehen und auch gehen. In der Regel werden die Veranstaltungen nach circa
                     zwei Stunden offiziell beendet. Du kannst meist noch bleiben, aber es ist auch
-                    eine gute Gelegenheit, um zu gehen und allen ein &quot;Bis zum nächsten
-                    Mal!&quot; zu wünschen.
+                    eine gute Gelegenheit, um sich zu verabschieden und allen ein &quot;Bis zum
+                    nächsten Mal!&quot; zu wünschen.
                 </p>
                 <h1>Du</h1>
                 <p>
