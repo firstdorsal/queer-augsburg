@@ -1,4 +1,5 @@
 import { Component } from "preact";
+import Address from "../components/Address";
 
 interface KontaktProps {}
 interface KontaktState {}
@@ -38,15 +39,8 @@ export default class Kontakt extends Component<KontaktProps, KontaktState> {
                     </a>
                     <br />
                     <br />
-                    <p>
-                        Du kannst uns auch einen Brief per Post schicken an:
-                        <br />
-                        Queer Augsburg e.V.
-                        <br />
-                        Apothekergäßchen 6
-                        <br />
-                        86150 Augsburg
-                    </p>
+                    Du kannst uns auch einen Brief per Post schicken an:
+                    <Address />
                     <p>
                         Wir werden dir anonym antworten. Von außen wird es unmöglich zu erkennen
                         sein, dass der Brief von Queer Augsburg kommt.

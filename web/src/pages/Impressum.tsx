@@ -1,4 +1,5 @@
 import { Component } from "preact";
+import Address from "../components/Address";
 
 interface ImpressumProps {}
 interface ImpressumState {}
@@ -8,13 +9,7 @@ export default class Impressum extends Component<ImpressumProps, ImpressumState>
             <div className="Impressum Pad">
                 <h1>Impressum</h1>
                 <h2>Angaben gemäß §5 TMG</h2>
-                <p>
-                    Queer Augsburg e.V.
-                    <br />
-                    Postfach 10 22 07
-                    <br />
-                    86012 Augsburg
-                </p>
+                <Address />
                 <p>
                     Queer Augsburg ist eingetragen im Vereinsregister des Amtsgerichts Augsburg: VR
                     202787
