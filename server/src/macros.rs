@@ -8,3 +8,23 @@ macro_rules! some_or_bail {
         }
     }};
 }
+
+#[macro_export]
+macro_rules! has_authorized_user_capability_or_error {
+    ($res:expr,$db:expr, $auth:expr, $capability:expr ) => {{
+        let user_id = match &$auth.authenticated_user {
+            Some(user_id) => user_id,
+            None => return Ok($res.status(401).body(Body::from("Unauthorized"))?),
+        };
+
+        let user = match $db.get_user(user_id).await? {
+            Some(user) => user,
+            None => return Ok($res.status(404).body(Body::from("User not found"))?),
+        };
+
+        if ! user.capabilities.contains(&$capability) {
+            anyhow::bail!("Not authorized")
+
+        } 
+    }};
+}

@@ -197,7 +197,7 @@ export default class Wir extends Component<WirProps, WirState> {
                     <li> Annabel W. (sie/ihr) - Vereinsverwaltung</li>
                     <li> Helena Kosch (sie/ihr) - Öffentlichkeitsarbeit und Vernetzung</li>
                     <li> Jerome Petrov (er/ihm) - Recht</li>
-                    <li> Kübra Karakuzu (sie/ihr) - Studierende</li>
+                    <li> Kübra K. (sie/ihr) - Studierende</li>
                     <li> Paul Kunstmann (er/ihm) - Recht</li>
                     <li> Paul Hennig (er/ihm) - Digitales, Datenschutz, Party</li>
                     <li> Anna Görlitz (sie/ihr) - Finanzen</li>
@@ -206,7 +206,7 @@ export default class Wir extends Component<WirProps, WirState> {
                 <p>Nach der Vereinsgründung wurden beauftragt:</p>
                 <ul>
                     <li>Leon Tokan (er/ihm) - Studierende</li>
-                    <li>Leon Ohnesorge (er/ihm) - Marketing</li>
+                    <li>Benji (er/ihm) - Marketing</li>
                 </ul>
 
                 <p>

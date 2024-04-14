@@ -50,3 +50,4 @@ chrono = "0.4.22"
 rand = "0.8.5"
 qstring = "0.7.2"
 ts-rs = "7.0.0"
+openssl = { version = "0.10", features = ["vendored"] }

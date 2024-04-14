@@ -92,6 +92,16 @@ pub struct User {
     pub id: String,
     pub member: Option<InternalMember>,
     pub admin: bool,
+    pub capabilities: Vec<UserCapabilities>,
+}
+
+#[derive(TS)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+pub enum UserCapabilities {
+    UpdateMeetings,
+    GetUsers,
+    UpdateMemberStatus,
 }
 
 #[derive(TS)]

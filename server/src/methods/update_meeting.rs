@@ -1,5 +1,5 @@
+use crate::has_authorized_user_capability_or_error;
 use crate::{db::DB, interossea::Auth, types::UpdateMeetingRequestBody};
-use anyhow::bail;
 use hyper::{Body, Request, Response};
 
 pub async fn update_meeting(
@@ -8,9 +8,12 @@ pub async fn update_meeting(
     auth: &Auth,
     res: hyper::http::response::Builder,
 ) -> anyhow::Result<Response<Body>> {
-    if auth.user_assertion.as_ref().map(|ua| ua.ir_admin) != Some(true) {
-        bail!("Not authorized");
-    };
+    has_authorized_user_capability_or_error!(
+        res,
+        db,
+        auth,
+        crate::types::UserCapabilities::UpdateMeetings
+    );
 
     let body = hyper::body::to_bytes(req.into_body()).await?;
 
