@@ -109,7 +109,7 @@ impl DB {
                 id: user_id.to_string(),
                 member: None,
                 admin: is_admin,
-                capabilities: vec![],
+                capabilities: Some(vec![]),
             };
 
             collection.insert_one(&new_user, None).await?;

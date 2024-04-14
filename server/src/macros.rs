@@ -22,9 +22,15 @@ macro_rules! has_authorized_user_capability_or_error {
             None => return Ok($res.status(404).body(Body::from("User not found"))?),
         };
 
-        if ! user.capabilities.contains(&$capability) {
-            anyhow::bail!("Not authorized")
-
-        } 
+        match user.capabilities {
+            Some(capabilities) => {
+                if !capabilities.contains(&$capability) {
+                    return Ok($res.status(403).body(Body::from("Not authorized"))?);
+                }
+            }
+            None => {
+                return Ok($res.status(403).body(Body::from("Not authorized"))?);
+            }
+        }
     }};
 }

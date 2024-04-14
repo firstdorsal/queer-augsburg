@@ -92,7 +92,7 @@ pub struct User {
     pub id: String,
     pub member: Option<InternalMember>,
     pub admin: bool,
-    pub capabilities: Vec<UserCapabilities>,
+    pub capabilities: Option<Vec<UserCapabilities>>,
 }
 
 #[derive(TS)]
