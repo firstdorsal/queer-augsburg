@@ -288,7 +288,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                         <BsShareFill />
                     </button>
 
-                    {this.props.g.admin && (
+                    {this.props.g.account?.capabilities?.includes(`UpdateMeetings`) && (
                         <>
                             <span className={"Admin"}>
                                 <button

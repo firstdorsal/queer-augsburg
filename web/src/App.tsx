@@ -54,7 +54,7 @@ export default class App extends Component<AppProps, AppState> {
                 uiConfig: null,
                 qaClient: null,
                 loggedIn: null,
-                admin: null,
+                account: null,
                 ref,
                 meetingId
             }
@@ -90,7 +90,7 @@ export default class App extends Component<AppProps, AppState> {
                 return update(state, {
                     g: {
                         loggedIn: { $set: false },
-                        admin: { $set: false }
+                        account: { $set: null }
                     }
                 });
             });
@@ -107,7 +107,7 @@ export default class App extends Component<AppProps, AppState> {
                     return update(state, {
                         g: {
                             loggedIn: { $set: true },
-                            admin: { $set: account?.admin ?? false }
+                            account: { $set: account ?? false }
                         }
                     });
                 });
@@ -117,7 +117,7 @@ export default class App extends Component<AppProps, AppState> {
                     return update(state, {
                         g: {
                             loggedIn: { $set: false },
-                            admin: { $set: false }
+                            account: { $set: null }
                         }
                     });
                 });

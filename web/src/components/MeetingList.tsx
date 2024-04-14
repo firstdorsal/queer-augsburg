@@ -156,7 +156,7 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
     render = () => {
         return (
             <div className="MeetingList">
-                {this.props.g.admin && (
+                {this.props.g.account?.capabilities?.includes(`UpdateMeetings`) && (
                     <div className={"NewMeeting"}>
                         <Button
                             appearance="primary"

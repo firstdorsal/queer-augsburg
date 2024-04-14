@@ -27,7 +27,7 @@ export default class Treffen extends Component<TreffenProps, TreffenState> {
         }
         return (
             <div className="Treffen">
-                {this.props.g.admin && (
+                {this.props.g.account?.capabilities?.includes(`UpdateMeetings`) && (
                     <SelectPicker
                         data={[
                             { label: "Aktive Treffen", value: "Active" },

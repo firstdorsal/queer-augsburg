@@ -1,6 +1,7 @@
 import { QaClient } from "./api";
 import { CommonMeetingTag } from "./apiTypes/CommonMeetingTag";
 import { QueerMeetingTag } from "./apiTypes/QueerMeetingTag";
+import { User } from "./apiTypes/User";
 
 export interface UiConfig {
     interosseaServerAddress: string;
@@ -14,7 +15,7 @@ export interface G {
     uiConfig: UiConfig | null;
     qaClient: QaClient | null;
     loggedIn: boolean | null;
-    admin: boolean | null;
+    account: User | null;
     ref: string | null;
     meetingId: string | null;
 }

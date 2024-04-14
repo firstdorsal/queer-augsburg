@@ -42,7 +42,7 @@ export default class Nav extends Component<NavProps, NavState> {
                     })}
                     {(() => {
                         if (this.props.g.loggedIn) {
-                            if (this.props.g.admin) {
+                            if (this.props.g.account?.capabilities?.includes(`GetUsers`)) {
                                 return (
                                     <li>
                                         <Link
