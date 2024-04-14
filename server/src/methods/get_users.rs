@@ -1,7 +1,6 @@
+use crate::has_authorized_user_capability_or_error;
 use crate::{db::DB, interossea::Auth, types::GetUsersResponseBody, utils::get_query_item_number};
-use anyhow::bail;
 use hyper::{Body, Request, Response};
-use crate::{has_authorized_user_capability_or_error};
 
 pub async fn get_users(
     req: Request<Body>,
@@ -9,11 +8,12 @@ pub async fn get_users(
     auth: &Auth,
     res: hyper::http::response::Builder,
 ) -> anyhow::Result<Response<Body>> {
-    if auth.user_assertion.as_ref().map(|ua| ua.ir_admin) != Some(true) {
-        bail!("Not authorized");
-    };
-
-    has_authorized_user_capability_or_error!(res, db, auth, crate::types::UserCapabilities::GetUsers);
+    has_authorized_user_capability_or_error!(
+        res,
+        db,
+        auth,
+        crate::types::UserCapabilities::GetUsers
+    );
 
     let limit = get_query_item_number(&req, "l");
     let from_index = get_query_item_number(&req, "i").unwrap_or(0);

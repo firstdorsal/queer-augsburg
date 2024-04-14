@@ -1,7 +1,6 @@
+use crate::has_authorized_user_capability_or_error;
 use crate::{db::DB, interossea::Auth, types::UpdateMemberStatusRequestBody, utils::send_mail};
-use anyhow::bail;
 use hyper::{Body, Request, Response};
-use crate::{has_authorized_user_capability_or_error};
 
 pub async fn update_member_status(
     req: Request<Body>,
@@ -9,11 +8,12 @@ pub async fn update_member_status(
     auth: &Auth,
     res: hyper::http::response::Builder,
 ) -> anyhow::Result<Response<Body>> {
-    if auth.user_assertion.as_ref().map(|ua| ua.ir_admin) != Some(true) {
-        bail!("Not authorized");
-    };
-
-    has_authorized_user_capability_or_error!(res, db, auth, crate::types::UserCapabilities::UpdateMemberStatus);
+    has_authorized_user_capability_or_error!(
+        res,
+        db,
+        auth,
+        crate::types::UserCapabilities::UpdateMemberStatus
+    );
 
     let body = hyper::body::to_bytes(req.into_body()).await?;
 
