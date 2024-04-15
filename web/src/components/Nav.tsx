@@ -1,6 +1,5 @@
 import { Component } from "preact";
 import { Link } from "preact-router/match";
-import { BsFillPersonFill } from "react-icons/bs";
 import { G } from "../types";
 
 const navItems = [
@@ -44,15 +43,26 @@ export default class Nav extends Component<NavProps, NavState> {
                         if (this.props.g.loggedIn) {
                             if (this.props.g.account?.capabilities?.includes(`GetUsers`)) {
                                 return (
-                                    <li>
-                                        <Link
-                                            draggable={false}
-                                            activeClassName="active"
-                                            href={"/admin"}
-                                        >
-                                            Admin
-                                        </Link>
-                                    </li>
+                                    <>
+                                        <li>
+                                            <Link
+                                                draggable={false}
+                                                activeClassName="active"
+                                                href={"/ich"}
+                                            >
+                                                Ich
+                                            </Link>
+                                        </li>
+                                        <li>
+                                            <Link
+                                                draggable={false}
+                                                activeClassName="active"
+                                                href={"/admin"}
+                                            >
+                                                Admin
+                                            </Link>
+                                        </li>
+                                    </>
                                 );
                             } else {
                                 return (
