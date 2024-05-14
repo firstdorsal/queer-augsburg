@@ -118,5 +118,10 @@ export const commonPlaces: Place[] = [
         name: "Murdock's Irish Pub",
         lat: 48.36002,
         lon: 10.90264
+    },
+    {
+        name: "Projektraum Rechts-der-Wertach",
+        lat: 48.3781092,
+        lon: 10.887578
     }
 ];
