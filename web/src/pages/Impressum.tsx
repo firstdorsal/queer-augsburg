@@ -90,7 +90,7 @@ export default class Impressum extends Component<ImpressumProps, ImpressumState>
 
                 <h1>Datenschutzhinweise gemäß Art. 13 DSGVO</h1>
                 <h2>Verantwortliche Stelle</h2>
-                <p>Queer Augsburg e.V. Apothekergäßchen 6 86150 Augsburg</p>
+                <Address />
                 <p>
                     <a href="mailto:mail@queer-augsburg.de">mail@queer-augsburg.de</a>
                 </p>
