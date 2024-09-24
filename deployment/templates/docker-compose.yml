@@ -52,6 +52,13 @@ services:
                             rule: "Host(`www.{{ $qaWebHostname }}`)"
                             entrypoints: {{ ternary "websecure" "web" $config.tls }}
                             middlewares: qa-www-redirect
+                            {{- if eq $config.tls true }}
+                            tls:
+                                certresolver: "default"
+                                domains:
+                                    - main: "{{ $config.qa.web.publicHostname.domain }}"
+                                      sans: "*.{{ $config.qa.web.publicHostname.domain }}"
+                            {{- end }}
                     services:
                         qa-web:
                             loadbalancer:
