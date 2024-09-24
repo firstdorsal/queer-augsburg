@@ -51,8 +51,7 @@ services:
                         qa-www-redirect:
                             rule: "Host(`www.{{ $qaWebHostname }}`)"
                             entrypoints: {{ ternary "websecure" "web" $config.tls }}
-                            middlewares:
-                                - qa-www-redirect
+                            middlewares: qa-www-redirect
                     services:
                         qa-web:
                             loadbalancer:
