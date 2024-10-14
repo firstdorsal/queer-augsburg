@@ -40,6 +40,7 @@ export default class UserList extends Component<UserListProps, UserListState> {
     };
 
     loadMoreUsers = async (startIndex: number, limit: number) => {
+        /*
         if (this.moreLoading === false) {
             this.moreLoading = true;
 
@@ -53,7 +54,7 @@ export default class UserList extends Component<UserListProps, UserListState> {
                 }
                 return { users };
             });
-        }
+        }*/
     };
 
     reloadUserList = async () => {

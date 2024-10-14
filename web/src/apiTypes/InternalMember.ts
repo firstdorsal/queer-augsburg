@@ -4,4 +4,4 @@ import type { MemberType } from "./MemberType";
 import type { MembershipStatus } from "./MembershipStatus";
 import type { Name } from "./Name";
 
-export interface InternalMember { type: MemberType, natural_person: boolean, name: Name | null, institution: string | null, pronouns: string | null, address: Address, email: string, phone: string | null, start_time_secs: bigint, end_time_secs: bigint | null, status: MembershipStatus | null, user_notes: string | null, admin_notes: string | null, reference: string | null, approved_charter: boolean, approved_privacy: boolean, above_18: boolean, honorary: boolean, }
+export interface InternalMember { type: MemberType, natural_person: boolean, name: Name | null, institution: string | null, pronouns: string | null, address: Address, email: string, phone: string | null, start_time_ms: bigint, end_time_ms: bigint | null, status: MembershipStatus | null, user_notes: string | null, admin_notes: string | null, reference: string | null, approved_charter: boolean, approved_privacy: boolean, above_18: boolean, honorary: boolean, }
