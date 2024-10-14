@@ -149,13 +149,13 @@ impl DB {
                     natural_person: submitted_member.natural_person,
                     admin_notes: present_member.as_ref().and_then(|m| m.admin_notes.clone()),
                     reference: submitted_member.reference,
-                    end_time_secs: present_member.as_ref().and_then(|m| m.end_time_secs),
+                    end_time_ms: present_member.as_ref().and_then(|m| m.end_time_ms),
 
                     honorary: present_member.as_ref().map_or(false, |m| m.honorary),
                     pronouns: submitted_member.pronouns,
-                    start_time_secs: present_member.as_ref().map_or_else(
+                    start_time_ms: present_member.as_ref().map_or_else(
                         || chrono::Utc::now().timestamp() * 1000,
-                        |m| m.start_time_secs,
+                        |m| m.start_time_ms,
                     ),
                     status: present_member
                         .as_ref()
