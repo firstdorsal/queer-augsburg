@@ -34,7 +34,7 @@ export default class UserList extends Component<UserListProps, UserListState> {
     };
 
     loadData = async () => {
-        const res = await this.props.qaClient.get_users(0, 10);
+        const res = await this.props.qaClient.get_users(0, null);
         const { meetings } = await this.props.qaClient.get_meetings(0, null);
         this.setState({ users: res.users, userCount: res.total_count, meetings });
     };
