@@ -39,7 +39,7 @@ export default class UserList extends Component<UserListProps, UserListState> {
         this.setState({ users: res.users, userCount: res.total_count, meetings });
     };
 
-    loadMoreUsers = async (startIndex: number, limit: number) => {
+    loadMoreUsers = async (_startIndex: number, _limit: number) => {
         /*
         if (this.moreLoading === false) {
             this.moreLoading = true;
