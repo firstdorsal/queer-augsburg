@@ -87,17 +87,19 @@ const users = await users_collection.find({}).toArray();
 
 const mail_recipients = users.flatMap((user) => {
     const mail = user?.member?.email;
-    if (mail) {
+    if (mail && user.member?.status === "Approved") {
         return [mail];
     }
     return [];
 });
 
-const mail_recipients_test = ["multimunding@gmail.com"];
+//console.log(mail_recipients);
+
+//const mail_recipients_test = ["multimunding@gmail.com"];
 
 const responses = [];
 
-for (const mail of mail_recipients_test) {
+for (const mail of mail_recipients) {
     mail_to_send.to = mail;
 
     const res = {
