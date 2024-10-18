@@ -111,7 +111,7 @@ class SingleUser extends Component<SingleUserProps, SingleUserState> {
 
                         <div>Referenz: {this.expandReference(m.reference)}</div>
                         <div>Phone: {m.phone}</div>
-                        <div style={{maxHeight:"1rem",overflow:"hidden"}}>User Notes: {m.user_notes}</div>
+                        <div style={{maxHeight:"1rem",overflow:"hidden"}} title={m.user_notes??""}>User Notes: {m.user_notes}</div>
                         <div>
                             Adresse: {m.address.street} {m.address.number}
                             {m.address.addition ? " " + m.address.addition : ""}, {m.address.zip}{" "}
