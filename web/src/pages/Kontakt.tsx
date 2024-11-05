@@ -24,16 +24,6 @@ export default class Kontakt extends Component<KontaktProps, KontaktState> {
                     </a>
                     <br />
                     <br />
-                    <a rel="noreferrer" href="https://twitter.com/QueerAugsburg">
-                        Twitter
-                    </a>
-                    <br />
-                    <br />
-                    <a rel="noreferrer" href="https://dbna.com/profile/gTrOOElOxl">
-                        DBNA
-                    </a>
-                    <br />
-                    <br />
                     <a rel="noreferrer" href="https://facebook.com/QueerAugsburg">
                         Facebook
                     </a>

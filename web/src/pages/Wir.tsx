@@ -130,6 +130,10 @@ export default class Wir extends Component<WirProps, WirState> {
                     Bargeld sowie sonstige Sachspenden kannst du bei einem Treffen in Präsenz
                     spenden.
                 </p>
+                <p>
+                    <h2>Online Spenden</h2>
+                    <p>Jetzt kostenpflichtig an Queer Augsburg e.V. Spenden: <a rel={"noopener noreferrer"} href="https://pay.sumup.com/b2c/QD5HHAKK">SumUp</a></p>                    
+                </p>
                 <p>An weiteren Spendemöglichkeiten arbeiten wir gerade. :)</p>
                 <p>
                     Wir stellen dir auf Anfrage an{" "}
