@@ -191,26 +191,25 @@ export default class Wir extends Component<WirProps, WirState> {
                     hier die Vereinsarbeit.
                 </p>
                 <p>
-                    Unser Senat besteht zurzeit aus 13 Personen, von links nach rechts mitsamt
-                    Fachbereich(en):
+                Unser Senat besteht zurzeit aus elf Personen, Beauftragte von links nach rechts mitsamt Fachbereich(en):
                 </p>
                 <ul>
-                    <li> Aiden Lane Ziegler (er/ihm) - trans*, Kultur, Disability</li>
-                    <li> Emmanuel Fleischer (er/ihm) - Aro_Ace</li>
-                    <li> Aurora Schupp (it/its) - trans*, Aro_Ace</li>
-                    <li> Annabel W. (sie/ihr) - Vereinsverwaltung</li>
-                    <li> Helena Kosch (sie/ihr) - Öffentlichkeitsarbeit und Vernetzung</li>
-                    <li> Jerome Petrov (er/ihm) - Recht</li>
-                    <li> Kübra K. (sie/ihr) - Studierende</li>
-                    <li> Paul Kunstmann (er/ihm) - Recht</li>
-                    <li> Paul Hennig (er/ihm) - Digitales, Datenschutz, Party</li>
-                    <li> Anna Görlitz (sie/ihr) - Finanzen</li>
-                    <li> Julia Stöckner (sie/ihr) - Transparenz</li>
+                <li>Leon Tokan (er/ihm) - Studierende</li>
+                <li>Aurora Schupp (it/its) - trans*, Aro_Ace</li>
+                <li>Benji Kalide (er/ihm) - Marketing</li>
+                <li>Julia Stöckner (sie/ihr) - Transparenz</li>
+                <li>Helena Kosch (sie/ihr) - Vernetzung</li>
+                <li>Annabel Welsch (sie/ihr) - Vereinsverwaltung, Veranstaltungskoordination</li>
+                <li>Paul Kunstmann (er/ihm) - Recht</li>
+                <li>Aiden Lane Ziegler (er/ihm) - trans*, Kultur, Disability</li>
+                <li>Jerome Petrov (er/ihm) - Finanzen, Recht</li>
                 </ul>
-                <p>Nach der Vereinsgründung wurden beauftragt:</p>
+                <p>Nicht auf dem Bild sind:</p>
                 <ul>
-                    <li>Leon Tokan (er/ihm) - Studierende</li>
-                    <li>Benji (er/ihm) - Marketing</li>
+
+                
+            <li>Paul Hennig (er/ihm) - Digitales, Datenschutz, Party</li>
+            <li>Emmanuel Fleischer (er/ihm) - Aro_Ace</li>
                 </ul>
 
                 <p>
