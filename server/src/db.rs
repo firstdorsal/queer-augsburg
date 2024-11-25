@@ -108,7 +108,6 @@ impl DB {
             let new_user = User {
                 id: user_id.to_string(),
                 member: None,
-                admin: is_admin,
                 capabilities: Some(vec![]),
             };
 

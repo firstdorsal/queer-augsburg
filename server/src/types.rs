@@ -91,7 +91,6 @@ pub struct User {
     #[serde(rename = "_id")]
     pub id: String,
     pub member: Option<InternalMember>,
-    pub admin: bool,
     pub capabilities: Option<Vec<UserCapabilities>>,
 }
 
