@@ -199,7 +199,7 @@ export default class Wir extends Component<WirProps, WirState> {
                 <li>Benji Kalide (er/ihm) - Marketing</li>
                 <li>Julia Stöckner (sie/ihr) - Transparenz</li>
                 <li>Helena Kosch (sie/ihr) - Vernetzung</li>
-                <li>Annabel Welsch (sie/ihr) - Vereinsverwaltung, Veranstaltungskoordination</li>
+                <li>Annabel (sie/ihr) - Vereinsverwaltung, Veranstaltungskoordination</li>
                 <li>Paul Kunstmann (er/ihm) - Recht</li>
                 <li>Aiden Lane Ziegler (er/ihm) - trans*, Kultur, Disability</li>
                 <li>Jerome Petrov (er/ihm) - Finanzen, Recht</li>
