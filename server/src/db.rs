@@ -100,7 +100,7 @@ impl DB {
         Ok(())
     }
 
-    pub async fn create_user(&self, user_id: &str, is_admin: bool) -> anyhow::Result<()> {
+    pub async fn create_user(&self, user_id: &str) -> anyhow::Result<()> {
         let collection = self.db.collection::<User>("users");
         let user = collection.find_one(doc! { "_id": user_id }, None).await?;
 

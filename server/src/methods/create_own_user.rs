@@ -12,12 +12,7 @@ pub async fn create_own_user(
         None => return Ok(res.status(401).body(Body::from("Unauthorized"))?),
     };
 
-    let is_admin = match &auth.user_assertion {
-        Some(user_assertion) => user_assertion.ir_admin,
-        None => false,
-    };
-
-    match db.create_user(user_id, is_admin).await {
+    match db.create_user(user_id).await {
         Ok(_) => Ok(res.status(201).body(Body::from("OK"))?),
         Err(e) => {
             if e.to_string() == "User already exists" {

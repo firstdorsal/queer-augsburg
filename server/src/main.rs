@@ -8,7 +8,7 @@ use backend::methods::get_users::get_users;
 use backend::methods::update_meeting::update_meeting;
 use backend::methods::update_member_status::update_member_status;
 use backend::methods::update_own_member_data::update_own_member_data;
-use backend::utils::{get_token_from_query, import_old_meetings, is_allowed_origin};
+use backend::utils::{get_token_from_query, is_allowed_origin};
 use hyper::server::conn::AddrStream;
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Method, Request, Response, Server};
@@ -40,10 +40,6 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let db = DB::new(ClientOptions::parse(&config.db.url).await?).await?;
 
     db.create_collections().await?;
-
-    if config.dev.import_old_meetings {
-        import_old_meetings(&db).await?;
-    }
 
     let internal_http_addr: SocketAddr = SERVER_CONFIG.http.internal_address.parse().unwrap();
 

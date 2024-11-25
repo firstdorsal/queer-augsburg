@@ -48,12 +48,6 @@ pub async fn send_mail(
     Ok(())
 }
 
-pub async fn import_old_meetings(db: &DB) -> anyhow::Result<()> {
-    let file = include_str!("./old_meetings.json");
-    let meetings: Vec<Meeting> = serde_json::from_str(file).unwrap();
-    db.insert_old_meetings(meetings).await
-}
-
 pub fn get_token_from_query(req: &Request<Body>) -> Option<String> {
     get_query_item(req, "t")
 }
