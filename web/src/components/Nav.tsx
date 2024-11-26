@@ -30,7 +30,7 @@ export default class Nav extends Component<NavProps, NavState> {
         return (
             <nav className="Nav">
                 <ul>
-                    {navItems.map(item => {
+                    {navItems.map((item) => {
                         return (
                             <li>
                                 <Link draggable={false} activeClassName="active" href={item.href}>
@@ -41,7 +41,10 @@ export default class Nav extends Component<NavProps, NavState> {
                     })}
                     {(() => {
                         if (this.props.g.loggedIn) {
-                            if (this.props.g.account?.capabilities?.includes(`GetUsers`)) {
+                            if (
+                                this.props.g.account?.capabilities?.includes(`GetUsers`) ||
+                                this.props.g.account?.capabilities?.includes(`CreateMember`)
+                            ) {
                                 return (
                                     <>
                                         <li>

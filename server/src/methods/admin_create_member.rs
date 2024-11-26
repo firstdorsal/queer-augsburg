@@ -18,7 +18,15 @@ pub async fn admin_create_member(
     );
 
     let body = hyper::body::to_bytes(req.into_body()).await?;
-    let submitted_member: SubmittedMember = serde_json::from_slice(&body)?;
+    let submitted_member: SubmittedMember = match serde_json::from_slice(&body) {
+        Ok(submitted_member) => submitted_member,
+        Err(e) => {
+            return Ok(res.status(400).body(Body::from(format!(
+                "Fehler beim lesen des JSON-Bodys: {}",
+                e
+            )))?)
+        }
+    };
 
     let user_id = generate_id(30);
 

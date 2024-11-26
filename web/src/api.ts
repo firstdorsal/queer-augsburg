@@ -91,13 +91,11 @@ export class QaClient {
     };
 
     admin_create_member = async (newMember: string) => {
-        const res = await fetch(`${this.qaEndpoint}/api/admin_create_member/`, {
+        return fetch(`${this.qaEndpoint}/api/admin_create_member/`, {
             method: "POST",
             credentials: "include",
             body: newMember
         });
-
-        return res;
     };
 
     get_own_user = async () => {

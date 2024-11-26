@@ -32,35 +32,54 @@ export default withToasterHook(
         createMember = async () => {
             if (!this.props.g.qaClient) return;
 
-            const res = await this.props.g.qaClient.admin_create_member(this.state.newMember);
-            const data = await res.text();
-            if (res.status === 201) {
-                this.props.toaster.push(
-                    <Message showIcon type={"success"} header={"Nutzer erstellt"} closable>
-                        {data}
-                    </Message>,
-                    toastParams
-                );
-            } else {
-                this.props.toaster.push(
-                    <Message showIcon type={"error"} header={"Fehler beim Erstellen"} closable>
-                        {data}
-                    </Message>,
-                    toastParams
-                );
-            }
+            this.props.g.qaClient
+                .admin_create_member(this.state.newMember)
+                .catch(() => {
+                    this.props.toaster.push(
+                        <Message showIcon type={"error"} header={"Fehler beim Erstellen"} closable>
+                            Fehler beim Erstellen
+                        </Message>,
+                        toastParams
+                    );
+                })
+                .then(async (res) => {
+                    if (!res) return;
+                    const data = await res.text();
+                    if (res.status === 201) {
+                        this.props.toaster.push(
+                            <Message showIcon type={"success"} header={"Nutzer erstellt"} closable>
+                                {data}
+                            </Message>,
+                            toastParams
+                        );
+                    } else {
+                        this.props.toaster.push(
+                            <Message
+                                showIcon
+                                type={"error"}
+                                header={"Fehler beim Erstellen"}
+                                closable
+                            >
+                                {data}
+                            </Message>,
+                            toastParams
+                        );
+                    }
+                });
         };
 
         render = () => {
             return (
                 <div
-                    style={{ ...this.props.style }}
+                    style={{ ...this.props.style, margin: "10px" }}
                     className={`AdminCreateMember ${this.props.className ?? ""}`}
                 >
                     <Input
+                        as="textarea"
                         value={this.state.newMember}
                         onChange={(value) => this.setState({ newMember: value })}
                     />
+                    <br />
                     <Button onClick={this.createMember}>Mitglied erstellen</Button>
                 </div>
             );
