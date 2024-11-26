@@ -71,7 +71,7 @@ export default withToasterHook(
         render = () => {
             return (
                 <div
-                    style={{ ...this.props.style, margin: "10px" }}
+                    style={{ ...this.props.style, margin: "40px" }}
                     className={`AdminCreateMember ${this.props.className ?? ""}`}
                 >
                     <h1>Mitglied erstellen</h1>
@@ -85,7 +85,9 @@ export default withToasterHook(
                         </a>
                     </h3>
                     <Input
+                        rows={30}
                         as="textarea"
+                        placeholder={placeholder}
                         value={this.state.newMember}
                         onChange={(value) => this.setState({ newMember: value })}
                     />
@@ -96,3 +98,30 @@ export default withToasterHook(
         };
     }
 );
+
+const placeholder = `{
+"type": "Active",
+"natural_person": true,
+"name": {
+    "passport": "Adam Mustermensch",
+    "first_name": "Adam",
+    "last_name": "Mustermensch"
+},
+"institution": null,
+"pronouns": null,
+"address": {
+    "street": "Rathausplatz",
+    "number": "1",
+    "addition": null,
+    "zip": "86159",
+    "city": "Augsburg",
+    "country": "Deutschland"
+},
+"email": "adam@example.com",
+"phone": null,
+"user_notes": "Daten aus Papierantrag aufgenommen.",
+"reference": null,
+"approved_charter": true,
+"approved_privacy": true,
+"above_18": true 
+}`;
