@@ -74,6 +74,16 @@ export default withToasterHook(
                     style={{ ...this.props.style, margin: "10px" }}
                     className={`AdminCreateMember ${this.props.className ?? ""}`}
                 >
+                    <h1>Mitglied erstellen</h1>
+                    <h3>
+                        <a
+                            target="_blank"
+                            rel="noreferrer"
+                            href="https://git.vindelicum.eu/firstdorsal/queer-augsburg/-/blob/5c98a1c11a78c41977c03ed5d8fce102906b71e4/server/src/types.rs#L110"
+                        >
+                            Format
+                        </a>
+                    </h3>
                     <Input
                         as="textarea"
                         value={this.state.newMember}
