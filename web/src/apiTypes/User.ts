@@ -2,4 +2,4 @@
 import type { InternalMember } from "./InternalMember";
 import type { UserCapabilities } from "./UserCapabilities";
 
-export interface User { _id: string, member: InternalMember | null, admin: boolean, capabilities: Array<UserCapabilities> | null, }
+export interface User { _id: string, member: InternalMember | null, capabilities: Array<UserCapabilities> | null, }

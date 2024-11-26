@@ -1,6 +1,7 @@
 use backend::config::SERVER_CONFIG;
 use backend::db::DB;
 use backend::interossea::{get_session_cookie, Auth, Interossea, UserAssertion, INTEROSSEA};
+use backend::methods::admin_create_member::admin_create_member;
 use backend::methods::create_own_user::create_own_user;
 use backend::methods::get_meetings::get_meetings;
 use backend::methods::get_own_user::get_own_user;
@@ -164,6 +165,8 @@ async fn handle_inner(
         get_own_user(req, db, &auth, res).await
     } else if p.starts_with("/create_own_user/") && m == Method::POST {
         create_own_user(req, db, &auth, res).await
+    } else if p.starts_with("/admin_create_member/") && m == Method::POST {
+        admin_create_member(req, db, &auth, res).await
     } else if p.starts_with("/update_member_status/") && m == Method::POST {
         update_member_status(req, db, &auth, res).await
     } else if p.starts_with("/update_own_member_data/") && m == Method::POST {

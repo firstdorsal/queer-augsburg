@@ -1,11 +1,11 @@
 import { InterosseaClient } from "@firstdorsal/interossea-client";
-import { Meeting } from "./apiTypes/Meeting";
 import { GetMeetingsResponseBody } from "./apiTypes/GetMeetingsResponseBody";
-import { User } from "./apiTypes/User";
-import { MeetingTypeQuery } from "./apiTypes/MeetingTypeQuery";
-import { SubmittedMember } from "./apiTypes/SubmittedMember";
 import { GetUsersResponseBody } from "./apiTypes/GetUsersResponseBody";
+import { Meeting } from "./apiTypes/Meeting";
+import { MeetingTypeQuery } from "./apiTypes/MeetingTypeQuery";
 import { MembershipStatus } from "./apiTypes/MembershipStatus";
+import { SubmittedMember } from "./apiTypes/SubmittedMember";
+import { User } from "./apiTypes/User";
 
 export class QaClient {
     interosseaClient: InterosseaClient;
@@ -88,6 +88,16 @@ export class QaClient {
         });
         const success = res.status === 200;
         return success;
+    };
+
+    admin_create_member = async (newMember: string) => {
+        const res = await fetch(`${this.qaEndpoint}/api/admin_create_member/`, {
+            method: "POST",
+            credentials: "include",
+            body: newMember
+        });
+
+        return res;
     };
 
     get_own_user = async () => {

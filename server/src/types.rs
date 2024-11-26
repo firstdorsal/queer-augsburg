@@ -101,6 +101,7 @@ pub enum UserCapabilities {
     UpdateMeetings,
     GetUsers,
     UpdateMemberStatus,
+    CreateMember,
 }
 
 #[derive(TS)]

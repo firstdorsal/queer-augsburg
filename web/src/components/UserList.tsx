@@ -1,13 +1,13 @@
 import { Component } from "preact";
+import { CSSProperties } from "preact/compat";
+import AutoSizer from "react-virtualized-auto-sizer";
+import { FixedSizeList } from "react-window";
+import InfiniteLoader from "react-window-infinite-loader";
+import { QaClient } from "../api";
+import { Meeting } from "../apiTypes/Meeting";
 import { User } from "../apiTypes/User";
 import { G } from "../types";
-import { QaClient } from "../api";
-import { CSSProperties } from "preact/compat";
-import { FixedSizeList } from "react-window";
 import SingleUser from "./SingleUser";
-import InfiniteLoader from "react-window-infinite-loader";
-import { AutoSizer } from "rsuite/esm/Windowing";
-import { Meeting } from "../apiTypes/Meeting";
 
 interface UserListProps {
     readonly g: G;
@@ -68,7 +68,7 @@ export default class UserList extends Component<UserListProps, UserListState> {
                 <AutoSizer>
                     {({ height, width }) => (
                         <InfiniteLoader
-                            isItemLoaded={index => this.state.users[index] !== undefined}
+                            isItemLoaded={(index) => this.state.users[index] !== undefined}
                             itemCount={this.state.userCount}
                             loadMoreItems={this.loadMoreUsers}
                             threshold={20}

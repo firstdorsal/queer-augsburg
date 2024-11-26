@@ -1,22 +1,22 @@
+import "@fontsource-variable/inter";
 import { Component } from "preact";
 import Router from "preact-router";
+import Logo from "./components/Logo";
 import Nav from "./components/Nav";
 import Redirect from "./components/Redirect";
+import Kontakt from "./pages/Kontakt";
 import Treffen from "./pages/Treffen";
 import Wir from "./pages/Wir";
-import Kontakt from "./pages/Kontakt";
-import Logo from "./components/Logo";
-import "@fontsource-variable/inter/slnt.css";
 
-import { QaClient } from "./api";
-import { G, UiConfig } from "./types";
 import update from "immutability-helper";
-import Ich from "./pages/Ich";
-import "rsuite/styles/index.less";
 import { CustomProvider } from "rsuite";
+import "rsuite/styles/index.less";
+import { QaClient } from "./api";
 import Admin from "./pages/Admin";
-import { prefersDarkMode } from "./utils";
+import Ich from "./pages/Ich";
 import Impressum from "./pages/Impressum";
+import { G, UiConfig } from "./types";
+import { prefersDarkMode } from "./utils";
 
 interface AppProps {}
 interface AppState {
@@ -62,7 +62,7 @@ export default class App extends Component<AppProps, AppState> {
     }
 
     componentDidMount = async () => {
-        const uiConfig: UiConfig = await fetch("/config.json").then(res => res.json());
+        const uiConfig: UiConfig = await fetch("/config.json").then((res) => res.json());
 
         const client = new QaClient(
             uiConfig.qaServerAddress,
@@ -74,7 +74,7 @@ export default class App extends Component<AppProps, AppState> {
 
         await client.init().catch(() => {});
 
-        this.setState(state => {
+        this.setState((state) => {
             return update(state, {
                 g: {
                     uiConfig: { $set: uiConfig },
@@ -86,7 +86,7 @@ export default class App extends Component<AppProps, AppState> {
         });
 
         await client.create_own_user().catch(() => {
-            this.setState(state => {
+            this.setState((state) => {
                 return update(state, {
                     g: {
                         loggedIn: { $set: false },
@@ -98,12 +98,12 @@ export default class App extends Component<AppProps, AppState> {
 
         // await timeout
         // in ff this is needed to prevent a bug where the user is not logged in
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 200));
 
         client
             .get_own_user()
-            .then(account => {
-                this.setState(state => {
+            .then((account) => {
+                this.setState((state) => {
                     return update(state, {
                         g: {
                             loggedIn: { $set: true },
@@ -113,7 +113,7 @@ export default class App extends Component<AppProps, AppState> {
                 });
             })
             .catch(async () => {
-                this.setState(state => {
+                this.setState((state) => {
                     return update(state, {
                         g: {
                             loggedIn: { $set: false },
