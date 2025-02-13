@@ -32,29 +32,38 @@ const smtp_client = new SMTPClient({
     },
 });
 
-const attachment_file = await Deno.readFile(
-    "./data/Tagesordnung zur Mitgliederversammlung_Nov2024_final.docx"
+const attachment_file_1 = await Deno.readFile(
+    "./data/QA Jahres und Finanzberichte 2023 2024.pdf"
 );
 
-const content = ``;
+const attachment_file_2 = await Deno.readFile(
+    "./data/Protokoll_Mitgliederversammlung 2024_final.pdf"
+);
+
+const content = `Hallo zusammen, hier noch das letzte Dokument zur Mitgliederversammlung.
+
+Danke für die Geduld!
+
+Viele Grüße
+Julia (sie/ihr)
+Transparenzperson Queer Augsburg e.V.`;
 
 const mail_to_send: SendConfig = {
     from: "transparenz@queer-augsburg.de",
     replyTo: "transparenz@queer-augsburg.de",
     to: "paul@vindelicum.eu",
     priority: "high",
-    subject:
-        "Zoomlink zur digitalen Teilnahme an der Mitgliederversammlung 2024",
-    /*   attachments: [
+    subject: "Jahres- und Finanzberichte",
+    // docx "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    // pdf "application/pdf"
+    attachments: [
         {
-            content: attachment_file,
+            content: attachment_file_1,
             encoding: "binary",
-            contentType:
-                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            filename:
-                "Tagesordnung zur Mitgliederversammlung_Nov2024_final.docx",
+            contentType: "application/pdf",
+            filename: "QA Jahres und Finanzberichte 2023 2024.pdf",
         },
-    ],*/
+    ],
     mimeContent: [
         {
             mimeType: 'text/plain; charset="utf-8"',
@@ -65,7 +74,7 @@ const mail_to_send: SendConfig = {
 
 const users = await users_collection.find({}).toArray();
 
-const mail_recipients = users.flatMap((user) => {
+const REAL_mail_recipients = users.flatMap((user) => {
     const mail = user?.member?.email;
     if (mail) {
         // && user.member?.status === "Approved"
@@ -76,11 +85,11 @@ const mail_recipients = users.flatMap((user) => {
 
 //console.log(mail_recipients);
 
-//const mail_recipients_test = ["multimunding@gmail.com"];
+const TEST_mail_recipients = ["multimunding@gmail.com"];
 
 const responses = [];
 
-for (const mail of mail_recipients) {
+for (const mail of REAL_mail_recipients) {
     mail_to_send.to = mail;
 
     const res = {
@@ -109,6 +118,6 @@ await smtp_client.close();
 await mongo_client.close();
 
 await Deno.writeTextFile(
-    "./data/mail_responses_31102024.json",
+    "./data/mail_responses_21122024.json",
     JSON.stringify(responses, null, 2)
 );

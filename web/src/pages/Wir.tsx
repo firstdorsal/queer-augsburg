@@ -34,7 +34,7 @@ export default class Wir extends Component<WirProps, WirState> {
                 <h1>Komm vorbei!</h1>
                 <Image
                     image={weihnachtsbild}
-                    alt="Große Gruppe von Menschen die Lächeln, aufgenommen bei der Weihnachtsfeier 2023"
+                    alt="Große Gruppe von Menschen die Lächeln, aufgenommen bei der Weihnachtsfeier 2024"
                 />
 
                 <p>
@@ -132,7 +132,12 @@ export default class Wir extends Component<WirProps, WirState> {
                 </p>
                 <p>
                     <h2>Online Spenden</h2>
-                    <p>Jetzt kostenpflichtig an Queer Augsburg e.V. Spenden: <a rel={"noopener noreferrer"} href="https://pay.sumup.com/b2c/QD5HHAKK">SumUp</a></p>                    
+                    <p>
+                        Jetzt kostenpflichtig an Queer Augsburg e.V. Spenden:{" "}
+                        <a rel={"noopener noreferrer"} href="https://pay.sumup.com/b2c/QD5HHAKK">
+                            SumUp
+                        </a>
+                    </p>
                 </p>
                 <p>An weiteren Spendemöglichkeiten arbeiten wir gerade. :)</p>
                 <p>
@@ -191,25 +196,24 @@ export default class Wir extends Component<WirProps, WirState> {
                     hier die Vereinsarbeit.
                 </p>
                 <p>
-                Unser Senat besteht zurzeit aus elf Personen, Beauftragte von links nach rechts mitsamt Fachbereich(en):
+                    Unser Senat besteht zurzeit aus elf Personen, Beauftragte von links nach rechts
+                    mitsamt Fachbereich(en):
                 </p>
                 <ul>
-                <li>Leon Tokan (er/ihm) - Studierende</li>
-                <li>Aurora Schupp (it/its) - trans*, Aro_Ace</li>
-                <li>Benji Kalide (er/ihm) - Marketing</li>
-                <li>Julia Stöckner (sie/ihr) - Transparenz</li>
-                <li>Helena Kosch (sie/ihr) - Vernetzung</li>
-                <li>Annabel (sie/ihr) - Vereinsverwaltung, Veranstaltungskoordination</li>
-                <li>Paul Kunstmann (er/ihm) - Recht</li>
-                <li>Aiden Lane Ziegler (er/ihm) - trans*, Kultur, Disability</li>
-                <li>Jerome Petrov (er/ihm) - Finanzen, Recht</li>
+                    <li>Leon Tokan (er/ihm) - Studierende</li>
+                    <li>Aurora Schupp (it/its) - trans*, Aro_Ace</li>
+                    <li>Benji Kalide (er/ihm) - Marketing</li>
+                    <li>Julia Stöckner (sie/ihr) - Transparenz</li>
+                    <li>Helena Kosch (sie/ihr) - Vernetzung</li>
+                    <li>Annabel (sie/ihr) - Vereinsverwaltung, Veranstaltungskoordination</li>
+                    <li>Paul Kunstmann (er/ihm) - Recht</li>
+                    <li>Aiden Lane Ziegler (er/ihm) - trans*, Kultur, Disability</li>
+                    <li>Jerome Petrov (er/ihm) - Finanzen, Recht</li>
                 </ul>
                 <p>Nicht auf dem Bild sind:</p>
                 <ul>
-
-                
-            <li>Paul Hennig (er/ihm) - Digitales, Datenschutz, Party</li>
-            <li>Emmanuel Fleischer (er/ihm) - Aro_Ace</li>
+                    <li>Paul Hennig (er/ihm) - Digitales, Datenschutz, Party</li>
+                    <li>Emmanuel Fleischer (er/ihm) - Aro_Ace</li>
                 </ul>
 
                 <p>
@@ -235,7 +239,7 @@ export default class Wir extends Component<WirProps, WirState> {
                 <h1>Vorstand</h1>
                 <Image
                     image={vorstandBild}
-                    alt="Drei Personen die Lächeln, eine hält die Satzung in der Hand. Aufgenommen bei der Gründungsversammlung 2023."
+                    alt="Drei Personen die Lächeln, eine hält die Satzung von Queer Augsburg in der Hand. Aufgenommen bei der Gründungsversammlung 2023."
                 />
                 <p>
                     Der Vorstand ist das Leitungsorgan des Vereins. Er vertritt den Verein rechtlich
@@ -258,10 +262,10 @@ export default class Wir extends Component<WirProps, WirState> {
                         immer gern dabei.
                     </li>
                     <li>
-                        Paul Kunstmann (er/ihm) studiert Jura mit dem Schwerpunkt Geistiges
-                        Eigentum. Er liebt es Fahrrad zu fahren, Sprachen zu lernen und in der
-                        Augsburger Altstadt spazieren zu gehen. Für eine Runde Ga(y)ming ist Paul
-                        immer zu haben.
+                        Paul Kunstmann (er/ihm) ist Jurist mit dem Schwerpunkt Geistiges Eigentum
+                        auf dem Weg Anwalt zu werden. Er liebt es Fahrrad zu fahren, Sprachen zu
+                        lernen und in der Augsburger Altstadt spazieren zu gehen. Für eine Runde
+                        Ga(y)ming ist Paul immer zu haben.
                     </li>
                 </ul>
             </div>
