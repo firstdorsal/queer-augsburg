@@ -123,5 +123,35 @@ export const commonPlaces: Place[] = [
         name: "Projektraum Rechts-der-Wertach",
         lat: 48.3781092,
         lon: 10.887578
+    },
+    {
+        name: "Unikum",
+        lat: 48.3337439,
+        lon: 10.8993841
+    },
+    {
+        name: "Grandhotel Cosmopolis",
+        lat: 48.372773,
+        lon: 10.899991
+    },
+    {
+        name: "Henry's Coffee World",
+        lat: 48.3691817,
+        lon: 10.8973092
+    },
+    {
+        name: "Barfly",
+        lat: 48.3638612,
+        lon: 10.8996608
+    },
+    {
+        name: "Stadtbücherei",
+        lat: 48.369164,
+        lon: 10.895149
+    },
+    {
+        name: "Mo Club",
+        lat: 48.364287,
+        lon: 10.9006397
     }
 ];
