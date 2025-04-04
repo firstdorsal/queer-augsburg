@@ -1,5 +1,6 @@
+import update from "immutability-helper";
+import { cloneDeep } from "lodash";
 import { Component } from "preact";
-import { G, commonTags, queerTags } from "../types";
 import {
     Button,
     DatePicker,
@@ -13,11 +14,10 @@ import {
     useToaster
 } from "rsuite";
 import { Meeting } from "../apiTypes/Meeting";
-import { cloneDeep } from "lodash";
-import update from "immutability-helper";
-import MeetingList from "./MeetingList";
+import { G, commonTags, queerTags } from "../types";
 import { commonPlaces, withToasterHook } from "../utils";
 import Md from "./Md";
+import MeetingList from "./MeetingList";
 
 interface EditMeetingProps {
     readonly g: G;
@@ -120,8 +120,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                     <Modal.Body>
                         Titel
                         <Input
-                            onChange={v => {
-                                this.setState(state => {
+                            onChange={(v) => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             title: { $set: v }
@@ -152,8 +152,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <br />
                         <br />
                         <Input
-                            onChange={v => {
-                                this.setState(state => {
+                            onChange={(v) => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             description: { $set: v }
@@ -180,6 +180,15 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                 { value: "Planned", label: "Geplant" },
                                 { value: "Active", label: "Aktiv" }
                             ]}
+                            onChange={(v) => {
+                                this.setState((state) => {
+                                    return update(state, {
+                                        editingMeeting: {
+                                            status: { $set: v as "Planned" | "Active" }
+                                        }
+                                    });
+                                });
+                            }}
                             searchable={false}
                         />
                         <br />
@@ -187,10 +196,10 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <b>Zeit</b>
                         <br />
                         <DatePicker
-                            onChange={v => {
+                            onChange={(v) => {
                                 const t = v?.getTime();
 
-                                this.setState(state => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             time: {
@@ -201,7 +210,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                 });
                             }}
                             onChangeCalendarDate={(v: Date) => {
-                                this.setState(state => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             time: {
@@ -236,13 +245,13 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <b>Häufig genutzte Orte</b>
                         <br />
                         <InputPicker
-                            data={commonPlaces.map(item => ({
+                            data={commonPlaces.map((item) => ({
                                 label: item.name,
                                 value: item.name
                             }))}
-                            onChange={v => {
-                                const selectedPlace = commonPlaces.find(item => item.name === v);
-                                this.setState(state => {
+                            onChange={(v) => {
+                                const selectedPlace = commonPlaces.find((item) => item.name === v);
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             location: {
@@ -256,8 +265,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             }}
                         />
                         <Input
-                            onChange={v => {
-                                this.setState(state => {
+                            onChange={(v) => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             location: {
@@ -272,11 +281,11 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             placeholder="Wittelsbacher Park"
                         />
                         <Input
-                            onChange={v => {
+                            onChange={(v) => {
                                 v = v.replace(",", ".");
                                 console.log(v);
 
-                                this.setState(state => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             location: {
@@ -292,9 +301,9 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             placeholder="48.35725"
                         />
                         <Input
-                            onChange={v => {
+                            onChange={(v) => {
                                 v = v.replace(",", ".");
-                                this.setState(state => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             location: {
@@ -314,9 +323,10 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <b>Barrierefreiheit</b>
                         <br />
                         <Input
+                            //@ts-ignore
                             value={em.accessibility}
-                            onChange={v => {
-                                this.setState(state => {
+                            onChange={(v) => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             accessibility: { $set: v }
@@ -331,8 +341,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <br />
                         <Input
                             value={em.authority}
-                            onChange={v => {
-                                this.setState(state => {
+                            onChange={(v) => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             authority: { $set: v }
@@ -347,9 +357,10 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <br />
                         <b>Triggerwarnungen</b>
                         <Input
+                            //@ts-ignore
                             value={em.trigger_warning}
-                            onChange={v => {
-                                this.setState(state => {
+                            onChange={(v) => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             trigger_warning: { $set: v }
@@ -364,8 +375,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <br />
                         <Input
                             value={em.price[0]}
-                            onChange={v => {
-                                this.setState(state => {
+                            onChange={(v) => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             price: {
@@ -386,8 +397,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         />
                         <Input
                             value={em.price[1]}
-                            onChange={v => {
-                                this.setState(state => {
+                            onChange={(v) => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             price: {
@@ -413,8 +424,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <Input
                             value={em.age_restriction[0]}
                             type="number"
-                            onChange={v => {
-                                this.setState(state => {
+                            onChange={(v) => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             age_restriction: {
@@ -436,8 +447,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <Input
                             value={em.age_restriction[1]}
                             type="number"
-                            onChange={v => {
-                                this.setState(state => {
+                            onChange={(v) => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             age_restriction: {
@@ -458,8 +469,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <b>Art der Veranstaltung</b>
                         <TagPicker
                             value={em.tags.common}
-                            onChange={v => {
-                                this.setState(state => {
+                            onChange={(v) => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             tags: {
@@ -470,14 +481,14 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                 });
                             }}
                             block
-                            data={commonTags.map(item => ({ label: item, value: item }))}
+                            data={commonTags.map((item) => ({ label: item, value: item }))}
                         />
                         <br />
                         <b>Für welche Gruppen</b>
                         <TagPicker
                             value={em.tags.queer}
-                            onChange={v => {
-                                this.setState(state => {
+                            onChange={(v) => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             tags: {
@@ -488,15 +499,15 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                 });
                             }}
                             block
-                            data={queerTags.map(item => ({ label: item, value: item }))}
+                            data={queerTags.map((item) => ({ label: item, value: item }))}
                         />
                         <br />
                         <b>Eigene Tags</b>
                         <TagInput
                             value={em.tags.freeform}
-                            onChange={v => {
+                            onChange={(v) => {
                                 const newTags = cloneDeep(v) as string[];
-                                this.setState(state => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             tags: {
@@ -508,11 +519,13 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             }}
                             block
                         />
+                        <br />
                         <b>Wie viele Menschen waren da?</b>
                         <Input
+                            //@ts-ignore
                             value={em.attendance}
-                            onChange={v => {
-                                this.setState(state => {
+                            onChange={(v) => {
+                                this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
                                             attendance: { $set: parseInt(v) }
