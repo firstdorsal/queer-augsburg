@@ -102,6 +102,7 @@ services:
                             rule: "Host(`{{ $qaServerHostname }}`)"
                             entrypoints: {{ ternary "websecure" "web" $config.tls }}
                             service: qa-server
+                            middlewares: compress
                             {{- if eq $config.tls true }}
                             tls:
                                 certresolver: "default"
@@ -114,6 +115,8 @@ services:
                             loadbalancer:
                                 server:
                                     port: 80
+                    middlewares:
+                        compress: true
     qa-db:
         image: bitnami/mongodb
         restart: always
