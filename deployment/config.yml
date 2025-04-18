@@ -3,6 +3,8 @@ dev: true
 reverseProxy:
     create: true
     network: rp
+    compressApi: false
+    redirectWww: false
 
 tls: false
 
@@ -14,7 +16,7 @@ backup:
 
 internal:
     mattermost:
-        enabled: true
+        enabled: false
         domain: queer-augsburg.de
         subdomain: mm
 
@@ -50,7 +52,7 @@ interossea:
             domain: queer-augsburg.de
             subdomain: accounts-server
         build:
-            enabled: true
+            enabled: false
             path: /home/paul/Documents/interossea/server/
             dockerfile: Dockerfile
         mail:
@@ -70,6 +72,6 @@ interossea:
             domain: queer-augsburg.de
             subdomain: accounts
         build:
-            enabled: true
+            enabled: false
             path: /home/paul/Documents/interossea/web/
             dockerfile: Dockerfile
