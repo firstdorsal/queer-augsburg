@@ -153,5 +153,10 @@ export const commonPlaces: Place[] = [
         name: "Mo Club",
         lat: 48.364287,
         lon: 10.9006397
+    },
+    {
+        name: "Rübenrot",
+        lat: 48.3520847,
+        lon: 10.8959902
     }
 ];
