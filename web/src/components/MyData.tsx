@@ -1,7 +1,6 @@
 import EyeIcon from "@rsuite/icons/legacy/Eye";
 import EyeSlashIcon from "@rsuite/icons/legacy/EyeSlash";
 import update from "immutability-helper";
-import cloneDeep from "lodash/cloneDeep";
 import { Component } from "preact";
 import { BsInfoCircle } from "react-icons/bs";
 import {
@@ -44,7 +43,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
     constructor(props: MyDataProps) {
         super(props);
 
-        const newFormData = cloneDeep(defaultFormData);
+        const newFormData = structuredClone(defaultFormData);
         newFormData.reference = props.g.ref ?? "";
         this.state = {
             formData: newFormData,
