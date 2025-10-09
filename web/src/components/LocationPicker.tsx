@@ -155,7 +155,7 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
         const isLoading = !leafletLoaded || !cssLoaded;
 
         return (
-            <Modal open={show} size="lg">
+            <Modal open={show} size="lg" onClose={onClose}>
                 <Modal.Header>
                     <Modal.Title>Ort auswählen</Modal.Title>
                 </Modal.Header>

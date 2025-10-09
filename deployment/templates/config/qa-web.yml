@@ -18,7 +18,7 @@ headers:
 
             connect-src 'self' $CSP_CONNECT_SRC; 
 
-            img-src 'self'; 
+            img-src 'self' tile.openstreetmap.org; 
 
             font-src 'self'; 
 

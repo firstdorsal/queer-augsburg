@@ -228,17 +228,14 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         />
                         <br />
                         <br />
-                        <b>
-                            Ort (Name und Koordinaten(Latitude/Longitude für Augsburg immer ca.
-                            48/10))
-                        </b>
+                        <b>Ort (Name und Koordinaten)</b>
                         <br />
                         <Button
                             onClick={() => this.setState({ showLocationPicker: true })}
                             appearance="primary"
                             style={{ marginBottom: "10px" }}
                         >
-                            Karte öffnen
+                            Auf der Karte auswählen
                         </Button>
                         <br />
                         <b>Häufig genutzte Orte</b>
@@ -263,6 +260,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                 });
                             }}
                         />
+                        <br />
                         <Input
                             onChange={(v) => {
                                 this.setState((state) => {
@@ -317,6 +315,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             style={{ width: "25%", display: "inline" }}
                             placeholder="10.89929"
                         />
+                        <br />
                         <LocationPicker
                             lat={this.state.editingMeeting.location.lat}
                             lon={this.state.editingMeeting.location.lon}
