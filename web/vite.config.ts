@@ -1,4 +1,5 @@
 import preact from "@preact/preset-vite";
+import UnpluginInjectPreload from "unplugin-inject-preload/vite";
 import { defineConfig } from "vite";
 import { imagetools } from "vite-imagetools";
 import { VitePWA } from "vite-plugin-pwa";
@@ -8,6 +9,20 @@ export default defineConfig({
     plugins: [
         preact(),
         imagetools(),
+        UnpluginInjectPreload({
+            files: [
+                {
+                    entryMatch: /inter-latin.*\.woff2$/,
+                    outputMatch: /inter-latin.*\.woff2$/,
+                    attributes: {
+                        type: "font/woff2",
+                        as: "font",
+                        crossorigin: "anonymous",
+                        "data-font": "Inter"
+                    }
+                }
+            ]
+        }),
         VitePWA({
             registerType: "autoUpdate",
             includeAssets: ["icon.png"],
