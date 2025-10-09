@@ -13,6 +13,7 @@
         "@firstdorsal/interossea-client": "^1.0.0",
         "@fontsource-variable/inter": "^5.0.15",
         "@fontsource/inter": "^5.0.8",
+        "@img/sharp-linuxmusl-x64": "^0.34.4",
         "@types/react": "^18.2.23",
         "@types/react-window-infinite-loader": "^1.0.6",
         "imagetools-core": "^6.0.4",
@@ -29,7 +30,7 @@
         "react-window-infinite-loader": "^1.0.9",
         "rsuite": "^5.40.0",
         "sass": "^1.66.1",
-        "sharp": "^0.33.1",
+        "sharp": "^0.33.5",
         "ts-pattern": "^5.0.5",
         "vite-imagetools": "^6.2.9"
     },
@@ -37,12 +38,12 @@
         "@preact/preset-vite": "^2.5.0",
         "@vite-pwa/assets-generator": "^0.0.10",
         "less": "^4.2.0",
-        "typescript": "^5.0.2",
-        "vite": "^4.4.5",
-        "vite-plugin-pwa": "^0.16.7",
         "prettier": "^3.3.2",
         "prettier-plugin-organize-imports": "^3.2.4",
-        "prettier-plugin-tailwindcss": "^0.6.4"
+        "prettier-plugin-tailwindcss": "^0.6.4",
+        "typescript": "^5.0.2",
+        "vite": "^4.4.5",
+        "vite-plugin-pwa": "^0.16.7"
     },
     "packageManager": "pnpm@9.1.3+sha1.6110a47202a78d07d0bf8c9f4f4c63cc83bb833a"
 }

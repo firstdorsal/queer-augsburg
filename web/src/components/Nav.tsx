@@ -33,6 +33,7 @@ export default class Nav extends Component<NavProps, NavState> {
                     {navItems.map((item) => {
                         return (
                             <li>
+                                {/* @ts-ignore */}
                                 <Link draggable={false} activeClassName="active" href={item.href}>
                                     {item.name}
                                 </Link>
@@ -51,6 +52,7 @@ export default class Nav extends Component<NavProps, NavState> {
                                             <Link
                                                 draggable={false}
                                                 activeClassName="active"
+                                                // @ts-ignore
                                                 href={"/ich"}
                                             >
                                                 Ich
@@ -60,6 +62,7 @@ export default class Nav extends Component<NavProps, NavState> {
                                             <Link
                                                 draggable={false}
                                                 activeClassName="active"
+                                                // @ts-ignore
                                                 href={"/admin"}
                                             >
                                                 Admin
@@ -73,6 +76,7 @@ export default class Nav extends Component<NavProps, NavState> {
                                         <Link
                                             draggable={false}
                                             activeClassName="active"
+                                            // @ts-ignore
                                             href={"/ich"}
                                         >
                                             Ich

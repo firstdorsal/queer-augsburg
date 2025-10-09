@@ -269,6 +269,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                             <span>Weniger anzeigen</span>
 
                             <BsChevronUp
+                                /*@ts-ignore */
                                 style={{ marginLeft: "5px", transform: "translate(0px, 2.5px)" }}
                             />
                         </span>
@@ -276,6 +277,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                         <span>
                             <span>Mehr anzeigen</span>
                             <BsChevronDown
+                                /*@ts-ignore */
                                 style={{ marginLeft: "5px", transform: "translate(0px, 2.5px)" }}
                             />
                         </span>
@@ -289,6 +291,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                             ?subject=Hilfe zum Treffen: ${m.title}
                         `}
                         >
+                            {/*@ts-ignore */}
                             <LuMailQuestion style={{ transform: "scale(1.2)" }} />
                         </a>
                     </button>

@@ -1,7 +1,7 @@
-import { defineConfig } from "vite";
 import preact from "@preact/preset-vite";
-import { VitePWA } from "vite-plugin-pwa";
+import { defineConfig } from "vite";
 import { imagetools } from "vite-imagetools";
+import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -12,7 +12,6 @@ export default defineConfig({
             registerType: "autoUpdate",
             includeAssets: ["icon.png"],
             srcDir: "src",
-            filename: "sw.ts",
             devOptions: {
                 enabled: true,
                 navigateFallbackAllowlist: [/^index.html$/]

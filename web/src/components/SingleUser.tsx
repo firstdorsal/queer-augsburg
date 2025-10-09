@@ -1,11 +1,11 @@
 import { Component } from "preact";
+import { Button, Input, Message, Modal, SelectPicker, Toggle, useToaster } from "rsuite";
+import { Meeting } from "../apiTypes/Meeting";
+import { MembershipStatus } from "../apiTypes/MembershipStatus";
 import { User } from "../apiTypes/User";
 import { G, memberShipStatuses } from "../types";
-import { Button, Input, Message, Modal, SelectPicker, Toggle, useToaster } from "rsuite";
-import { MembershipStatus } from "../apiTypes/MembershipStatus";
 import { withToasterHook } from "../utils";
 import UserList from "./UserList";
-import { Meeting } from "../apiTypes/Meeting";
 
 interface SingleUserProps {
     readonly user: User;
@@ -34,7 +34,7 @@ class SingleUser extends Component<SingleUserProps, SingleUserState> {
     }
 
     expandReference = (reference: string | null) => {
-        const maybeMeeting = this.props.meetings.find(m => m._id === reference);
+        const maybeMeeting = this.props.meetings.find((m) => m._id === reference);
         if (maybeMeeting) {
             return (
                 <a className="MeetingReference" href={`/?m=${maybeMeeting._id}`}>
@@ -111,7 +111,12 @@ class SingleUser extends Component<SingleUserProps, SingleUserState> {
 
                         <div>Referenz: {this.expandReference(m.reference)}</div>
                         <div>Phone: {m.phone}</div>
-                        <div style={{maxHeight:"1rem",overflow:"hidden"}} title={m.user_notes??""}>User Notes: {m.user_notes}</div>
+                        <div
+                            style={{ maxHeight: "1rem", overflow: "hidden" }}
+                            title={m.user_notes ?? ""}
+                        >
+                            User Notes: {m.user_notes}
+                        </div>
                         <div>
                             Adresse: {m.address.street} {m.address.number}
                             {m.address.addition ? " " + m.address.addition : ""}, {m.address.zip}{" "}
@@ -187,12 +192,12 @@ class SingleUser extends Component<SingleUserProps, SingleUserState> {
                             <br />
 
                             <SelectPicker
-                                data={memberShipStatuses.map(item => ({
+                                data={memberShipStatuses.map((item) => ({
                                     label: item,
                                     value: item
                                 }))}
                                 value={this.state.status}
-                                onSelect={v =>
+                                onSelect={(v) =>
                                     this.setState({
                                         status: v
                                     })
@@ -204,9 +209,10 @@ class SingleUser extends Component<SingleUserProps, SingleUserState> {
                             <b>Mitglied über Status Update informieren (Mail schicken)</b>
                             <br />
                             <Toggle
+                                // @ts-ignore
                                 value={this.state.sendUpdateEmail}
                                 defaultChecked
-                                onChange={v => this.setState({ sendUpdateEmail: v })}
+                                onChange={(v) => this.setState({ sendUpdateEmail: v })}
                             />
 
                             <br />
@@ -215,7 +221,7 @@ class SingleUser extends Component<SingleUserProps, SingleUserState> {
                             <br />
                             <Input
                                 value={this.state.updateReason}
-                                onChange={v => {
+                                onChange={(v) => {
                                     this.setState({ updateReason: v });
                                 }}
                             />
