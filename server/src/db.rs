@@ -78,13 +78,14 @@ impl DB {
             .find_one(doc! { "_id": &meeting._id }, None)
             .await?
         {
-            Some(_) => {
-                match meeting.changed {
+            Some(mut db_meeting) => {
+                match db_meeting.changed {
                     Some(ref mut changes) => {
                         changes.push(ChangedMeeting {
                             at: chrono::Utc::now().timestamp_millis(),
                             by: auth.authenticated_user.clone().unwrap(),
                         });
+                        meeting.changed = Some(changes.clone());
                     }
                     None => {
                         meeting.changed = Some(vec![ChangedMeeting {
