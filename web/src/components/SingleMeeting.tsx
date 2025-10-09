@@ -204,6 +204,14 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                                         <span style={{ userSelect: "all" }}>
                                             https://api.queer-augsburg.de/api/ical_feed/
                                         </span>
+                                        <br />
+                                        <span>oder</span>
+                                        <br />
+                                        <span>
+                                            <a href="webcal://api.queer-augsburg.de/api/ical_feed/">
+                                                webcal
+                                            </a>
+                                        </span>
                                     </div>
                                 </Modal.Body>
                             </Modal>
