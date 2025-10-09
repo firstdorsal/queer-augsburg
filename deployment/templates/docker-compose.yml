@@ -289,13 +289,13 @@ services:
             AWS_DEFAULT_REGION: eu-central-1
             AWS_S3_BUCKET_NAME: ${BACKUP_AWS_S3_BUCKET_NAME}
             ENCRYPTION_PASSWORD: ${BACKUP_ENCRYPTION_PASSWORD}
-    qa-chadburn:
-        container_name: qa-chadburn
-        image: premoweb/chadburn:latest
+    qa-ofelia:
+        container_name: qa-ofelia
+        image: mcuadros/ofelia:latest
         restart: always
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock:ro
-            - ./config/chadburn.conf:/etc/chadburn.conf:ro
+            - ./config/ofelia.conf:/etc/ofelia/config.ini:ro
         depends_on:
             - qa-backup
             - qa-db
