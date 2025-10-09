@@ -1,7 +1,7 @@
 use chrono::DateTime;
 use hyper::{Body, Request, Response};
 
-use icalendar::{Calendar, Component, Event, EventLike};
+use icalendar::{Calendar, Component, Event, EventLike, Property};
 
 use crate::{db::DB, interossea::Auth};
 
@@ -43,20 +43,20 @@ pub async fn ical_feed(
 
                 calender.push(
                     Event::new()
-                        .uid(&meeting._id)
-                        .add_property(
-                            "ORGANIZER",
-                            format!("CN=\"{}\":mailto:mail@queer-augsburg.de", meeting.authority),
+                        .uid(&format!("{}@queer-augsburg.de", meeting._id))
+                        .append_property(
+                            Property::new("ORGANIZER", "mailto:mail@queer-augsburg.de")
+                                .add_parameter("CN", &meeting.authority),
                         )
-                        .add_property("CATEGORIES", categories_string)
-                        .add_property(
+                        .append_property(Property::new("CATEGORIES", categories_string))
+                        .append_property(Property::new(
                             "GEO",
-                            format!("{},{}", meeting.location.lat, meeting.location.lon),
-                        )
-                        .add_property(
+                            format!("{};{}", meeting.location.lat, meeting.location.lon),
+                        ))
+                        .append_property(Property::new(
                             "URL",
                             format!("https://queer-augsburg.de/?m={}", meeting._id),
-                        )
+                        ))
                         .summary(&meeting.title)
                         .location(&location_string)
                         .description(&meeting.description)
