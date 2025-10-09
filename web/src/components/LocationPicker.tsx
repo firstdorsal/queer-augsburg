@@ -31,6 +31,7 @@ interface LocationPickerState {
 export default class LocationPicker extends Component<LocationPickerProps, LocationPickerState> {
     private mapContainer: HTMLDivElement | null = null;
     private L: any = null;
+    private currentSearchController: AbortController | null = null;
 
     constructor(props: LocationPickerProps) {
         super(props);
@@ -69,6 +70,9 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
 
     componentWillUnmount() {
         this.destroyMap();
+        if (this.currentSearchController) {
+            this.currentSearchController.abort();
+        }
     }
 
     loadLeafletCSS = async () => {
@@ -174,7 +178,14 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
     };
 
     performSearch = async (query: string) => {
-        if (this.state.isSearching) return;
+        // Abort previous search if it exists
+        if (this.currentSearchController) {
+            this.currentSearchController.abort();
+        }
+
+        // Create new controller for this search
+        this.currentSearchController = new AbortController();
+        const controller = this.currentSearchController;
 
         this.setState({ isSearching: true });
 
@@ -182,24 +193,50 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
             const response = await fetch(
                 `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
                     query
-                )}&format=json&limit=5&addressdetails=1`
+                )}&format=json&limit=5&addressdetails=1&countrycodes=de`,
+                { signal: controller.signal }
             );
+
+            // Check if this request was aborted
+            if (controller.signal.aborted) {
+                return;
+            }
+
             const results = await response.json();
+
+            // Check again if this request was aborted after getting results
+            if (controller.signal.aborted) {
+                return;
+            }
+
             const formattedResults = results.map((result: any) => ({
                 label: result.display_name,
                 value: result.place_id,
                 data: result
             }));
-            this.setState({
-                searchResults: formattedResults,
-                isSearching: false
-            });
+
+            // Only update state if this is still the current search
+            if (this.currentSearchController === controller) {
+                this.setState({
+                    searchResults: formattedResults,
+                    isSearching: false
+                });
+            }
         } catch (error) {
+            // Don't handle aborted requests as errors
+            if (error instanceof DOMException && error.name === 'AbortError') {
+                return;
+            }
+
             console.error("Search failed:", error);
-            this.setState({
-                searchResults: [],
-                isSearching: false
-            });
+
+            // Only update state if this is still the current search
+            if (this.currentSearchController === controller) {
+                this.setState({
+                    searchResults: [],
+                    isSearching: false
+                });
+            }
         }
     };
 
