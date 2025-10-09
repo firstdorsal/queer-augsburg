@@ -126,7 +126,11 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                     </Modal.Body>
                 </Modal>
 
-                <div className="Title">{m.title}</div>
+                <div className="Title">
+                    {m.cancelled === true && <span style={{ color: "red" }}>ABGESAGT!</span>}
+                    {m.title}
+                </div>
+
                 <div className="Tags">
                     {m.tags.freeform.map(renderFreeformTag)}
                     {m.tags.common.map(renderCommonTag)}

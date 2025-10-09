@@ -3,6 +3,7 @@ import { cloneDeep } from "lodash";
 import { Component } from "preact";
 import {
     Button,
+    Checkbox,
     DatePicker,
     Input,
     InputPicker,
@@ -535,6 +536,21 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             }}
                             type="number"
                             placeholder="0"
+                        />
+                        <br />
+                        <b>Ist das Treffen abgesagt</b>
+                        <br />
+                        <Checkbox
+                            checked={em.cancelled === null ? false : em.cancelled}
+                            onChange={(v, checked) => {
+                                this.setState((state) => {
+                                    return update(state, {
+                                        editingMeeting: {
+                                            cancelled: { $set: checked }
+                                        }
+                                    });
+                                });
+                            }}
                         />
                     </Modal.Body>
                     <Modal.Footer>
