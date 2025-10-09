@@ -15,7 +15,7 @@ import {
 } from "rsuite";
 import { Meeting } from "../apiTypes/Meeting";
 import { G, commonTags, queerTags } from "../types";
-import { commonPlaces, withToasterHook } from "../utils";
+import { Place, fetchPlacesFromPastMeetings, withToasterHook } from "../utils";
 import LocationPicker from "./LocationPicker";
 import Md from "./Md";
 import MeetingList from "./MeetingList";
@@ -34,6 +34,8 @@ interface EditMeetingProps {
 interface EditMeetingState {
     readonly editingMeeting: Meeting;
     readonly showLocationPicker: boolean;
+    readonly dynamicPlaces: Place[];
+    readonly placesLoading: boolean;
 }
 
 class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
@@ -45,9 +47,32 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
         }
         this.state = {
             editingMeeting,
-            showLocationPicker: false
+            showLocationPicker: false,
+            dynamicPlaces: [],
+            placesLoading: true
         };
     }
+
+    componentDidMount = async () => {
+        if (this.props.g.qaClient) {
+            try {
+                const dynamicPlaces = await fetchPlacesFromPastMeetings(this.props.g.qaClient);
+                this.setState({
+                    dynamicPlaces,
+                    placesLoading: false
+                });
+            } catch (error) {
+                console.error("Failed to fetch places:", error);
+                this.setState({
+                    placesLoading: false
+                });
+            }
+        } else {
+            this.setState({
+                placesLoading: false
+            });
+        }
+    };
 
     updateMeeting = async () => {
         if (!this.props.g.qaClient) return;
@@ -241,12 +266,12 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <b>Häufig genutzte Orte</b>
                         <br />
                         <InputPicker
-                            data={commonPlaces.map((item) => ({
+                            data={this.state.dynamicPlaces.map((item) => ({
                                 label: item.name,
                                 value: item.name
                             }))}
                             onChange={(v) => {
-                                const selectedPlace = commonPlaces.find((item) => item.name === v);
+                                const selectedPlace = this.state.dynamicPlaces.find((item) => item.name === v);
                                 this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
@@ -259,6 +284,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                     });
                                 });
                             }}
+                            loading={this.state.placesLoading}
+                            placeholder={this.state.placesLoading ? "Orte laden..." : "Ort auswählen"}
                         />
                         <br />
                         <Input
