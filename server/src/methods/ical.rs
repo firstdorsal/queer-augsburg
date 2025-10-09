@@ -1,7 +1,7 @@
 use chrono::DateTime;
 use hyper::{Body, Request, Response};
 
-use icalendar::{Calendar, Component, Event, EventLike, Property};
+use icalendar::{Calendar, Component, Event, EventLike, EventStatus, Property};
 
 use crate::{db::DB, interossea::Auth};
 
@@ -44,6 +44,10 @@ pub async fn ical_feed(
                 calender.push(
                     Event::new()
                         .uid(&format!("{}@queer-augsburg.de", meeting._id))
+                        .status(match meeting.cancelled {
+                            Some(true) => EventStatus::Cancelled,
+                            _ => EventStatus::Confirmed,
+                        })
                         .append_property(
                             Property::new("ORGANIZER", "mailto:mail@queer-augsburg.de")
                                 .add_parameter("CN", &meeting.authority),
