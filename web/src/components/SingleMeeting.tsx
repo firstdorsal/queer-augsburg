@@ -1,11 +1,6 @@
 import { Component } from "preact";
-import { IoLocation, IoLogoEuro, IoTime } from "react-icons/io5";
-import { TbRating18Plus } from "react-icons/tb";
+import ICalendarLink from "react-icalendar-link";
 import {
-    BsBellFill,
-    BsBookmark,
-    BsChevronCompactDown,
-    BsChevronCompactUp,
     BsChevronDown,
     BsChevronUp,
     BsFillExclamationTriangleFill,
@@ -14,20 +9,21 @@ import {
     BsQrCode,
     BsShareFill
 } from "react-icons/bs";
-import { MdWheelchairPickup } from "react-icons/md";
 import { IoMdStats } from "react-icons/io";
-import { Meeting } from "../apiTypes/Meeting";
-import { CommonMeetingTag } from "../apiTypes/CommonMeetingTag";
-import { QueerMeetingTag } from "../apiTypes/QueerMeetingTag";
+import { IoLocation, IoLogoEuro, IoTime } from "react-icons/io5";
 import { LuMailQuestion } from "react-icons/lu";
+import { MdWheelchairPickup } from "react-icons/md";
+import { TbRating18Plus } from "react-icons/tb";
+import { Modal } from "rsuite";
+import { match } from "ts-pattern";
+import { CommonMeetingTag } from "../apiTypes/CommonMeetingTag";
+import { Meeting } from "../apiTypes/Meeting";
+import { QueerMeetingTag } from "../apiTypes/QueerMeetingTag";
 import { G } from "../types";
 import EditMeeting from "./EditMeeting";
-import MeetingList from "./MeetingList";
-import { Modal } from "rsuite";
-import QrCode from "./QrCode";
 import Md from "./Md";
-import ICalendarLink from "react-icalendar-link";
-import { match } from "ts-pattern";
+import MeetingList from "./MeetingList";
+import QrCode from "./QrCode";
 
 interface SingleMeetingProps {
     readonly meeting: Meeting;
@@ -79,7 +75,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
         return (
             <div
                 className={`SingleMeeting Pad${
-                    this.props.g.meetingId === m._id ? " ShortHighlight" : ""
+                    this.props.g.meetingId === m._id ? "ShortHighlight" : ""
                 }`}
             >
                 <Modal
@@ -201,6 +197,11 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                                     >
                                         ICS herunterladen (Zum Kalender hinzufügen)
                                     </ICalendarLink>
+                                    <div>
+                                        {" "}
+                                        Oder unseren Kalender abonnieren (iCal Feed):
+                                        https://api.queer-augsburg.de/ical_feed/
+                                    </div>
                                 </Modal.Body>
                             </Modal>
 

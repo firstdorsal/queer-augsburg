@@ -1,3 +1,5 @@
+use core::fmt;
+
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 use validator::Validate;
@@ -67,6 +69,13 @@ pub enum CommonMeetingTag {
     Ostqueer,
     Queermas,
 }
+
+impl fmt::Display for CommonMeetingTag {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
+}
+
 #[derive(TS)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone, Copy)]

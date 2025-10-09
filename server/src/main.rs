@@ -6,6 +6,7 @@ use backend::methods::create_own_user::create_own_user;
 use backend::methods::get_meetings::get_meetings;
 use backend::methods::get_own_user::get_own_user;
 use backend::methods::get_users::get_users;
+use backend::methods::ical::{self, ical_feed};
 use backend::methods::update_meeting::update_meeting;
 use backend::methods::update_member_status::update_member_status;
 use backend::methods::update_own_member_data::update_own_member_data;
@@ -157,6 +158,8 @@ async fn handle_inner(
 
     if p.starts_with("/get_meetings/") && m == Method::GET {
         get_meetings(req, db, &auth, res).await
+    } else if p.starts_with("/ical_feed/") && m == Method::GET {
+        ical_feed(req, db, &auth, res).await
     } else if p.starts_with("/get_users/") && m == Method::GET {
         get_users(req, db, &auth, res).await
     } else if p.starts_with("/update_meeting/") && m == Method::POST {
