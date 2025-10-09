@@ -38,7 +38,7 @@ interface EditMeetingState {
 class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
     constructor(props: EditMeetingProps) {
         super(props);
-        const editingMeeting = cloneDeep(props.meeting);
+        const editingMeeting = structuredClone(props.meeting);
         if (props.newMeeting) {
             editingMeeting.status = props.type;
         }
