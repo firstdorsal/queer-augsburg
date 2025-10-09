@@ -1,7 +1,7 @@
 # 0. build stage
 FROM node:21-alpine as build-stage
 WORKDIR /app
-COPY package.json yarn.lock ./
+COPY package.json pnpm-lock.yaml ./
 RUN yarn global add pnpm
 RUN pnpm add sharp @img/sharp-linuxmusl-x64
 RUN pnpm install
