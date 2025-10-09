@@ -1,5 +1,5 @@
 import { Component } from "preact";
-import { Button, Input, InputGroup, Modal } from "rsuite";
+import { AutoComplete, Button, Modal } from "rsuite";
 
 interface LocationPickerProps {
     lat?: number;
@@ -16,10 +16,14 @@ interface LocationPickerState {
     cssLoaded: boolean;
     searchQuery: string;
     searchResults: Array<{
-        display_name: string;
-        lat: string;
-        lon: string;
-        place_id: string;
+        label: string;
+        value: string;
+        data: {
+            display_name: string;
+            lat: string;
+            lon: string;
+            place_id: string;
+        };
     }>;
     isSearching: boolean;
 }
@@ -181,8 +185,13 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
                 )}&format=json&limit=5&addressdetails=1`
             );
             const results = await response.json();
+            const formattedResults = results.map((result: any) => ({
+                label: result.display_name,
+                value: result.place_id,
+                data: result
+            }));
             this.setState({
-                searchResults: results,
+                searchResults: formattedResults,
                 isSearching: false
             });
         } catch (error) {
@@ -194,7 +203,8 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
         }
     };
 
-    selectSearchResult = (result: any) => {
+    selectSearchResult = (_value: string, item: any) => {
+        const result = item.data;
         const lat = parseFloat(result.lat);
         const lon = parseFloat(result.lon);
 
@@ -223,69 +233,15 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
                     <Modal.Title>Ort auswählen</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <div style={{ marginBottom: "15px", position: "relative" }}>
-                        <Input
+                    <div style={{ marginBottom: "15px" }}>
+                        <AutoComplete
                             placeholder="Suche nach Ort oder Adresse..."
                             value={searchQuery}
+                            data={searchResults}
                             onChange={this.handleSearchChange}
+                            onSelect={this.selectSearchResult}
                             style={{ width: "100%" }}
                         />
-                        {searchResults.length > 0 && (
-                            <div
-                                style={{
-                                    position: "absolute",
-                                    top: "100%",
-                                    left: 0,
-                                    right: 0,
-                                    backgroundColor: "white",
-                                    border: "1px solid #e5e5e5",
-                                    borderRadius: "6px",
-                                    maxHeight: "200px",
-                                    overflowY: "auto",
-                                    zIndex: 1000,
-                                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-                                }}
-                            >
-                                {searchResults.map((result) => (
-                                    <div
-                                        key={result.place_id}
-                                        onClick={() => this.selectSearchResult(result)}
-                                        style={{
-                                            padding: "10px 15px",
-                                            cursor: "pointer",
-                                            borderBottom: "1px solid #f0f0f0",
-                                            fontSize: "14px"
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            (e.target as HTMLElement).style.backgroundColor = "#f5f5f5";
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            (e.target as HTMLElement).style.backgroundColor = "transparent";
-                                        }}
-                                    >
-                                        {result.display_name}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                        {isSearching && (
-                            <div
-                                style={{
-                                    position: "absolute",
-                                    top: "100%",
-                                    left: 0,
-                                    right: 0,
-                                    backgroundColor: "white",
-                                    border: "1px solid #e5e5e5",
-                                    borderRadius: "6px",
-                                    padding: "10px 15px",
-                                    zIndex: 1000,
-                                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-                                }}
-                            >
-                                Suche läuft...
-                            </div>
-                        )}
                     </div>
                     {isLoading && (
                         <div
