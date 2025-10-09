@@ -17,7 +17,7 @@ hyper = { version = "0.14", default-features = false, features = [
     "stream",
     "http2",
 ] }
-tokio = { version = "1.41.1", default-features = false, features = [
+tokio = { version = "1.47.1", default-features = false, features = [
     "rt-multi-thread",
     "macros",
     "signal",
@@ -30,6 +30,8 @@ lettre = { version = "0.11.10", default-features = false, features = [
     "hostname",
     "builder",
 ] }
+
+icalendar = "0.17.5"
 
 
 bytes = "1"

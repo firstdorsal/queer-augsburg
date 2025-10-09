@@ -10,28 +10,35 @@ export default class Kontakt extends Component<KontaktProps, KontaktState> {
                 <div>
                     <h1>Kontakt</h1>
                     <p>
-                        Wir helfen euch bei all euren Anliegen weiter. Meldet euch über einen Kanal
-                        eurer Wahl. Über die Mail erreicht ihr uns <b>zuverlässig.</b>
-                    </p>
-                    <br />
-                    <a class="selectable" href="mailto:mail@queer-augsburg.de">
-                        mail@queer-augsburg.de
-                    </a>
-                    <br />
-                    <br />
-                    <a rel="noreferrer" href="https://instagram.com/queer_augsburg">
-                        Instagram
-                    </a>
-                    <br />
-                    <br />
-                    <a rel="noreferrer" href="https://facebook.com/QueerAugsburg">
-                        Facebook
-                    </a>
-                    <br />
-                    <br />
-                    Du kannst uns auch einen Brief per Post schicken an:
-                    <Address />
-                    <p>
+                        Du erreichst uns per Mail (
+                        <a href="mailto:mail@queer-augsburg.de">mail@queer-augsburg.de</a>) oder
+                        Direktnachricht auf{" "}
+                        <a href="https://www.instagram.com/queer_augsburg/">Instagram</a>
+                        . Unser E-Mail-Postfach bearbeiten wir zuverlässiger als Instagram. Wir
+                        bekommen viele Anfragen. Queer Augsburg e.V. ist aber rein ehrenamtlich
+                        organisiert. Einzelne Anfragen werden unbeantwortet bleiben. Wir bitten um
+                        Nachsicht und um Erinnerungen mittels erneuter Nachricht. <br />
+                        <br />
+                        Fragen zu unseren Treffen, Verein und Engagement beantworten wir zuverlässig
+                        und priorisiert. Nachrichten zu Studien, Werbung und Wohnungen beantworten
+                        und bearbeiten wir fast nie. Wir können keine professionelle Hilfe anbieten.
+                        Insbesondere wollen wir auf folgende Angebote hinweisen:
+                        <ul>
+                            <li>Aidshilfe Augsburg</li>
+                            <li>ZAS Schwaben</li>
+                            <li>lebis</li>
+                            <li>schwubis</li>
+                            <li>Diakonie</li>
+                            <li>Queer Refugees</li>
+                            <li>Augsburger Antidiskriminierungsstelle</li>
+                            <li>STRONG!</li>
+                        </ul>
+                        Bitte wende dich vorrangig an diese Stellen. Sie können dir professionell
+                        weiterhelfen.
+                        <br />
+                        <br />
+                        Du kannst uns auch einen Brief per Post schicken an:
+                        <Address />
                         Wir werden dir anonym antworten. Von außen wird es unmöglich zu erkennen
                         sein, dass der Brief von Queer Augsburg kommt.
                     </p>
