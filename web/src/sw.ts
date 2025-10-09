@@ -25,6 +25,9 @@ registerRoute(
                 maxEntries: 20, // Cache multiple variations of query params
                 maxAgeSeconds: 7 * 24 * 60 * 60 // 1 week
             })
-        ]
+        ],
+        fetchOptions: {
+            mode: "cors"
+        }
     })
 );
