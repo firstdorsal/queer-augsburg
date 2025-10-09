@@ -1,6 +1,7 @@
 import { Component } from "preact";
 import { CSSProperties } from "preact/compat";
 import AutoSizer from "react-virtualized-auto-sizer";
+//@ts-ignore
 import { FixedSizeList } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
 import { QaClient } from "../api";

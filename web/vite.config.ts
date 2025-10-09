@@ -1,4 +1,5 @@
 import preact from "@preact/preset-vite";
+import { visualizer } from "rollup-plugin-visualizer";
 import UnpluginInjectPreload from "unplugin-inject-preload/vite";
 import { defineConfig } from "vite";
 import { imagetools } from "vite-imagetools";
@@ -9,6 +10,10 @@ export default defineConfig({
     plugins: [
         preact(),
         imagetools(),
+        visualizer({
+            emitFile: true,
+            filename: "stats.html"
+        }),
         UnpluginInjectPreload({
             files: [
                 {

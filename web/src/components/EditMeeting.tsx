@@ -1,5 +1,5 @@
 import update from "immutability-helper";
-import { cloneDeep } from "lodash";
+import cloneDeep from "lodash/cloneDeep";
 import { Component } from "preact";
 import {
     Button,
