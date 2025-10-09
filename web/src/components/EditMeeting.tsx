@@ -1,5 +1,4 @@
 import update from "immutability-helper";
-import cloneDeep from "lodash/cloneDeep";
 import { Component } from "preact";
 import {
     Button,
@@ -107,7 +106,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
 
     reset = () => {
         this.setState({
-            editingMeeting: cloneDeep(this.props.meeting)
+            editingMeeting: structuredClone(this.props.meeting)
         });
         this.props.changEditing(false);
     };
@@ -507,7 +506,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <TagInput
                             value={em.tags.freeform}
                             onChange={(v) => {
-                                const newTags = cloneDeep(v) as string[];
+                                const newTags = structuredClone(v) as string[];
                                 this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
