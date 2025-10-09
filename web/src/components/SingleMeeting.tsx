@@ -1,5 +1,7 @@
 import { Component } from "preact";
-import ICalendarLink from "react-icalendar-link";
+import { lazy, Suspense } from "preact/compat";
+
+const ICalendarLink = lazy(() => import("react-icalendar-link"));
 import {
     BsChevronDown,
     BsChevronUp,
@@ -184,25 +186,27 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                                     <Modal.Title>Datum & Uhrzeit</Modal.Title>
                                 </Modal.Header>
                                 <Modal.Body>
-                                    <ICalendarLink
-                                        event={{
-                                            title: m.title,
-                                            description: m.description,
-                                            location:
-                                                m.location.name +
-                                                ", " +
-                                                m.location.lat +
-                                                ", " +
-                                                m.location.lon,
-                                            startTime: new Date(Number(m.time)).toISOString(),
-                                            endTime: new Date(
-                                                Number(m.time) + 3600000
-                                            ).toISOString()
-                                        }}
-                                        filename={m.title + ".ics"}
-                                    >
-                                        ICS herunterladen (Zum Kalender hinzufügen)
-                                    </ICalendarLink>
+                                    <Suspense fallback={<div>Loading...</div>}>
+                                        <ICalendarLink
+                                            event={{
+                                                title: m.title,
+                                                description: m.description,
+                                                location:
+                                                    m.location.name +
+                                                    ", " +
+                                                    m.location.lat +
+                                                    ", " +
+                                                    m.location.lon,
+                                                startTime: new Date(Number(m.time)).toISOString(),
+                                                endTime: new Date(
+                                                    Number(m.time) + 3600000
+                                                ).toISOString()
+                                            }}
+                                            filename={m.title + ".ics"}
+                                        >
+                                            ICS herunterladen (Zum Kalender hinzufügen)
+                                        </ICalendarLink>
+                                    </Suspense>
                                     <br />
                                     <div>
                                         Oder unseren Kalender abonnieren (iCal Feed):
