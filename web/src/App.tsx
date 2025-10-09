@@ -12,7 +12,6 @@ import update from "immutability-helper";
 import { CustomProvider } from "rsuite";
 import "rsuite/styles/index.less";
 import { QaClient } from "./api";
-import LocationPicker from "./components/LocationPicker";
 import Admin from "./pages/Admin";
 import Ich from "./pages/Ich";
 import Impressum from "./pages/Impressum";
@@ -133,14 +132,6 @@ export default class App extends Component<AppProps, AppState> {
                         <Logo />
                         <Nav g={this.state.g} />
                     </div>
-
-                    <LocationPicker
-                        onClose={() => {}}
-                        onLocationSelect={() => {}}
-                        show
-                        lat={48}
-                        lon={10}
-                    ></LocationPicker>
 
                     <div className="Page">
                         <Router>
