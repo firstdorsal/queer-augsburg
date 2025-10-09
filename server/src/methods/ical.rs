@@ -57,6 +57,8 @@ pub async fn ical_feed(
                             "URL",
                             format!("https://queer-augsburg.de/?m={}", meeting._id),
                         ))
+                        .append_property(Property::new("REFRESH-INTERVAL", "PT6H"))
+                        .append_property(Property::new("X-PUBLISHED-TTL", "PT6H")) // extrawurst für Apple
                         .summary(&meeting.title)
                         .location(&location_string)
                         .description(&meeting.description)

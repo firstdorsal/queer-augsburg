@@ -1,5 +1,7 @@
+use crate::interossea::Auth;
 use crate::types::{
-    InternalMember, Meeting, MeetingTypeQuery, MembershipStatus, SubmittedMember, User,
+    ChangedMeeting, InternalMember, Meeting, MeetingTypeQuery, MembershipStatus, SubmittedMember,
+    User,
 };
 use crate::utils::generate_id;
 use anyhow::bail;
@@ -68,7 +70,7 @@ impl DB {
         Ok(())
     }
 
-    pub async fn update_meeting(&self, meeting: &Meeting) -> anyhow::Result<()> {
+    pub async fn update_meeting(&self, meeting: &mut Meeting, auth: &Auth) -> anyhow::Result<()> {
         let collection = self.db.collection::<Meeting>("meetings");
 
         // check if meeting exists
@@ -77,6 +79,20 @@ impl DB {
             .await?
         {
             Some(_) => {
+                match meeting.changed {
+                    Some(ref mut changes) => {
+                        changes.push(ChangedMeeting {
+                            at: chrono::Utc::now().timestamp_millis(),
+                            by: auth.authenticated_user.clone().unwrap(),
+                        });
+                    }
+                    None => {
+                        meeting.changed = Some(vec![ChangedMeeting {
+                            at: chrono::Utc::now().timestamp_millis(),
+                            by: auth.authenticated_user.clone().unwrap(),
+                        }]);
+                    }
+                }
                 collection
                     .replace_one(doc! { "_id": &meeting._id }, meeting, None)
                     .await?;
@@ -85,6 +101,10 @@ impl DB {
                 //change the _id to a random one
                 let mut meeting = meeting.clone();
                 meeting._id = generate_id(5);
+                meeting.changed = Some(vec![ChangedMeeting {
+                    at: chrono::Utc::now().timestamp_millis(),
+                    by: auth.authenticated_user.clone().unwrap(),
+                }]);
 
                 collection.insert_one(meeting, None).await?;
             }

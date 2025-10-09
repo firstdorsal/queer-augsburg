@@ -22,6 +22,16 @@ pub struct Meeting {
     pub accessibility: Option<String>,
     pub tags: MeetingTags,
     pub status: MeetingStatus,
+    pub changed: Option<Vec<ChangedMeeting>>,
+    pub cancelled: Option<bool>,
+}
+
+#[derive(TS)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+pub struct ChangedMeeting {
+    pub by: String,
+    pub at: i64,
 }
 
 #[derive(TS)]

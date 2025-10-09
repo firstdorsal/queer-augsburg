@@ -17,7 +17,7 @@ pub async fn update_meeting(
 
     let body = hyper::body::to_bytes(req.into_body()).await?;
 
-    let umrb: UpdateMeetingRequestBody = serde_json::from_slice(&body)?;
+    let mut umrb: UpdateMeetingRequestBody = serde_json::from_slice(&body)?;
 
     match umrb.delete {
         Some(true) => {
@@ -25,7 +25,7 @@ pub async fn update_meeting(
             Ok(res.body(Body::from("Ok"))?)
         }
         _ => {
-            db.update_meeting(&umrb.meeting).await?;
+            db.update_meeting(&mut umrb.meeting, auth).await?;
             Ok(res
                 .header("Content-Type", "application/json")
                 .body(Body::from(serde_json::to_string(&umrb.meeting)?))?)
