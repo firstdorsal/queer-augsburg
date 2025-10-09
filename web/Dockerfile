@@ -2,10 +2,10 @@
 FROM node:21-alpine as build-stage
 WORKDIR /app
 COPY package.json yarn.lock ./
-RUN yarn
-RUN yarn add sharp @img/sharp-linuxmusl-x64 --ignore-engines
+RUN yarn global add pnpm
+RUN pnpm add sharp @img/sharp-linuxmusl-x64
 COPY . .
-RUN yarn build
+RUN pnpm build
 
 # 1. execution stage
 FROM pektin/feoco

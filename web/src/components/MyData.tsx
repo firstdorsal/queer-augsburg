@@ -1,4 +1,9 @@
+import EyeIcon from "@rsuite/icons/legacy/Eye";
+import EyeSlashIcon from "@rsuite/icons/legacy/EyeSlash";
+import update from "immutability-helper";
+import cloneDeep from "lodash/cloneDeep";
 import { Component } from "preact";
+import { BsInfoCircle } from "react-icons/bs";
 import {
     Button,
     Checkbox,
@@ -13,15 +18,10 @@ import {
     Whisper,
     useToaster
 } from "rsuite";
-import { G } from "../types";
-import update from "immutability-helper";
-import cloneDeep from "lodash/cloneDeep";
-import { SubmittedMember } from "../apiTypes/SubmittedMember";
-import { withToasterHook } from "../utils";
-import EyeIcon from "@rsuite/icons/legacy/Eye";
-import EyeSlashIcon from "@rsuite/icons/legacy/EyeSlash";
 import { MembershipStatus } from "../apiTypes/MembershipStatus";
-import { BsInfoCircle } from "react-icons/bs";
+import { SubmittedMember } from "../apiTypes/SubmittedMember";
+import { G } from "../types";
+import { withToasterHook } from "../utils";
 
 const nameRule = Schema.Types.StringType().isRequired("Diese Information ist nicht optional.");
 const emailRule = Schema.Types.StringType()
@@ -63,7 +63,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
         const memberData = user.member;
 
         if (memberData) {
-            this.setState(state => {
+            this.setState((state) => {
                 return update(state, {
                     loadedUserData: { $set: true },
                     status: { $set: memberData.status },
@@ -97,7 +97,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
                 });
             });
         } else {
-            this.setState(state => {
+            this.setState((state) => {
                 return update(state, {
                     loadedUserData: { $set: true }
                 });
@@ -106,7 +106,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
     };
 
     handleFormChange = (value: any) => {
-        this.setState(state => {
+        this.setState((state) => {
             return update(state, {
                 formData: {
                     $set: value
@@ -151,7 +151,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
 
         this.props.g.qaClient
             ?.update_own_member_data(m)
-            .then(async v => {
+            .then(async (v) => {
                 if (v.status === 200) {
                     this.setState({
                         status: "Pending"
@@ -180,7 +180,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
                     );
                 }
             })
-            .catch(e => {
+            .catch((e) => {
                 this.props.toaster.push(
                     <Message showIcon type={"error"} closable>
                         Fehler beim speichern der Daten: {e.message}
@@ -233,8 +233,8 @@ class MyData extends Component<MyDataProps, MyDataState> {
                             inline
                             appearance="picker"
                             value={this.state.formData.natural_person ? "true" : "false"}
-                            onChange={v => {
-                                this.setState(state =>
+                            onChange={(v) => {
+                                this.setState((state) =>
                                     update(state, {
                                         formData: {
                                             natural_person: {
@@ -257,7 +257,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
                                     <RadioGroup
                                         inline
                                         value={this.state.formData.type}
-                                        onChange={v => {
+                                        onChange={(v) => {
                                             this.setState(
                                                 update(this.state, {
                                                     formData: {
@@ -283,6 +283,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
                                             }
                                         >
                                             <BsInfoCircle
+                                                // @ts-ignore
                                                 style={{ cursor: "pointer", marginTop: "11px" }}
                                             ></BsInfoCircle>
                                         </Whisper>
@@ -303,7 +304,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
                                             />
                                             <InputGroup.Button
                                                 onClick={() => {
-                                                    this.setState(state => {
+                                                    this.setState((state) => {
                                                         return update(state, {
                                                             passNameVisible: {
                                                                 $set: !state.passNameVisible
@@ -389,6 +390,7 @@ class MyData extends Component<MyDataProps, MyDataState> {
                         <div>
                             <h3>Adresse</h3>
                             <div>
+                                {/*@ts-ignore */}
                                 <Form.Group name="address">
                                     <Form.ControlLabel>Straße *</Form.ControlLabel>
                                     <Form.Control
