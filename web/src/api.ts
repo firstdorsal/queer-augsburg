@@ -38,15 +38,49 @@ export class QaClient {
         limit: number | null,
         meeting_type: MeetingTypeQuery = "Active"
     ) => {
-        const url = `${this.qaEndpoint}/api/get_meetings/?i=${from_index}${
-            limit === null ? "" : "&l=" + limit
-        }&t=${meeting_type}`;
+        const cacheKey = `meetings_${from_index}_${limit}_${meeting_type}`;
 
-        const res = await fetch(url, {
-            credentials: "include"
-        });
-        const meetings: GetMeetingsResponseBody = await res.json();
-        return meetings;
+        try {
+            const url = `${this.qaEndpoint}/api/get_meetings/?i=${from_index}${
+                limit === null ? "" : "&l=" + limit
+            }&t=${meeting_type}`;
+
+            const res = await fetch(url, {
+                credentials: "include"
+            });
+
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}`);
+            }
+
+            const meetings: GetMeetingsResponseBody = await res.json();
+
+            // Cache the successful response
+            localStorage.setItem(
+                cacheKey,
+                JSON.stringify({
+                    data: meetings,
+                    timestamp: Date.now()
+                })
+            );
+
+            return meetings;
+        } catch (error) {
+            // Try to return cached data when offline or on error
+            const cached = localStorage.getItem(cacheKey);
+            if (cached) {
+                try {
+                    const { data } = JSON.parse(cached);
+                    console.warn("Using cached meetings data due to network error:", error);
+                    return data;
+                } catch (parseError) {
+                    console.error("Failed to parse cached meetings data:", parseError);
+                }
+            }
+
+            // Re-throw the original error if no cache available
+            throw error;
+        }
     };
 
     get_users = async (from_index: number, limit: number | null) => {
