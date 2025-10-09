@@ -127,7 +127,9 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                 </Modal>
 
                 <div className="Title">
-                    {m.cancelled === true && <span style={{ color: "red" }}>ABGESAGT!</span>}
+                    {m.cancelled === true && (
+                        <span style={{ color: "red", marginRight: "5px" }}>ABGESAGT!</span>
+                    )}
                     {m.title}
                 </div>
 

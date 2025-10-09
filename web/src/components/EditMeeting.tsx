@@ -538,7 +538,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             placeholder="0"
                         />
                         <br />
-                        <b>Ist das Treffen abgesagt</b>
+                        <b>Ist das Treffen abgesagt?</b>
                         <br />
                         <Checkbox
                             checked={em.cancelled === null ? false : em.cancelled}
