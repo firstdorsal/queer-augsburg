@@ -197,10 +197,13 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                                     >
                                         ICS herunterladen (Zum Kalender hinzufügen)
                                     </ICalendarLink>
+                                    <br />
                                     <div>
-                                        {" "}
                                         Oder unseren Kalender abonnieren (iCal Feed):
-                                        https://api.queer-augsburg.de/ical_feed/
+                                        <br />
+                                        <span style={{ userSelect: "all" }}>
+                                            https://api.queer-augsburg.de/api/ical_feed/
+                                        </span>
                                     </div>
                                 </Modal.Body>
                             </Modal>
