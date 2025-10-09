@@ -13,7 +13,12 @@ pub async fn ical_feed(
 ) -> anyhow::Result<Response<Body>> {
     let mut calender = Calendar::new();
 
-    calender.name("Queer Augsburg");
+    calender
+        .name("Queer Augsburg")
+        .timezone("Europe/Berlin")
+        .description(
+        "Kalender mit allen Veranstaltungen von Queer Augsburg e.V. (https://queer-augsburg.de)",
+    );
 
     db.get_meetings(crate::types::MeetingTypeQuery::Active)
         .await?
@@ -21,7 +26,7 @@ pub async fn ical_feed(
         .into_iter()
         .for_each(|meeting| {
             if let Some(meeting_time) = meeting.time {
-                let time_start = DateTime::from_timestamp(meeting_time, 0).unwrap();
+                let time_start = DateTime::from_timestamp(meeting_time / 1000, 0).unwrap();
                 let time_end = time_start + chrono::Duration::hours(1);
                 let location_string = format!(
                     "{}: {},{}",
@@ -38,8 +43,20 @@ pub async fn ical_feed(
 
                 calender.push(
                     Event::new()
-                        .add_property("ORGANIZER", meeting.authority)
+                        .uid(&meeting._id)
+                        .add_property(
+                            "ORGANIZER",
+                            format!("CN=\"{}\":mailto:mail@queer-augsburg.de", meeting.authority),
+                        )
                         .add_property("CATEGORIES", categories_string)
+                        .add_property(
+                            "GEO",
+                            format!("{},{}", meeting.location.lat, meeting.location.lon),
+                        )
+                        .add_property(
+                            "URL",
+                            format!("https://queer-augsburg.de/?m={}", meeting._id),
+                        )
                         .summary(&meeting.title)
                         .location(&location_string)
                         .description(&meeting.description)
@@ -54,6 +71,10 @@ pub async fn ical_feed(
     Ok(res
         .status(200)
         .header("Content-Type", "text/calendar")
+        .header(
+            "Content-Disposition",
+            "attachment; filename=\"Queer Augsburg.ics\"",
+        )
         .body(calendar_string.into())
         .unwrap())
 }
