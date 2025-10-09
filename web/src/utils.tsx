@@ -31,7 +31,9 @@ export const defaultMeeting: Meeting = {
     rating: null,
     tags: { freeform: [], common: [], queer: ["Everyone"] },
     status: "Active",
-    accessibility: null
+    accessibility: null,
+    cancelled: false,
+    changed: null
 };
 
 export const prefersDarkMode = () => {

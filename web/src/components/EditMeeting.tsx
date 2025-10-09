@@ -542,7 +542,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <br />
                         <Checkbox
                             checked={em.cancelled === null ? false : em.cancelled}
-                            onChange={(v, checked) => {
+                            onChange={(_v, checked) => {
                                 this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {

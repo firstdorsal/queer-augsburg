@@ -9,7 +9,7 @@ use hyper::{Body, Request, Response};
 pub async fn get_meetings(
     req: Request<Body>,
     db: DB,
-    _auth: &Auth,
+    auth: &Auth,
     res: hyper::http::response::Builder,
 ) -> anyhow::Result<Response<Body>> {
     let limit = get_query_item_number(&req, "l");
@@ -33,7 +33,7 @@ pub async fn get_meetings(
 
     let (meetings, selected_total_count) = db.get_meetings(meeting_type).await?;
 
-    let meetings = match meeting_type {
+    let mut meetings = match meeting_type {
         MeetingTypeQuery::Active => {
             let current_time_ms = chrono::Utc::now().timestamp() * 1000;
 
@@ -97,6 +97,11 @@ pub async fn get_meetings(
             }
         }
     };
+
+    // Remove changed field from meetings
+    for meeting in &mut meetings {
+        meeting.changed = None;
+    }
 
     let meetings_response = GetMeetingsResponseBody {
         meetings,
