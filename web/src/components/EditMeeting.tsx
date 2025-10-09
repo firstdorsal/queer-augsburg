@@ -16,6 +16,7 @@ import {
 import { Meeting } from "../apiTypes/Meeting";
 import { G, commonTags, queerTags } from "../types";
 import { commonPlaces, withToasterHook } from "../utils";
+import LocationPicker from "./LocationPicker";
 import Md from "./Md";
 import MeetingList from "./MeetingList";
 
@@ -32,6 +33,7 @@ interface EditMeetingProps {
 
 interface EditMeetingState {
     readonly editingMeeting: Meeting;
+    readonly showLocationPicker: boolean;
 }
 
 class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
@@ -42,7 +44,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
             editingMeeting.status = props.type;
         }
         this.state = {
-            editingMeeting
+            editingMeeting,
+            showLocationPicker: false
         };
     }
 
@@ -230,17 +233,13 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             48/10))
                         </b>
                         <br />
-                        <p>
-                            Rechtsklick/Lange drücken {">"} Adresse Anzeigen {">"} Koordinaten
-                            kopieren (Linktext Kopieren)
-                        </p>
-                        <a
-                            target="_blank"
-                            rel="noreferrer"
-                            href="https://www.openstreetmap.org/#map=14/48.3601/10.8934"
+                        <Button
+                            onClick={() => this.setState({ showLocationPicker: true })}
+                            appearance="primary"
+                            style={{ marginBottom: "10px" }}
                         >
-                            Open Street Map
-                        </a>
+                            Karte öffnen
+                        </Button>
                         <br />
                         <b>Häufig genutzte Orte</b>
                         <br />
@@ -317,6 +316,24 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             value={this.state.editingMeeting.location.lon}
                             style={{ width: "25%", display: "inline" }}
                             placeholder="10.89929"
+                        />
+                        <LocationPicker
+                            lat={this.state.editingMeeting.location.lat}
+                            lon={this.state.editingMeeting.location.lon}
+                            show={this.state.showLocationPicker}
+                            onLocationSelect={(lat, lon) => {
+                                this.setState((state) => {
+                                    return update(state, {
+                                        editingMeeting: {
+                                            location: {
+                                                lat: { $set: lat },
+                                                lon: { $set: lon }
+                                            }
+                                        }
+                                    });
+                                });
+                            }}
+                            onClose={() => this.setState({ showLocationPicker: false })}
                         />
                         <br />
                         <br />
