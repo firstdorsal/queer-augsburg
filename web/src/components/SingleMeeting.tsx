@@ -1,7 +1,5 @@
 import { Component } from "preact";
 import { lazy, Suspense } from "preact/compat";
-
-const ICalendarLink = lazy(() => import("react-icalendar-link"));
 import {
     BsChevronDown,
     BsChevronUp,
@@ -26,6 +24,8 @@ import EditMeeting from "./EditMeeting";
 import Md from "./Md";
 import MeetingList from "./MeetingList";
 import QrCode from "./QrCode";
+
+const ICalendarLink = lazy(() => import("react-icalendar-link"));
 
 interface SingleMeetingProps {
     readonly meeting: Meeting;
@@ -305,6 +305,10 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                                 navigator.share({
                                     url: this.props.g.uiConfig?.qaWebAddress + `/?m=${m._id}`
                                 });
+                            } else {
+                                navigator.clipboard.writeText(
+                                    this.props.g.uiConfig?.qaWebAddress + `/?m=${m._id}`
+                                );
                             }
                             window.history.pushState({}, "", `/?m=${m._id}`);
                         }}
