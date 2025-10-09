@@ -10,11 +10,20 @@ precacheAndRoute(self.__WB_MANIFEST);
 
 registerRoute(({ url }) => url.pathname.startsWith("/static/"), new NetworkOnly());
 
-// Cache the API endpoint with offline fallback
+// Debug logging
+self.addEventListener("fetch", (event) => {
+    console.log("Fetch intercepted:", event.request.url);
+});
+
+// Cache cross-origin API requests
 registerRoute(
-    ({ url }) =>
-        url.origin === "https://api.queer-augsburg.de" &&
-        url.pathname === "/api/get_meetings/?t=Active",
+    ({ url, request }) => {
+        const matches =
+            url.origin === "https://api.queer-augsburg.de" && url.pathname === "/api/get_meetings/";
+
+        console.log("Route check:", url.href, "matches:", matches);
+        return matches;
+    },
     new NetworkFirst({
         cacheName: "api-cache",
         plugins: [
@@ -22,12 +31,9 @@ registerRoute(
                 statuses: [0, 200]
             }),
             new ExpirationPlugin({
-                maxEntries: 20, // Cache multiple variations of query params
-                maxAgeSeconds: 7 * 24 * 60 * 60 // 1 week
+                maxEntries: 20,
+                maxAgeSeconds: 7 * 24 * 60 * 60
             })
-        ],
-        fetchOptions: {
-            mode: "cors"
-        }
+        ]
     })
 );
