@@ -4,6 +4,7 @@ WORKDIR /app
 COPY package.json yarn.lock ./
 RUN yarn global add pnpm
 RUN pnpm add sharp @img/sharp-linuxmusl-x64
+RUN pnpm install
 COPY . .
 RUN pnpm build
 
