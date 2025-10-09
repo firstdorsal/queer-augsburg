@@ -16,9 +16,9 @@ headers:
 
             manifest-src 'self';
 
-            connect-src 'self' $CSP_CONNECT_SRC; 
+            connect-src 'self' nominatim.openstreetmap.org $CSP_CONNECT_SRC; 
 
-            img-src 'self' tile.openstreetmap.org; 
+            img-src 'self' *.tile.openstreetmap.org; 
 
             font-src 'self'; 
 

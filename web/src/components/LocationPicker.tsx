@@ -1,5 +1,5 @@
 import { Component } from "preact";
-import { Button, Modal } from "rsuite";
+import { Button, Input, InputGroup, Modal } from "rsuite";
 
 interface LocationPickerProps {
     lat?: number;
@@ -14,6 +14,14 @@ interface LocationPickerState {
     marker: any | null;
     leafletLoaded: boolean;
     cssLoaded: boolean;
+    searchQuery: string;
+    searchResults: Array<{
+        display_name: string;
+        lat: string;
+        lon: string;
+        place_id: string;
+    }>;
+    isSearching: boolean;
 }
 
 export default class LocationPicker extends Component<LocationPickerProps, LocationPickerState> {
@@ -26,7 +34,10 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
             mapInstance: null,
             marker: null,
             leafletLoaded: false,
-            cssLoaded: false
+            cssLoaded: false,
+            searchQuery: "",
+            searchResults: [],
+            isSearching: false
         };
     }
 
@@ -149,9 +160,61 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
         }
     };
 
+    handleSearchChange = (value: string) => {
+        this.setState({ searchQuery: value });
+        if (value.length > 2) {
+            this.performSearch(value);
+        } else {
+            this.setState({ searchResults: [] });
+        }
+    };
+
+    performSearch = async (query: string) => {
+        if (this.state.isSearching) return;
+
+        this.setState({ isSearching: true });
+
+        try {
+            const response = await fetch(
+                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+                    query
+                )}&format=json&limit=5&addressdetails=1`
+            );
+            const results = await response.json();
+            this.setState({
+                searchResults: results,
+                isSearching: false
+            });
+        } catch (error) {
+            console.error("Search failed:", error);
+            this.setState({
+                searchResults: [],
+                isSearching: false
+            });
+        }
+    };
+
+    selectSearchResult = (result: any) => {
+        const lat = parseFloat(result.lat);
+        const lon = parseFloat(result.lon);
+
+        this.props.onLocationSelect(lat, lon);
+
+        if (this.state.mapInstance && this.state.marker && this.L) {
+            const newLatLng = this.L.latLng(lat, lon);
+            this.state.marker.setLatLng(newLatLng);
+            this.state.mapInstance.setView(newLatLng, 15);
+        }
+
+        this.setState({
+            searchQuery: result.display_name,
+            searchResults: []
+        });
+    };
+
     render() {
         const { show, onClose } = this.props;
-        const { leafletLoaded, cssLoaded } = this.state;
+        const { leafletLoaded, cssLoaded, searchQuery, searchResults, isSearching } = this.state;
         const isLoading = !leafletLoaded || !cssLoaded;
 
         return (
@@ -160,6 +223,70 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
                     <Modal.Title>Ort auswählen</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
+                    <div style={{ marginBottom: "15px", position: "relative" }}>
+                        <Input
+                            placeholder="Suche nach Ort oder Adresse..."
+                            value={searchQuery}
+                            onChange={this.handleSearchChange}
+                            style={{ width: "100%" }}
+                        />
+                        {searchResults.length > 0 && (
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    top: "100%",
+                                    left: 0,
+                                    right: 0,
+                                    backgroundColor: "white",
+                                    border: "1px solid #e5e5e5",
+                                    borderRadius: "6px",
+                                    maxHeight: "200px",
+                                    overflowY: "auto",
+                                    zIndex: 1000,
+                                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+                                }}
+                            >
+                                {searchResults.map((result) => (
+                                    <div
+                                        key={result.place_id}
+                                        onClick={() => this.selectSearchResult(result)}
+                                        style={{
+                                            padding: "10px 15px",
+                                            cursor: "pointer",
+                                            borderBottom: "1px solid #f0f0f0",
+                                            fontSize: "14px"
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            (e.target as HTMLElement).style.backgroundColor = "#f5f5f5";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            (e.target as HTMLElement).style.backgroundColor = "transparent";
+                                        }}
+                                    >
+                                        {result.display_name}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {isSearching && (
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    top: "100%",
+                                    left: 0,
+                                    right: 0,
+                                    backgroundColor: "white",
+                                    border: "1px solid #e5e5e5",
+                                    borderRadius: "6px",
+                                    padding: "10px 15px",
+                                    zIndex: 1000,
+                                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
+                                }}
+                            >
+                                Suche läuft...
+                            </div>
+                        )}
+                    </div>
                     {isLoading && (
                         <div
                             style={{
@@ -184,7 +311,7 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
                     />
                     <p style={{ marginTop: "10px", fontSize: "14px", color: "#666" }}>
                         Klicken Sie auf die Karte oder ziehen Sie den Marker, um einen Ort
-                        auszuwählen.
+                        auszuwählen. Oder suchen Sie nach einem Ort im obigen Suchfeld.
                     </p>
                 </Modal.Body>
                 <Modal.Footer>
