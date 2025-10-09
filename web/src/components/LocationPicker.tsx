@@ -1,5 +1,6 @@
 import { Component } from "preact";
-import { AutoComplete, Button, Modal } from "rsuite";
+import { Button, Input, InputGroup, Modal } from "rsuite";
+import { FaSearch } from "react-icons/fa";
 
 interface LocationPickerProps {
     lat?: number;
@@ -170,10 +171,18 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
 
     handleSearchChange = (value: string) => {
         this.setState({ searchQuery: value });
-        if (value.length > 2) {
-            this.performSearch(value);
-        } else {
-            this.setState({ searchResults: [] });
+    };
+
+    handleSearchSubmit = () => {
+        const { searchQuery } = this.state;
+        if (searchQuery.length > 2) {
+            this.performSearch(searchQuery);
+        }
+    };
+
+    handleKeyPress = (event: KeyboardEvent) => {
+        if (event.key === "Enter") {
+            this.handleSearchSubmit();
         }
     };
 
@@ -211,7 +220,7 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
 
             const formattedResults = results.map((result: any) => ({
                 label: result.display_name,
-                value: result.place_id,
+                value: result.display_name,
                 data: result
             }));
 
@@ -224,7 +233,7 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
             }
         } catch (error) {
             // Don't handle aborted requests as errors
-            if (error instanceof DOMException && error.name === 'AbortError') {
+            if (error instanceof DOMException && error.name === "AbortError") {
                 return;
             }
 
@@ -240,8 +249,7 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
         }
     };
 
-    selectSearchResult = (_value: string, item: any) => {
-        const result = item.data;
+    selectSearchResult = (result: any) => {
         const lat = parseFloat(result.lat);
         const lon = parseFloat(result.lon);
 
@@ -270,15 +278,76 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
                     <Modal.Title>Ort auswählen</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    <div style={{ marginBottom: "15px" }}>
-                        <AutoComplete
-                            placeholder="Suche nach Ort oder Adresse..."
-                            value={searchQuery}
-                            data={searchResults}
-                            onChange={this.handleSearchChange}
-                            onSelect={this.selectSearchResult}
-                            style={{ width: "100%" }}
-                        />
+                    <div style={{ marginBottom: "15px", position: "relative" }}>
+                        <InputGroup style={{ width: "100%" }}>
+                            <Input
+                                placeholder="Suche nach Ort oder Adresse..."
+                                value={searchQuery}
+                                onChange={this.handleSearchChange}
+                                onKeyPress={this.handleKeyPress}
+                            />
+                            <InputGroup.Button onClick={this.handleSearchSubmit}>
+                                <FaSearch />
+                            </InputGroup.Button>
+                        </InputGroup>
+                        {searchResults.length > 0 && (
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    top: "100%",
+                                    left: 0,
+                                    right: 0,
+                                    backgroundColor: "var(--rs-bg-card)",
+                                    border: "1px solid var(--rs-border-primary)",
+                                    borderRadius: "6px",
+                                    maxHeight: "200px",
+                                    overflowY: "auto",
+                                    zIndex: 1000,
+                                    boxShadow: "var(--rs-shadow-lg)"
+                                }}
+                            >
+                                {searchResults.map((result) => (
+                                    <div
+                                        key={result.data.place_id}
+                                        onClick={() => this.selectSearchResult(result.data)}
+                                        style={{
+                                            padding: "10px 15px",
+                                            cursor: "pointer",
+                                            borderBottom: "1px solid var(--rs-border-primary)",
+                                            fontSize: "14px",
+                                            color: "var(--rs-text-primary)"
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            (e.target as HTMLElement).style.backgroundColor = "var(--rs-state-hover)";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            (e.target as HTMLElement).style.backgroundColor = "transparent";
+                                        }}
+                                    >
+                                        {result.label}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {isSearching && (
+                            <div
+                                style={{
+                                    position: "absolute",
+                                    top: "100%",
+                                    left: 0,
+                                    right: 0,
+                                    backgroundColor: "var(--rs-bg-card)",
+                                    border: "1px solid var(--rs-border-primary)",
+                                    borderRadius: "6px",
+                                    padding: "10px 15px",
+                                    zIndex: 1000,
+                                    boxShadow: "var(--rs-shadow-lg)",
+                                    color: "var(--rs-text-secondary)"
+                                }}
+                            >
+                                Suche läuft...
+                            </div>
+                        )}
                     </div>
                     {isLoading && (
                         <div
@@ -302,10 +371,6 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
                             display: isLoading ? "none" : "block"
                         }}
                     />
-                    <p style={{ marginTop: "10px", fontSize: "14px", color: "#666" }}>
-                        Klicken Sie auf die Karte oder ziehen Sie den Marker, um einen Ort
-                        auszuwählen. Oder suchen Sie nach einem Ort im obigen Suchfeld.
-                    </p>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button onClick={onClose} appearance="primary">
