@@ -8,24 +8,37 @@ interface AdminProps {
     readonly g: G;
 }
 interface AdminState {
-    activeTab: string;
+    activeTab?: string;
 }
 export default class Admin extends Component<AdminProps, AdminState> {
     constructor(props: AdminProps) {
         super(props);
 
-        // Determine default tab based on user capabilities
-        let defaultTab = "";
-        if (this.props.g.account?.capabilities?.includes("GetUsers")) {
-            defaultTab = "users";
-        } else if (this.props.g.account?.capabilities?.includes("CreateMember")) {
-            defaultTab = "create";
-        }
-
         this.state = {
-            activeTab: defaultTab
+            activeTab: ""
         };
     }
+
+    componentDidUpdate(
+        previousProps: Readonly<AdminProps>,
+        previousState: Readonly<AdminState>,
+        snapshot: any
+    ): void {
+        if (previousProps.g.account !== this.props.g.account) {
+            const hasGetUsers = this.props.g.account?.capabilities?.includes("GetUsers");
+            const hasCreateMember = this.props.g.account?.capabilities?.includes("CreateMember");
+
+            // Set default tab based on capabilities
+            if (hasGetUsers) {
+                this.setState({ activeTab: "users" });
+            } else if (hasCreateMember) {
+                this.setState({ activeTab: "create" });
+            } else {
+                this.setState({ activeTab: "" });
+            }
+        }
+    }
+
     handleTabChange = (tab: string) => {
         this.setState({ activeTab: tab });
     };
