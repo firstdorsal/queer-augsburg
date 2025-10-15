@@ -83,10 +83,28 @@ export class QaClient {
         }
     };
 
-    get_users = async (from_index: number, limit: number | null) => {
-        const url = `${this.qaEndpoint}/api/get_users/?i=${from_index}${
+    get_users = async (
+        from_index: number,
+        limit: number | null,
+        search?: string | null,
+        sort_by?: string | null,
+        sort_order?: string | null
+    ) => {
+        let url = `${this.qaEndpoint}/api/get_users/?i=${from_index}${
             limit === null ? "" : "&l=" + limit
         }`;
+
+        if (search && search.trim()) {
+            url += `&s=${encodeURIComponent(search)}`;
+        }
+
+        if (sort_by) {
+            url += `&sb=${encodeURIComponent(sort_by)}`;
+        }
+
+        if (sort_order) {
+            url += `&so=${encodeURIComponent(sort_order)}`;
+        }
 
         const res = await fetch(url, {
             credentials: "include"

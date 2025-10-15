@@ -210,21 +210,51 @@ impl DB {
         &self,
         limit: Option<i64>,
         from_index: u64,
+        search: Option<String>,
+        sort_by: Option<String>,
+        sort_order: Option<String>,
     ) -> anyhow::Result<(Vec<User>, u32)> {
         let collection = self.db.collection::<User>("users");
+
+        // Build sort document
+        let sort_field = sort_by.as_deref().unwrap_or("member.start_time_ms");
+        let sort_direction = match sort_order.as_deref() {
+            Some("asc") => 1,
+            _ => -1, // default to descending
+        };
+
         let find_options = FindOptions::builder()
             .limit(limit)
             .skip(from_index)
-            .sort(doc! {"start_time_secs": -1})
+            .sort(doc! { sort_field: sort_direction })
             .build();
 
-        // member exists and is not null
-        let selector = doc! {
+        // Build base selector - member exists and is not null
+        let mut selector = doc! {
             "member": {
                 "$exists": true,
                 "$ne": null
             }
         };
+
+        // Add search functionality if search term is provided
+        if let Some(search_term) = search {
+            if !search_term.trim().is_empty() {
+                let search_regex = doc! {
+                    "$regex": search_term,
+                    "$options": "i" // case insensitive
+                };
+
+                selector.insert(
+                    "$or",
+                    vec![
+                        doc! { "member.name": search_regex.clone() },
+                        doc! { "member.email": search_regex.clone() },
+                        doc! { "member.institution": search_regex },
+                    ],
+                );
+            }
+        }
 
         let (users, count) = (
             collection
