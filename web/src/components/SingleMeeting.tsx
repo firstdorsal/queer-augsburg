@@ -143,7 +143,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                 <div className="Infos">
                     <div className="Left">
                         <div
-                            className="Location"
+                            className="Location flex"
                             title="Ort"
                             onClick={() => {
                                 this.setState({ locationModalOpen: true });
@@ -152,15 +152,15 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                             <IoLocation />
                             <span className="InfoText">{m.location.name}</span>
                         </div>
-                        <div className="Authority" title="Organisator">
+                        <div className="Authority flex" title="Organisator">
                             <BsFillPeopleFill />
                             <span className="InfoText">{m.authority}</span>
                         </div>
-                        <div className="TriggerWarning" title="Triggerwarnung">
+                        <div className="TriggerWarning flex" title="Triggerwarnung">
                             <BsFillExclamationTriangleFill />
                             <span className="InfoText">{m.trigger_warning ?? "Keine"}</span>
                         </div>
-                        <div className="Accessibility">
+                        <div className="Accessibility flex">
                             <MdWheelchairPickup />
                             <span title="Barrierefreiheit" className="InfoText">
                                 {m.accessibility ?? "Unbekannt"}
@@ -170,7 +170,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                     <div className="Right">
                         <div
                             style={{ color: isPast ? "#fb0000" : "var(--text-color)" }}
-                            className="Time"
+                            className="Time flex"
                             title="Zeit"
                             onClick={() => {
                                 this.setState({ timeModalOpen: true });
@@ -229,17 +229,17 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                             <IoTime />
                             <span className="InfoText">{time}</span>
                         </div>
-                        <div className="Price" title="Ungefährer Preis">
+                        <div className="Price flex" title="Ungefährer Preis">
                             <IoLogoEuro />
                             <span className="InfoText">{priceToString(m.price)}</span>
                         </div>
-                        <div className="Age Restriction" title="Altersbeschränkungen">
+                        <div className="Age Restriction flex" title="Altersbeschränkungen">
                             <TbRating18Plus />
                             <span className="InfoText">
                                 {ageRestrictionToString(m.age_restriction)}
                             </span>
                         </div>
-                        <div className={"Attendance"}>
+                        <div className={"Attendance flex"}>
                             <IoMdStats />
                             <span title="Anwesende" className="InfoText">
                                 {isPast
@@ -264,27 +264,28 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                 </div>
                 <a
                     style={{ cursor: "pointer" }}
+                    className={"flex"}
                     onClick={() => {
                         this.props.switchExpand(this.props.index);
                     }}
                 >
                     {this.props.expanded ? (
-                        <span>
+                        <>
                             <span>Weniger anzeigen</span>
 
                             <BsChevronUp
                                 /*@ts-ignore */
                                 style={{ marginLeft: "5px", transform: "translate(0px, 2.5px)" }}
                             />
-                        </span>
+                        </>
                     ) : (
-                        <span>
+                        <>
                             <span>Mehr anzeigen</span>
                             <BsChevronDown
                                 /*@ts-ignore */
                                 style={{ marginLeft: "5px", transform: "translate(0px, 2.5px)" }}
                             />
-                        </span>
+                        </>
                     )}
                 </a>
 

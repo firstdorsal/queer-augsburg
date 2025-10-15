@@ -1,7 +1,7 @@
 {
     "interosseaServerAddress": "http://accounts-server.localhost",
     "interosseaWebAddress": "http://accounts.localhost",
-    "qaServerAddress": "http://api.localhost",
+    "qaServerAddress": "https://api.queer-augsburg.de",
     "qaWebAddress": "http://localhost:5173",
     "skipInterossea": false
 }
