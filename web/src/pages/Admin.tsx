@@ -1,7 +1,6 @@
 import { Component } from "preact";
 import AdminCreateMember from "../components/AdminCreateMember";
 import UserList from "../components/UserList";
-import UserStats from "../components/UserStats";
 import { G } from "../types";
 
 interface AdminProps {
@@ -96,10 +95,6 @@ export default class Admin extends Component<AdminProps, AdminState> {
                 <div className="flex-1 overflow-hidden">
                     {this.state.activeTab === "users" && hasGetUsers && (
                         <>
-                            <div className="border-b">
-                                <h1 className="mb-4 text-2xl font-bold">Mitglieder</h1>
-                                <UserStats g={this.props.g} />
-                            </div>
                             <div className="h-full">
                                 <UserList
                                     style={{ height: "calc(100% - 120px)" }}

@@ -11,6 +11,7 @@ import { Meeting } from "../apiTypes/Meeting";
 import { User } from "../apiTypes/User";
 import { G } from "../types";
 import SingleUser from "./SingleUser";
+import UserStats from "./UserStats";
 
 interface UserListProps {
     readonly g: G;
@@ -96,8 +97,9 @@ export default class UserList extends Component<UserListProps, UserListState> {
     render = () => {
         return (
             <div className="UserList" style={this.props.style}>
-                <div className="p-4 border-b border-gray-200 space-y-4">
-                    <div className="flex items-center justify-between gap-4">
+                <div className="space-y-4 border-b border-gray-500 p-1">
+                    <UserStats g={this.props.g} />
+                    <div className="flex items-center justify-between gap-2">
                         <div className="flex-1">
                             <InputGroup inside>
                                 <Input
