@@ -217,7 +217,8 @@ impl DB {
         let collection = self.db.collection::<User>("users");
 
         // Build sort document
-        let sort_field = sort_by.as_deref().unwrap_or("member.start_time_ms");
+        let sort_field = sort_by.as_deref().unwrap_or("start_time_ms");
+        let sort_field = format!("member.{}", sort_field);
         let sort_direction = match sort_order.as_deref() {
             Some("asc") => 1,
             _ => -1, // default to descending

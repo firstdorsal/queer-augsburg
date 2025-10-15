@@ -2,10 +2,10 @@ import { Component } from "preact";
 import { CSSProperties } from "preact/compat";
 import AutoSizer from "react-virtualized-auto-sizer";
 //@ts-ignore
+import SearchIcon from "@rsuite/icons/Search";
 import { FixedSizeList } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
-import { Button, Input, InputGroup, SelectPicker, FlexboxGrid } from "rsuite";
-import SearchIcon from "@rsuite/icons/Search";
+import { Button, Input, InputGroup, SelectPicker } from "rsuite";
 import { QaClient } from "../api";
 import { Meeting } from "../apiTypes/Meeting";
 import { User } from "../apiTypes/User";
@@ -34,7 +34,7 @@ export default class UserList extends Component<UserListProps, UserListState> {
             userCount: 0,
             meetings: [],
             searchTerm: "",
-            sortBy: "member.start_time_ms",
+            sortBy: "start_time_ms",
             sortOrder: "desc"
         };
     }
@@ -83,7 +83,6 @@ export default class UserList extends Component<UserListProps, UserListState> {
         this.setState({ users: res.users, userCount: res.total_count });
     };
 
-
     handleSearchSubmit = async () => {
         await this.loadData();
     };
@@ -97,49 +96,57 @@ export default class UserList extends Component<UserListProps, UserListState> {
     render = () => {
         return (
             <div className="UserList" style={this.props.style}>
-                <div className="user-list-controls" style={{ padding: "15px", borderBottom: "1px solid #eee" }}>
-                    <FlexboxGrid justify="space-between" align="middle" style={{ marginBottom: "15px" }}>
-                        <FlexboxGrid.Item colspan={16}>
+                <div className="p-4 border-b border-gray-200 space-y-4">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex-1">
                             <InputGroup inside>
                                 <Input
                                     placeholder="Suche nach Name, E-Mail oder Institution..."
                                     value={this.state.searchTerm}
                                     onChange={(value) => this.setState({ searchTerm: value })}
+                                    onPressEnter={this.handleSearchSubmit}
                                 />
                                 <InputGroup.Addon>
                                     <SearchIcon />
                                 </InputGroup.Addon>
                             </InputGroup>
-                        </FlexboxGrid.Item>
-                        <FlexboxGrid.Item colspan={4}>
+                        </div>
+                        <div className="w-24">
                             <Button
                                 appearance="primary"
                                 onClick={this.handleSearchSubmit}
-                                style={{ width: "100%" }}
+                                className="w-full"
                             >
                                 Suchen
                             </Button>
-                        </FlexboxGrid.Item>
-                    </FlexboxGrid>
+                        </div>
+                    </div>
 
-                    <FlexboxGrid justify="start" align="middle">
-                        <FlexboxGrid.Item colspan={8}>
+                    <div className="flex items-center gap-4">
+                        <div className="flex-1">
                             <SelectPicker
                                 label="Sortieren nach"
                                 data={[
-                                    { label: "Startdatum", value: "member.start_time_ms" },
-                                    { label: "Name", value: "member.name" },
-                                    { label: "E-Mail", value: "member.email" },
-                                    { label: "Institution", value: "member.institution" }
+                                    { label: "Startdatum", value: "start_time_ms" },
+                                    { label: "Vorname", value: "name.first_name" },
+                                    { label: "Nachname", value: "name.last_name" },
+                                    { label: "E-Mail", value: "email" },
+                                    { label: "Institution", value: "institution" },
+                                    { label: "Status", value: "status" }
                                 ]}
                                 value={this.state.sortBy}
-                                onChange={(value) => this.handleSortChange(value || "member.start_time_ms", this.state.sortOrder)}
+                                onChange={(value) =>
+                                    this.handleSortChange(
+                                        value || "start_time_ms",
+                                        this.state.sortOrder
+                                    )
+                                }
                                 cleanable={false}
                                 searchable={false}
-                                style={{ width: "100%" }}
+                                className="w-full"
                             />
-                        </FlexboxGrid.Item>
-                        <FlexboxGrid.Item colspan={8} style={{ paddingLeft: "10px" }}>
+                        </div>
+                        <div className="flex-1">
                             <SelectPicker
                                 label="Reihenfolge"
                                 data={[
@@ -147,13 +154,15 @@ export default class UserList extends Component<UserListProps, UserListState> {
                                     { label: "Aufsteigend", value: "asc" }
                                 ]}
                                 value={this.state.sortOrder}
-                                onChange={(value) => this.handleSortChange(this.state.sortBy, value || "desc")}
+                                onChange={(value) =>
+                                    this.handleSortChange(this.state.sortBy, value || "desc")
+                                }
                                 cleanable={false}
                                 searchable={false}
-                                style={{ width: "100%" }}
+                                className="w-full"
                             />
-                        </FlexboxGrid.Item>
-                    </FlexboxGrid>
+                        </div>
+                    </div>
                 </div>
                 <AutoSizer>
                     {({ height, width }) => (
