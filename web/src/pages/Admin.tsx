@@ -21,8 +21,8 @@ export default class Admin extends Component<AdminProps, AdminState> {
 
     componentDidUpdate(
         previousProps: Readonly<AdminProps>,
-        previousState: Readonly<AdminState>,
-        snapshot: any
+        _previousState: Readonly<AdminState>,
+        _snapshot: any
     ): void {
         if (previousProps.g.account !== this.props.g.account) {
             const hasGetUsers = this.props.g.account?.capabilities?.includes("GetUsers");
