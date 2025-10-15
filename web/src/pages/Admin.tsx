@@ -50,8 +50,8 @@ export default class Admin extends Component<AdminProps, AdminState> {
         return (
             <div className="Admin flex h-full flex-col">
                 {/* Sub Navigation */}
-                <div className="border-b border-gray-200 bg-white">
-                    <nav className="flex space-x-8 px-6 py-3">
+                <div className="border-b">
+                    <nav className="flex space-x-2 px-2 py-1">
                         {hasGetUsers && (
                             <button
                                 onClick={() => this.handleTabChange("users")}
