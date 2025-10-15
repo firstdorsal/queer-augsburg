@@ -83,10 +83,8 @@ export default class Admin extends Component<AdminProps, AdminState> {
                 <div className="flex-1 overflow-hidden">
                     {this.state.activeTab === "users" && hasGetUsers && (
                         <>
-                            <div className="border-b border-gray-200 bg-white p-6">
-                                <h1 className="mb-4 text-2xl font-bold text-gray-900">
-                                    Mitglieder
-                                </h1>
+                            <div className="border-b">
+                                <h1 className="mb-4 text-2xl font-bold">Mitglieder</h1>
                                 <UserStats g={this.props.g} />
                             </div>
                             <div className="h-full">
@@ -99,7 +97,7 @@ export default class Admin extends Component<AdminProps, AdminState> {
                         </>
                     )}
                     {this.state.activeTab === "create" && hasCreateMember && (
-                        <div className="p-6">
+                        <div className="p-2">
                             <AdminCreateMember g={this.props.g} />
                         </div>
                     )}
