@@ -128,37 +128,61 @@ class SingleUser extends Component<SingleUserProps, SingleUserState> {
                                 switch (m.status) {
                                     case "Pending":
                                         return (
-                                            <span style={{ borderBottom: "1px solid yellow" }}>
+                                            <span
+                                                className={
+                                                    "border-bottom border-b-2 border-yellow-500"
+                                                }
+                                            >
                                                 Ausstehend
                                             </span>
                                         );
                                     case "Approved":
                                         return (
-                                            <span style={{ borderBottom: "1px solid lime" }}>
+                                            <span
+                                                className={
+                                                    "border-bottom border-b-2 border-green-500"
+                                                }
+                                            >
                                                 Angenommen
                                             </span>
                                         );
                                     case "Expelled":
                                         return (
-                                            <span style={{ borderBottom: "1px solid red" }}>
+                                            <span
+                                                className={
+                                                    "border-bottom border-b-2 border-red-600"
+                                                }
+                                            >
                                                 Ausgeschlossen
                                             </span>
                                         );
                                     case "Left":
                                         return (
-                                            <span style={{ borderBottom: "1px solid red" }}>
+                                            <span
+                                                className={
+                                                    "border-bottom border-b-2 border-red-600"
+                                                }
+                                            >
                                                 Verlassen
                                             </span>
                                         );
                                     case "Rejected":
                                         return (
-                                            <span style={{ borderBottom: "1px solid red" }}>
+                                            <span
+                                                className={
+                                                    "border-bottom border-b-2 border-red-600"
+                                                }
+                                            >
                                                 Abgelehnt
                                             </span>
                                         );
                                     default:
                                         return (
-                                            <span style={{ borderBottom: "1px solid yellow" }}>
+                                            <span
+                                                className={
+                                                    "border-bottom border-b-2 border-yellow-500"
+                                                }
+                                            >
                                                 Ausstehend
                                             </span>
                                         );

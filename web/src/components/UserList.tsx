@@ -101,7 +101,7 @@ export default class UserList extends Component<UserListProps, UserListState> {
                     <UserStats g={this.props.g} />
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex-1">
-                            <InputGroup inside>
+                            <InputGroup size="sm" inside>
                                 <Input
                                     placeholder="Suche nach Name, E-Mail oder Institution..."
                                     value={this.state.searchTerm}
@@ -115,6 +115,7 @@ export default class UserList extends Component<UserListProps, UserListState> {
                         </div>
                         <div className="w-24">
                             <Button
+                                size="sm"
                                 appearance="primary"
                                 onClick={this.handleSearchSubmit}
                                 className="w-full"
@@ -127,6 +128,7 @@ export default class UserList extends Component<UserListProps, UserListState> {
                     <div className="flex items-center gap-4">
                         <div className="flex-1">
                             <SelectPicker
+                                size="sm"
                                 label="Sortieren nach"
                                 data={[
                                     { label: "Startdatum", value: "start_time_ms" },
@@ -150,6 +152,7 @@ export default class UserList extends Component<UserListProps, UserListState> {
                         </div>
                         <div className="flex-1">
                             <SelectPicker
+                                size="sm"
                                 label="Reihenfolge"
                                 data={[
                                     { label: "Absteigend", value: "desc" },
