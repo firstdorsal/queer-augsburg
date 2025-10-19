@@ -96,8 +96,8 @@ export default class UserList extends Component<UserListProps, UserListState> {
 
     render = () => {
         return (
-            <div className="UserList" style={this.props.style}>
-                <div className="space-y-4 border-b border-gray-500 p-1">
+            <div className="UserList h-full" style={this.props.style}>
+                <div className="flex gap-2 border-b border-gray-500 p-2">
                     <UserStats g={this.props.g} />
                     <div className="flex items-center justify-between gap-2">
                         <div className="flex-1">
@@ -125,7 +125,7 @@ export default class UserList extends Component<UserListProps, UserListState> {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
                         <div className="flex-1">
                             <SelectPicker
                                 size="sm"
