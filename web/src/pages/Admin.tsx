@@ -81,7 +81,7 @@ export default class Admin extends Component<AdminProps, AdminState> {
                                 onClick={() => this.handleTabChange("create")}
                                 className={`border-b-2 px-1 py-2 text-sm font-medium transition-colors ${
                                     this.state.activeTab === "create"
-                                        ? "border-blue-400 text-blue-400"
+                                        ? "text-blue-00 border-blue-400"
                                         : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                                 }`}
                             >
@@ -96,11 +96,7 @@ export default class Admin extends Component<AdminProps, AdminState> {
                     {this.state.activeTab === "users" && hasGetUsers && (
                         <>
                             <div className="h-full">
-                                <UserList
-                                    style={{ height: "calc(100% - 120px)" }}
-                                    g={this.props.g}
-                                    qaClient={this.props.g.qaClient}
-                                />
+                                <UserList g={this.props.g} qaClient={this.props.g.qaClient} />
                             </div>
                         </>
                     )}
