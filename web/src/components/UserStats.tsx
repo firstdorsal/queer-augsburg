@@ -74,7 +74,7 @@ export default class UserStats extends Component<UserStatsProps, UserStatsState>
 
     render = () => {
         return (
-            <div className="UserStats">
+            <div className="UserStats text-sm">
                 <span>Alle: {this.state?.total}</span>
                 <span>Aktive: {this.state?.active}</span>
                 <span>Förder: {this.state?.support}</span>
