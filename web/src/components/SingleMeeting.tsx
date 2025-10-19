@@ -143,7 +143,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                 <div className="Infos">
                     <div className="Left">
                         <div
-                            className="Location flex"
+                            className="Location flex items-center"
                             title="Ort"
                             onClick={() => {
                                 this.setState({ locationModalOpen: true });
@@ -152,15 +152,15 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                             <IoLocation />
                             <span className="InfoText">{m.location.name}</span>
                         </div>
-                        <div className="Authority flex" title="Organisator">
+                        <div className="Authority flex items-center" title="Organisator">
                             <BsFillPeopleFill />
                             <span className="InfoText">{m.authority}</span>
                         </div>
-                        <div className="TriggerWarning flex" title="Triggerwarnung">
+                        <div className="TriggerWarning flex items-center" title="Triggerwarnung">
                             <BsFillExclamationTriangleFill />
                             <span className="InfoText">{m.trigger_warning ?? "Keine"}</span>
                         </div>
-                        <div className="Accessibility flex">
+                        <div className="Accessibility flex items-center">
                             <MdWheelchairPickup />
                             <span title="Barrierefreiheit" className="InfoText">
                                 {m.accessibility ?? "Unbekannt"}
@@ -170,7 +170,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                     <div className="Right">
                         <div
                             style={{ color: isPast ? "#fb0000" : "var(--text-color)" }}
-                            className="Time flex"
+                            className="Time flex items-center"
                             title="Zeit"
                             onClick={() => {
                                 this.setState({ timeModalOpen: true });
@@ -229,17 +229,20 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                             <IoTime />
                             <span className="InfoText">{time}</span>
                         </div>
-                        <div className="Price flex" title="Ungefährer Preis">
+                        <div className="Price flex items-center" title="Ungefährer Preis">
                             <IoLogoEuro />
                             <span className="InfoText">{priceToString(m.price)}</span>
                         </div>
-                        <div className="Age Restriction flex" title="Altersbeschränkungen">
+                        <div
+                            className="Age Restriction flex items-center"
+                            title="Altersbeschränkungen"
+                        >
                             <TbRating18Plus />
                             <span className="InfoText">
                                 {ageRestrictionToString(m.age_restriction)}
                             </span>
                         </div>
-                        <div className={"Attendance flex"}>
+                        <div className={"Attendance flex items-center"}>
                             <IoMdStats />
                             <span title="Anwesende" className="InfoText">
                                 {isPast
@@ -264,7 +267,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                 </div>
                 <a
                     style={{ cursor: "pointer" }}
-                    className={"flex"}
+                    className={"flex items-center text-blue-500"}
                     onClick={() => {
                         this.props.switchExpand(this.props.index);
                     }}

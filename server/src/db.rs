@@ -249,7 +249,8 @@ impl DB {
                 selector.insert(
                     "$or",
                     vec![
-                        doc! { "member.name": search_regex.clone() },
+                        doc! { "member.name.first_name": search_regex.clone() },
+                        doc! { "member.name.last_name": search_regex.clone() },
                         doc! { "member.email": search_regex.clone() },
                         doc! { "member.institution": search_regex },
                     ],
