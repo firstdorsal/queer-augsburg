@@ -128,7 +128,9 @@ services:
                             compress: true
                     {{- end }}
     qa-db:
-        image: bitnami/mongodb
+        build:
+            context: ../../mongodb
+            dockerfile: Dockerfile
         restart: always
         container_name: qa-db
         hostname: qa-db.localhost
@@ -200,7 +202,9 @@ services:
     {{- end }}
     {{- if eq $config.interossea.server.create true }}
     qa-interossea-db:
-        image: bitnami/mongodb
+        build:
+            context: ../../mongodb
+            dockerfile: Dockerfile
         restart: always
         container_name: qa-interossea-db
         hostname: qa-interossea-db.localhost
