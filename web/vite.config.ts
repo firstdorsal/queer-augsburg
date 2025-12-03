@@ -46,7 +46,7 @@ export default defineConfig({
                 name: "Queer Augsburg",
                 short_name: "Queer Augsburg",
                 start_url: "/",
-                description: "Alle treffen von Queer Augsburg auf einen Blick!",
+                description: "Alle Treffen von Queer Augsburg auf einen Blick!",
                 theme_color: "#ffffff",
                 icons: [
                     {

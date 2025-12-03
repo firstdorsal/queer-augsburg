@@ -1,12 +1,12 @@
 use crate::interossea::Auth;
 use crate::types::{
-    ChangedMeeting, InternalMember, Meeting, MeetingTypeQuery, MembershipStatus, SubmittedMember,
-    User,
+    ChangedMeeting, DraftStatus, EmailDraft, InternalMember, Meeting, MeetingTypeQuery,
+    MembershipStatus, SentEmailLog, SubmittedMember, User,
 };
 use crate::utils::generate_id;
 use anyhow::bail;
 use futures::stream::TryStreamExt;
-use mongodb::options::FindOptions;
+use mongodb::options::{FindOneAndUpdateOptions, FindOptions, ReturnDocument};
 use mongodb::{bson::doc, options::ClientOptions, Client, Database};
 
 pub struct DB {
@@ -21,7 +21,13 @@ impl DB {
         Ok(Self { client, db })
     }
     pub async fn create_collections(&self) -> anyhow::Result<()> {
-        let collections = vec!["users", "meetings", "originalUsers"];
+        let collections = vec![
+            "users",
+            "meetings",
+            "originalUsers",
+            "email_drafts",
+            "sent_email_logs",
+        ];
 
         for collection in collections {
             let _ = self.db.create_collection(collection, None).await;
@@ -309,6 +315,85 @@ impl DB {
             }
         }
 
+        Ok(())
+    }
+
+    // Email draft methods
+    pub async fn insert_email_draft(&self, draft: &EmailDraft) -> anyhow::Result<()> {
+        let collection = self.db.collection::<EmailDraft>("email_drafts");
+        collection.insert_one(draft, None).await?;
+        Ok(())
+    }
+
+    pub async fn get_email_draft(&self, draft_id: &str) -> anyhow::Result<Option<EmailDraft>> {
+        let collection = self.db.collection::<EmailDraft>("email_drafts");
+        Ok(collection.find_one(doc! { "_id": draft_id }, None).await?)
+    }
+
+    /// Atomically claims a draft by changing status from Pending to Processing.
+    /// Returns None if draft doesn't exist or is already being processed.
+    pub async fn claim_email_draft(&self, draft_id: &str) -> anyhow::Result<Option<EmailDraft>> {
+        let collection = self.db.collection::<EmailDraft>("email_drafts");
+        let options = FindOneAndUpdateOptions::builder()
+            .return_document(ReturnDocument::After)
+            .build();
+
+        let result = collection
+            .find_one_and_update(
+                doc! {
+                    "_id": draft_id,
+                    "status": "Pending"
+                },
+                doc! {
+                    "$set": { "status": "Processing" }
+                },
+                options,
+            )
+            .await?;
+
+        Ok(result)
+    }
+
+    pub async fn delete_email_draft(&self, draft_id: &str) -> anyhow::Result<()> {
+        let collection = self.db.collection::<EmailDraft>("email_drafts");
+        collection.delete_one(doc! { "_id": draft_id }, None).await?;
+        Ok(())
+    }
+
+    pub async fn get_approved_member_emails(&self) -> anyhow::Result<Vec<String>> {
+        let collection = self.db.collection::<User>("users");
+        let filter = doc! {
+            "member": { "$exists": true, "$ne": null },
+            "member.status": "Approved"
+        };
+
+        let users: Vec<User> = collection
+            .find(filter, None)
+            .await?
+            .try_collect()
+            .await?;
+
+        let emails: Vec<String> = users
+            .into_iter()
+            .filter_map(|u| u.member.map(|m| m.email))
+            .collect();
+
+        Ok(emails)
+    }
+
+    pub async fn count_approved_members(&self) -> anyhow::Result<u32> {
+        let collection = self.db.collection::<User>("users");
+        let filter = doc! {
+            "member": { "$exists": true, "$ne": null },
+            "member.status": "Approved"
+        };
+        let count = collection.count_documents(filter, None).await?;
+        Ok(count as u32)
+    }
+
+    pub async fn insert_sent_email_log(&self, log: &SentEmailLog) -> anyhow::Result<()> {
+        let collection = self.db.collection::<SentEmailLog>("sent_email_logs");
+        collection.insert_one(log, None).await?;
         Ok(())
     }
 }

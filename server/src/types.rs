@@ -121,6 +121,7 @@ pub enum UserCapabilities {
     GetUsers,
     UpdateMemberStatus,
     CreateMember,
+    SendMassEmail,
 }
 
 #[derive(TS)]
@@ -278,4 +279,85 @@ pub struct UpdateMemberStatusRequestBody {
     pub new_status: MembershipStatus,
     pub send_mail: bool,
     pub update_reason: Option<String>,
+}
+
+// Email types
+#[derive(TS)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+pub struct EmailAttachment {
+    pub filename: String,
+    pub content_type: String,
+    pub data: String, // base64 encoded
+}
+
+#[derive(TS)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+pub struct SendEmailPreviewRequestBody {
+    pub subject: String,
+    pub body: String,
+    pub attachments: Vec<EmailAttachment>,
+}
+
+#[derive(TS)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+pub struct SendEmailPreviewResponseBody {
+    pub preview_id: String,
+    pub recipient_count: u32,
+}
+
+#[derive(TS)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+pub struct ConfirmSendEmailRequestBody {
+    pub preview_id: String,
+    pub verification_code: String,
+    pub testing_mode: Option<bool>,
+}
+
+#[derive(TS)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+pub struct ConfirmSendEmailResponseBody {
+    pub sent_count: u32,
+    pub failed_count: u32,
+}
+
+// Email draft status for atomic operations
+#[derive(Deserialize, Debug, Serialize, Clone, PartialEq)]
+pub enum DraftStatus {
+    Pending,
+    Processing,
+}
+
+// Email draft for temporary storage (not exported to TS)
+#[derive(Deserialize, Debug, Serialize, Clone)]
+pub struct EmailDraft {
+    pub _id: String,
+    pub sender_id: String,
+    pub sender_email: String,
+    pub subject: String,
+    pub body: String,
+    pub attachments: Vec<EmailAttachment>,
+    pub verification_code: String,
+    pub created_at: i64,
+    pub recipient_count: u32,
+    pub status: DraftStatus,
+}
+
+// Audit log for sent emails
+#[derive(Deserialize, Debug, Serialize, Clone)]
+pub struct SentEmailLog {
+    pub _id: String,
+    pub sender_id: String,
+    pub sender_email: String,
+    pub subject: String,
+    pub body: String,
+    pub attachment_names: Vec<String>,
+    pub sent_at: i64,
+    pub successful_count: u32,
+    pub failed_count: u32,
+    pub failed_emails: Vec<String>,
 }

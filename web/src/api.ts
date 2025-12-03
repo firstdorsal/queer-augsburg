@@ -1,9 +1,12 @@
 import { InterosseaClient } from "@firstdorsal/interossea-client";
+import { ConfirmSendEmailResponseBody } from "./apiTypes/ConfirmSendEmailResponseBody";
+import { EmailAttachment } from "./apiTypes/EmailAttachment";
 import { GetMeetingsResponseBody } from "./apiTypes/GetMeetingsResponseBody";
 import { GetUsersResponseBody } from "./apiTypes/GetUsersResponseBody";
 import { Meeting } from "./apiTypes/Meeting";
 import { MeetingTypeQuery } from "./apiTypes/MeetingTypeQuery";
 import { MembershipStatus } from "./apiTypes/MembershipStatus";
+import { SendEmailPreviewResponseBody } from "./apiTypes/SendEmailPreviewResponseBody";
 import { SubmittedMember } from "./apiTypes/SubmittedMember";
 import { User } from "./apiTypes/User";
 
@@ -183,5 +186,39 @@ export class QaClient {
                 update_reason: update_reason?.length ? update_reason : null
             })
         });
+    };
+
+    send_email_preview = async (
+        subject: string,
+        body: string,
+        attachments: EmailAttachment[]
+    ): Promise<SendEmailPreviewResponseBody> => {
+        const res = await fetch(`${this.qaEndpoint}/api/send_email_preview/`, {
+            method: "POST",
+            credentials: "include",
+            body: JSON.stringify({ subject, body, attachments })
+        });
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(errorText || `HTTP ${res.status}`);
+        }
+        return res.json();
+    };
+
+    confirm_send_email = async (
+        preview_id: string,
+        verification_code: string,
+        testing_mode?: boolean
+    ): Promise<ConfirmSendEmailResponseBody> => {
+        const res = await fetch(`${this.qaEndpoint}/api/confirm_send_email/`, {
+            method: "POST",
+            credentials: "include",
+            body: JSON.stringify({ preview_id, verification_code, testing_mode })
+        });
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(errorText || `HTTP ${res.status}`);
+        }
+        return res.json();
     };
 }

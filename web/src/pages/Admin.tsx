@@ -1,5 +1,6 @@
 import { Component } from "preact";
 import AdminCreateMember from "../components/AdminCreateMember";
+import AdminSendEmail from "../components/AdminSendEmail";
 import UserList from "../components/UserList";
 import { G } from "../types";
 
@@ -18,23 +19,34 @@ export default class Admin extends Component<AdminProps, AdminState> {
         };
     }
 
+    componentDidMount = () => {
+        this.setTab();
+    };
+
+    setTab = () => {
+        const hasGetUsers = this.props.g.account?.capabilities?.includes("GetUsers");
+        const hasCreateMember = this.props.g.account?.capabilities?.includes("CreateMember");
+        const hasSendMassEmail = this.props.g.account?.capabilities?.includes("SendMassEmail");
+
+        // Set default tab based on capabilities
+        if (hasGetUsers) {
+            this.setState({ activeTab: "users" });
+        } else if (hasCreateMember) {
+            this.setState({ activeTab: "create" });
+        } else if (hasSendMassEmail) {
+            this.setState({ activeTab: "email" });
+        } else {
+            this.setState({ activeTab: "" });
+        }
+    };
+
     componentDidUpdate(
         previousProps: Readonly<AdminProps>,
         _previousState: Readonly<AdminState>,
         _snapshot: any
     ): void {
         if (previousProps.g.account !== this.props.g.account) {
-            const hasGetUsers = this.props.g.account?.capabilities?.includes("GetUsers");
-            const hasCreateMember = this.props.g.account?.capabilities?.includes("CreateMember");
-
-            // Set default tab based on capabilities
-            if (hasGetUsers) {
-                this.setState({ activeTab: "users" });
-            } else if (hasCreateMember) {
-                this.setState({ activeTab: "create" });
-            } else {
-                this.setState({ activeTab: "" });
-            }
+            this.setTab();
         }
     }
 
@@ -49,9 +61,10 @@ export default class Admin extends Component<AdminProps, AdminState> {
 
         const hasGetUsers = this.props.g.account?.capabilities?.includes("GetUsers");
         const hasCreateMember = this.props.g.account?.capabilities?.includes("CreateMember");
+        const hasSendMassEmail = this.props.g.account?.capabilities?.includes("SendMassEmail");
 
         // Don't show anything if user has no admin capabilities
-        if (!hasGetUsers && !hasCreateMember) {
+        if (!hasGetUsers && !hasCreateMember && !hasSendMassEmail) {
             return (
                 <div className="p-4 text-center text-gray-500">
                     Keine Berechtigung für Admin-Funktionen
@@ -69,7 +82,7 @@ export default class Admin extends Component<AdminProps, AdminState> {
                                 onClick={() => this.handleTabChange("users")}
                                 className={`border-b-2 px-1 py-2 text-sm font-medium transition-colors ${
                                     this.state.activeTab === "users"
-                                        ? "border-blue-500 text-blue-600"
+                                        ? "border-blue-500 text-blue-400"
                                         : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
                                 }`}
                             >
@@ -88,6 +101,18 @@ export default class Admin extends Component<AdminProps, AdminState> {
                                 Mitglied erstellen
                             </button>
                         )}
+                        {hasSendMassEmail && (
+                            <button
+                                onClick={() => this.handleTabChange("email")}
+                                className={`border-b-2 px-1 py-2 text-sm font-medium transition-colors ${
+                                    this.state.activeTab === "email"
+                                        ? "border-blue-500 text-blue-400"
+                                        : "border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700"
+                                }`}
+                            >
+                                E-Mail senden
+                            </button>
+                        )}
                     </nav>
                 </div>
 
@@ -103,6 +128,11 @@ export default class Admin extends Component<AdminProps, AdminState> {
                     {this.state.activeTab === "create" && hasCreateMember && (
                         <div className="p-2">
                             <AdminCreateMember g={this.props.g} />
+                        </div>
+                    )}
+                    {this.state.activeTab === "email" && hasSendMassEmail && (
+                        <div className="h-full overflow-auto">
+                            <AdminSendEmail g={this.props.g} />
                         </div>
                     )}
                 </div>

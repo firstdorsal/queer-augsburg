@@ -1,8 +1,9 @@
-use crate::{config::SERVER_CONFIG, db::DB, some_or_bail, types::Meeting};
+use crate::{config::SERVER_CONFIG, some_or_bail, types::EmailAttachment};
 use anyhow::bail;
+use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
 use hyper::{Body, Request};
 use lettre::{
-    message::{header, MultiPart, SinglePart},
+    message::{header, Attachment, MultiPart, SinglePart},
     transport::smtp::authentication::Credentials,
     Message, SmtpTransport, Transport,
 };
@@ -42,6 +43,49 @@ pub async fn send_mail(
                         .body(body_html),
                 ),
         )?;
+
+    mailer.send(&email)?;
+
+    Ok(())
+}
+
+pub async fn send_mail_with_attachments(
+    recipient: &str,
+    subject: &str,
+    body_text: String,
+    attachments: &[EmailAttachment],
+) -> anyhow::Result<()> {
+    let config = &SERVER_CONFIG;
+
+    let mailer = SmtpTransport::relay(&config.mail.smtp_server)?
+        .credentials(Credentials::new(
+            config.mail.username.clone(),
+            config.mail.password.clone(),
+        ))
+        .build();
+
+    // Start with the text body
+    let mut multipart = MultiPart::mixed().singlepart(
+        SinglePart::builder()
+            .header(header::ContentType::TEXT_PLAIN)
+            .body(body_text),
+    );
+
+    // Add each attachment
+    for attachment in attachments {
+        let data = BASE64.decode(&attachment.data)?;
+        let content_type: header::ContentType = attachment.content_type.parse()?;
+        let att = Attachment::new(attachment.filename.clone()).body(data, content_type);
+        multipart = multipart.singlepart(att);
+    }
+
+    let email = Message::builder()
+        .from(format!("{} <{}>", &config.mail.from_name, &config.mail.from_address).parse()?)
+        .to(recipient.parse()?)
+        .reply_to(config.mail.reply_to.parse()?)
+        .user_agent(config.mail.user_agent.clone())
+        .subject(subject)
+        .multipart(multipart)?;
 
     mailer.send(&email)?;
 

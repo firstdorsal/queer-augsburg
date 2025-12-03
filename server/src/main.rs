@@ -2,11 +2,13 @@ use backend::config::SERVER_CONFIG;
 use backend::db::DB;
 use backend::interossea::{get_session_cookie, Auth, Interossea, UserAssertion, INTEROSSEA};
 use backend::methods::admin_create_member::admin_create_member;
+use backend::methods::confirm_send_email::confirm_send_email;
 use backend::methods::create_own_user::create_own_user;
 use backend::methods::get_meetings::get_meetings;
 use backend::methods::get_own_user::get_own_user;
 use backend::methods::get_users::get_users;
 use backend::methods::ical::{self, ical_feed};
+use backend::methods::send_email_preview::send_email_preview;
 use backend::methods::update_meeting::update_meeting;
 use backend::methods::update_member_status::update_member_status;
 use backend::methods::update_own_member_data::update_own_member_data;
@@ -174,6 +176,10 @@ async fn handle_inner(
         update_member_status(req, db, &auth, res).await
     } else if p.starts_with("/update_own_member_data/") && m == Method::POST {
         update_own_member_data(req, db, &auth, res).await
+    } else if p.starts_with("/send_email_preview/") && m == Method::POST {
+        send_email_preview(req, db, &auth, res).await
+    } else if p.starts_with("/confirm_send_email/") && m == Method::POST {
+        confirm_send_email(req, db, &auth, res).await
     } else if p == "/get_assertion_validity_seconds/" && m == Method::GET {
         Ok(res
             .status(200)
