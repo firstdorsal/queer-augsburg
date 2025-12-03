@@ -130,6 +130,7 @@ pub async fn send_email_preview(
         created_at: chrono::Utc::now().timestamp_millis(),
         recipient_count,
         status: DraftStatus::Pending,
+        reply_to: request.reply_to.clone(),
     };
 
     // Store draft
@@ -148,6 +149,7 @@ pub async fn send_email_preview(
         &format!("[Vorschau] {}", request.subject),
         preview_body,
         &request.attachments,
+        request.reply_to.as_deref(),
     )
     .await?;
 

@@ -298,6 +298,7 @@ pub struct SendEmailPreviewRequestBody {
     pub subject: String,
     pub body: String,
     pub attachments: Vec<EmailAttachment>,
+    pub reply_to: Option<String>,
 }
 
 #[derive(TS)]
@@ -345,6 +346,7 @@ pub struct EmailDraft {
     pub created_at: i64,
     pub recipient_count: u32,
     pub status: DraftStatus,
+    pub reply_to: Option<String>,
 }
 
 // Audit log for sent emails
@@ -360,4 +362,5 @@ pub struct SentEmailLog {
     pub successful_count: u32,
     pub failed_count: u32,
     pub failed_emails: Vec<String>,
+    pub reply_to: Option<String>,
 }

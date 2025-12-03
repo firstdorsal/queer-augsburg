@@ -27,6 +27,7 @@ interface AdminSendEmailState {
     loading: boolean;
     error: string | null;
     testingMode: boolean;
+    replyTo: string;
 }
 
 const toastParams: ToastContainerProps = { placement: "bottomEnd", duration: 10000 };
@@ -50,7 +51,8 @@ export default withToasterHook(
                 failedCount: 0,
                 loading: false,
                 error: null,
-                testingMode: false
+                testingMode: false,
+                replyTo: ""
             };
         }
 
@@ -125,7 +127,8 @@ export default withToasterHook(
                 const result = await this.props.g.qaClient.send_email_preview(
                     this.state.subject,
                     this.state.body,
-                    attachments
+                    attachments,
+                    this.state.replyTo || undefined
                 );
 
                 this.safeSetState({
@@ -222,7 +225,8 @@ export default withToasterHook(
                 failedCount: 0,
                 loading: false,
                 error: null,
-                testingMode: false
+                testingMode: false,
+                replyTo: ""
             });
         };
 
@@ -259,6 +263,17 @@ export default withToasterHook(
                                     placeholder="Betreff der E-Mail"
                                     value={this.state.subject}
                                     onChange={(value) => this.setState({ subject: value })}
+                                />
+                            </div>
+
+                            <div style={{ marginBottom: "15px" }}>
+                                <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>
+                                    Antwort-Adresse (Reply-To)
+                                </label>
+                                <Input
+                                    placeholder="Optional: E-Mail-Adresse für Antworten"
+                                    value={this.state.replyTo}
+                                    onChange={(value) => this.setState({ replyTo: value })}
                                 />
                             </div>
 

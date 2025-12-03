@@ -87,6 +87,7 @@ pub async fn confirm_send_email(
             &draft.subject,
             draft.body.clone(),
             &draft.attachments,
+            draft.reply_to.as_deref(),
         )
         .await
         {
@@ -110,6 +111,7 @@ pub async fn confirm_send_email(
         successful_count: sent_count,
         failed_count,
         failed_emails,
+        reply_to: draft.reply_to,
     };
     db.insert_sent_email_log(&log).await?;
 

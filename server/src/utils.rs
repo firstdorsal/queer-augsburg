@@ -54,6 +54,7 @@ pub async fn send_mail_with_attachments(
     subject: &str,
     body_text: String,
     attachments: &[EmailAttachment],
+    reply_to: Option<&str>,
 ) -> anyhow::Result<()> {
     let config = &SERVER_CONFIG;
 
@@ -79,10 +80,13 @@ pub async fn send_mail_with_attachments(
         multipart = multipart.singlepart(att);
     }
 
+    // Use custom reply_to if provided, otherwise use config default
+    let reply_to_address = reply_to.unwrap_or(&config.mail.reply_to);
+
     let email = Message::builder()
         .from(format!("{} <{}>", &config.mail.from_name, &config.mail.from_address).parse()?)
         .to(recipient.parse()?)
-        .reply_to(config.mail.reply_to.parse()?)
+        .reply_to(reply_to_address.parse()?)
         .user_agent(config.mail.user_agent.clone())
         .subject(subject)
         .multipart(multipart)?;

@@ -191,12 +191,13 @@ export class QaClient {
     send_email_preview = async (
         subject: string,
         body: string,
-        attachments: EmailAttachment[]
+        attachments: EmailAttachment[],
+        reply_to?: string
     ): Promise<SendEmailPreviewResponseBody> => {
         const res = await fetch(`${this.qaEndpoint}/api/send_email_preview/`, {
             method: "POST",
             credentials: "include",
-            body: JSON.stringify({ subject, body, attachments })
+            body: JSON.stringify({ subject, body, attachments, reply_to: reply_to || null })
         });
         if (!res.ok) {
             const errorText = await res.text();
