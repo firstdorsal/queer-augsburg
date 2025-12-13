@@ -120,6 +120,7 @@ export class QaClient {
         const res = await fetch(`${this.qaEndpoint}/api/update_meeting/`, {
             method: "POST",
             credentials: "include",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ meeting })
         });
         const updated_meeting: Meeting = await res.json();
@@ -130,6 +131,7 @@ export class QaClient {
         const res = await fetch(`${this.qaEndpoint}/api/update_meeting/`, {
             method: "POST",
             credentials: "include",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ meeting, delete: true })
         });
         const success = res.status === 200;
@@ -149,6 +151,7 @@ export class QaClient {
         return fetch(`${this.qaEndpoint}/api/admin_create_member/`, {
             method: "POST",
             credentials: "include",
+            headers: { "Content-Type": "application/json" },
             body: newMember
         });
     };
@@ -165,6 +168,7 @@ export class QaClient {
         const res = await fetch(`${this.qaEndpoint}/api/update_own_member_data/`, {
             method: "POST",
             credentials: "include",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ member: submitted_member })
         });
         return res;
@@ -179,6 +183,7 @@ export class QaClient {
         return fetch(`${this.qaEndpoint}/api/update_member_status/`, {
             method: "POST",
             credentials: "include",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 user_id,
                 new_status,
@@ -197,6 +202,7 @@ export class QaClient {
         const res = await fetch(`${this.qaEndpoint}/api/send_email_preview/`, {
             method: "POST",
             credentials: "include",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ subject, body, attachments, reply_to: reply_to || null })
         });
         if (!res.ok) {
@@ -214,6 +220,7 @@ export class QaClient {
         const res = await fetch(`${this.qaEndpoint}/api/confirm_send_email/`, {
             method: "POST",
             credentials: "include",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ preview_id, verification_code, testing_mode })
         });
         if (!res.ok) {
