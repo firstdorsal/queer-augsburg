@@ -140,7 +140,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
             "/get_assertion_validity_seconds/",
             get(get_assertion_validity_seconds),
         )
-        .route("/get_session_cookie/*path", post(get_session_cookie))
+        .route("/get_session_cookie/{*path}", post(get_session_cookie))
         .fallback(handle_not_found);
 
     // Clone session_map for cleanup task before state is moved
