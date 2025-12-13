@@ -101,22 +101,32 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
     };
 
     loadMoreMeetings = async (startIndex: number, limit: number) => {
-        if (this.moreLoading === false) {
-            this.moreLoading = true;
+        if (this.moreLoading) return;
+        this.moreLoading = true;
 
+        try {
             const res = await this.props.qaClient.get_meetings(startIndex, limit, this.props.type);
             const newMeetings = res.meetings;
-            this.moreLoading = false;
 
-            this.setState(({ meetings, meetingsStyle }) => {
-                for (let i = 0; i < newMeetings.length; i++) {
-                    meetings[startIndex + i] = newMeetings[i];
-                    meetingsStyle[startIndex + i] = {
-                        expanded: false
-                    };
+            this.setState(
+                ({ meetings, meetingsStyle }) => {
+                    const updatedMeetings = [...meetings];
+                    const updatedMeetingsStyle = [...meetingsStyle];
+                    for (let i = 0; i < newMeetings.length; i++) {
+                        updatedMeetings[startIndex + i] = newMeetings[i];
+                        updatedMeetingsStyle[startIndex + i] = {
+                            expanded: false
+                        };
+                    }
+                    return { meetings: updatedMeetings, meetingsStyle: updatedMeetingsStyle };
+                },
+                () => {
+                    this.moreLoading = false;
                 }
-                return { meetings, meetingsStyle };
-            });
+            );
+        } catch (e) {
+            console.error("Failed to load more meetings:", e);
+            this.moreLoading = false;
         }
     };
 
