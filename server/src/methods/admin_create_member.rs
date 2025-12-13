@@ -1,40 +1,52 @@
+use axum::{
+    extract::State,
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    Json,
+};
+
+use serde_valid::Validate;
+
 use crate::{
-    db::DB, has_authorized_user_capability_or_error, interossea::Auth, types::SubmittedMember,
+    extractors::AuthExtractor,
+    require_capability,
+    state::AppState,
+    types::{SubmittedMember, UserCapabilities},
     utils::generate_id,
 };
-use hyper::{Body, Request, Response};
 
+#[utoipa::path(
+    post,
+    path = "/api/admin_create_member/",
+    request_body = SubmittedMember,
+    responses(
+        (status = 201, description = "Member created"),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 400, description = "Bad request")
+    ),
+    tag = "members"
+)]
 pub async fn admin_create_member(
-    req: Request<Body>,
-    db: DB,
-    auth: &Auth,
-    res: hyper::http::response::Builder,
-) -> anyhow::Result<Response<Body>> {
-    has_authorized_user_capability_or_error!(
-        res,
-        db,
-        auth,
-        crate::types::UserCapabilities::CreateMember
-    );
+    State(state): State<AppState>,
+    AuthExtractor(auth): AuthExtractor,
+    Json(submitted_member): Json<SubmittedMember>,
+) -> Response {
+    require_capability!(state, auth, UserCapabilities::CreateMember);
 
-    let body = hyper::body::to_bytes(req.into_body()).await?;
-    let submitted_member: SubmittedMember = match serde_json::from_slice(&body) {
-        Ok(submitted_member) => submitted_member,
-        Err(e) => {
-            return Ok(res.status(400).body(Body::from(format!(
-                "Fehler beim lesen des JSON-Bodys: {}",
-                e
-            )))?)
-        }
-    };
+    if let Err(e) = submitted_member.validate() {
+        return (StatusCode::BAD_REQUEST, format!("Validation error: {}", e)).into_response();
+    }
 
     let user_id = generate_id(30);
 
-    db.create_user(&user_id).await?;
+    if let Err(e) = state.db.create_user(&user_id).await {
+        return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+    }
 
-    db.update_member_data(&user_id, submitted_member).await?;
+    if let Err(e) = state.db.update_member_data(&user_id, submitted_member).await {
+        return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+    }
 
-    Ok(res
-        .status(201)
-        .body(Body::from("Nutzer erfolgreich erstellt"))?)
+    (StatusCode::CREATED, "Nutzer erfolgreich erstellt").into_response()
 }

@@ -1,121 +1,118 @@
-use crate::has_authorized_user_capability_or_error;
+use axum::{
+    extract::State,
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    Json,
+};
+
 use crate::{
-    db::DB,
-    interossea::Auth,
-    types::{DraftStatus, EmailDraft, SendEmailPreviewRequestBody, SendEmailPreviewResponseBody},
+    extractors::AuthExtractor,
+    require_capability,
+    state::AppState,
+    types::{
+        DraftStatus, EmailDraft, SendEmailPreviewRequestBody, SendEmailPreviewResponseBody,
+        UserCapabilities,
+    },
     utils::{generate_id, send_mail_with_attachments},
 };
-use hyper::{Body, Request, Response};
 
 const MAX_ATTACHMENT_SIZE: usize = 10 * 1024 * 1024; // 10MB
 const MAX_SUBJECT_LENGTH: usize = 200;
 const MAX_BODY_LENGTH: usize = 100_000; // ~100KB
 const MAX_ATTACHMENT_COUNT: usize = 10;
 
+#[utoipa::path(
+    post,
+    path = "/api/send_email_preview/",
+    request_body = SendEmailPreviewRequestBody,
+    responses(
+        (status = 200, description = "Preview created", body = SendEmailPreviewResponseBody),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 400, description = "Validation error")
+    ),
+    tag = "email"
+)]
 pub async fn send_email_preview(
-    req: Request<Body>,
-    db: DB,
-    auth: &Auth,
-    res: hyper::http::response::Builder,
-) -> anyhow::Result<Response<Body>> {
-    has_authorized_user_capability_or_error!(
-        res,
-        db,
-        auth,
-        crate::types::UserCapabilities::SendMassEmail
-    );
-
-    let body = hyper::body::to_bytes(req.into_body()).await?;
-    let request: SendEmailPreviewRequestBody = serde_json::from_slice(&body)?;
+    State(state): State<AppState>,
+    AuthExtractor(auth): AuthExtractor,
+    Json(request): Json<SendEmailPreviewRequestBody>,
+) -> Response {
+    require_capability!(state, auth, UserCapabilities::SendMassEmail);
 
     // Validate subject
     if request.subject.trim().is_empty() {
-        return Ok(res
-            .status(400)
-            .body(Body::from("Subject cannot be empty"))?);
+        return (StatusCode::BAD_REQUEST, "Subject cannot be empty").into_response();
     }
     if request.subject.len() > MAX_SUBJECT_LENGTH {
-        return Ok(res
-            .status(400)
-            .body(Body::from(format!(
-                "Subject exceeds {} characters",
-                MAX_SUBJECT_LENGTH
-            )))?);
+        return (
+            StatusCode::BAD_REQUEST,
+            format!("Subject exceeds {} characters", MAX_SUBJECT_LENGTH),
+        )
+            .into_response();
     }
     // Prevent header injection
     if request.subject.contains('\r') || request.subject.contains('\n') {
-        return Ok(res
-            .status(400)
-            .body(Body::from("Subject cannot contain newlines"))?);
+        return (StatusCode::BAD_REQUEST, "Subject cannot contain newlines").into_response();
     }
 
     // Validate body
     if request.body.trim().is_empty() {
-        return Ok(res
-            .status(400)
-            .body(Body::from("Body cannot be empty"))?);
+        return (StatusCode::BAD_REQUEST, "Body cannot be empty").into_response();
     }
     if request.body.len() > MAX_BODY_LENGTH {
-        return Ok(res
-            .status(400)
-            .body(Body::from(format!(
-                "Body exceeds {} characters",
-                MAX_BODY_LENGTH
-            )))?);
+        return (
+            StatusCode::BAD_REQUEST,
+            format!("Body exceeds {} characters", MAX_BODY_LENGTH),
+        )
+            .into_response();
     }
 
     // Validate attachment count
     if request.attachments.len() > MAX_ATTACHMENT_COUNT {
-        return Ok(res
-            .status(400)
-            .body(Body::from(format!(
-                "Maximum {} attachments allowed",
-                MAX_ATTACHMENT_COUNT
-            )))?);
+        return (
+            StatusCode::BAD_REQUEST,
+            format!("Maximum {} attachments allowed", MAX_ATTACHMENT_COUNT),
+        )
+            .into_response();
     }
 
     // Validate attachment size
-    let total_size: usize = request
-        .attachments
-        .iter()
-        .map(|a| a.data.len())
-        .sum();
+    let total_size: usize = request.attachments.iter().map(|a| a.data.len()).sum();
 
     if total_size > MAX_ATTACHMENT_SIZE {
-        return Ok(res
-            .status(400)
-            .body(Body::from("Attachments exceed 10MB limit"))?);
+        return (StatusCode::BAD_REQUEST, "Attachments exceed 10MB limit").into_response();
     }
 
-    // Get sender info (safe: macro already verified auth)
+    // Get sender info
     let user_id = match auth.authenticated_user.as_ref() {
         Some(id) => id,
-        None => {
-            return Ok(res.status(401).body(Body::from("Unauthorized"))?);
-        }
+        None => return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response(),
     };
-    let user = db.get_user(user_id).await?;
+
+    let user = match state.db.get_user(user_id).await {
+        Ok(u) => u,
+        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    };
+
     let sender_email = match user.and_then(|u| u.member) {
         Some(m) => m.email,
-        None => {
-            return Ok(res
-                .status(400)
-                .body(Body::from("Sender has no member email"))?);
-        }
+        None => return (StatusCode::BAD_REQUEST, "Sender has no member email").into_response(),
     };
 
     // Count approved members
-    let recipient_count = db.count_approved_members().await?;
+    let recipient_count = match state.db.count_approved_members().await {
+        Ok(count) => count,
+        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+    };
 
     // Check for zero recipients
     if recipient_count == 0 {
-        return Ok(res
-            .status(400)
-            .body(Body::from("No approved members to send to"))?);
+        return (StatusCode::BAD_REQUEST, "No approved members to send to").into_response();
     }
 
     // Generate verification code and draft ID
-    let verification_code = generate_id(8); // Increased from 6 to 8 for better security
+    let verification_code = generate_id(8);
     let draft_id = generate_id(16);
 
     // Create draft
@@ -134,7 +131,9 @@ pub async fn send_email_preview(
     };
 
     // Store draft
-    db.insert_email_draft(&draft).await?;
+    if let Err(e) = state.db.insert_email_draft(&draft).await {
+        return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+    }
 
     // Send preview email to sender with verification code
     let preview_body = format!(
@@ -144,14 +143,17 @@ pub async fn send_email_preview(
         verification_code
     );
 
-    send_mail_with_attachments(
+    if let Err(e) = send_mail_with_attachments(
         &sender_email,
         &format!("[Vorschau] {}", request.subject),
         preview_body,
         &request.attachments,
         request.reply_to.as_deref(),
     )
-    .await?;
+    .await
+    {
+        return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+    }
 
     // Return response
     let response = SendEmailPreviewResponseBody {
@@ -159,8 +161,5 @@ pub async fn send_email_preview(
         recipient_count,
     };
 
-    Ok(res
-        .status(200)
-        .header("Content-Type", "application/json")
-        .body(Body::from(serde_json::to_string(&response)?))?)
+    Json(response).into_response()
 }

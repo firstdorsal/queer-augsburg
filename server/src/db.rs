@@ -1,7 +1,7 @@
 use crate::interossea::Auth;
 use crate::types::{
-    ChangedMeeting, DraftStatus, EmailDraft, InternalMember, Meeting, MeetingTypeQuery,
-    MembershipStatus, SentEmailLog, SubmittedMember, User,
+    ChangedMeeting, EmailDraft, InternalMember, Meeting, MeetingTypeQuery, MembershipStatus,
+    SentEmailLog, SubmittedMember, User,
 };
 use crate::utils::generate_id;
 use anyhow::bail;

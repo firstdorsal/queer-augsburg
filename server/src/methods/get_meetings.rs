@@ -1,52 +1,68 @@
-use crate::{
-    db::DB,
-    interossea::Auth,
-    types::{GetMeetingsResponseBody, MeetingTypeQuery},
-    utils::{get_query_item, get_query_item_number},
+use axum::{
+    extract::{Query, State},
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    Json,
 };
-use hyper::{Body, Request, Response};
 
+use crate::{
+    extractors::AuthExtractor,
+    state::AppState,
+    types::{GetMeetingsQuery, GetMeetingsResponseBody, MeetingTypeQuery},
+};
+
+#[utoipa::path(
+    get,
+    path = "/api/get_meetings/",
+    params(
+        ("t" = String, Query, description = "Meeting type: 'Active' or 'Planned'"),
+        ("l" = Option<i64>, Query, description = "Limit number of results"),
+        ("i" = Option<i64>, Query, description = "From index (pagination offset)")
+    ),
+    responses(
+        (status = 200, description = "List of meetings", body = GetMeetingsResponseBody),
+        (status = 400, description = "Invalid query parameter")
+    ),
+    tag = "meetings"
+)]
 pub async fn get_meetings(
-    req: Request<Body>,
-    db: DB,
-    auth: &Auth,
-    res: hyper::http::response::Builder,
-) -> anyhow::Result<Response<Body>> {
-    let limit = get_query_item_number(&req, "l");
-    let from_index = get_query_item_number(&req, "i").unwrap_or(0);
-    let meeting_type: MeetingTypeQuery = match get_query_item(&req, "t") {
-        Some(s) => match s.as_str() {
-            "Planned" => MeetingTypeQuery::Planned,
-            "Active" => MeetingTypeQuery::Active,
-            _ => {
-                return Ok(res
-                    .status(400)
-                    .body(Body::from(format!("Invalid query parameter 't': {}", s)))?)
-            }
-        },
-        None => {
-            return Ok(res
-                .status(400)
-                .body(Body::from("Missing query parameter 't'"))?)
+    State(state): State<AppState>,
+    AuthExtractor(_auth): AuthExtractor,
+    Query(query): Query<GetMeetingsQuery>,
+) -> Response {
+    let limit = query.l;
+    let from_index = query.i.unwrap_or(0);
+
+    let meeting_type: MeetingTypeQuery = match query.t.as_str() {
+        "Planned" => MeetingTypeQuery::Planned,
+        "Active" => MeetingTypeQuery::Active,
+        _ => {
+            return (
+                StatusCode::BAD_REQUEST,
+                format!("Invalid query parameter 't': {}", query.t),
+            )
+                .into_response()
         }
     };
 
-    let (meetings, selected_total_count) = db.get_meetings(meeting_type).await?;
+    let (meetings, selected_total_count) = match state.db.get_meetings(meeting_type).await {
+        Ok(result) => result,
+        Err(e) => {
+            return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+        }
+    };
 
     let mut meetings = match meeting_type {
         MeetingTypeQuery::Active => {
             let current_time_ms = chrono::Utc::now().timestamp() * 1000;
 
-            // 6h
-            // don't mark meetings as old if they are less than 6h old
+            // 6h - don't mark meetings as old if they are less than 6h old
             let time_before_old_ms = 6 * 60 * 60 * 1000;
-
             let time_barrier = current_time_ms - time_before_old_ms;
 
             // Sort the meetings
             // first come the future meetings from earliest to latest
             // then come the past meetings from latest to earliest
-
             let future_meetings = meetings
                 .iter()
                 .filter(|m| {
@@ -108,9 +124,5 @@ pub async fn get_meetings(
         selected_total_count,
     };
 
-    Ok(res
-        .status(200)
-        .header("Content-Type", "application/json")
-        .body(serde_json::to_string(&meetings_response)?.into())
-        .unwrap())
+    Json(meetings_response).into_response()
 }

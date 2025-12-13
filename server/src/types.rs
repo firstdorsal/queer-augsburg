@@ -1,10 +1,11 @@
 use core::fmt;
 
 use serde::{Deserialize, Serialize};
+use serde_valid::Validate;
 use ts_rs::TS;
-use validator::Validate;
+use utoipa::ToSchema;
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct Meeting {
@@ -26,7 +27,7 @@ pub struct Meeting {
     pub cancelled: Option<bool>,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct ChangedMeeting {
@@ -34,7 +35,7 @@ pub struct ChangedMeeting {
     pub at: i64,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone, Copy)]
 pub enum MeetingStatus {
@@ -42,7 +43,7 @@ pub enum MeetingStatus {
     Active,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct MeetingLocation {
@@ -51,7 +52,7 @@ pub struct MeetingLocation {
     pub lon: f64,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct MeetingTags {
@@ -59,7 +60,8 @@ pub struct MeetingTags {
     pub common: Vec<CommonMeetingTag>,
     pub queer: Vec<QueerMeetingTag>,
 }
-#[derive(TS)]
+
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone, Copy)]
 pub enum CommonMeetingTag {
@@ -86,7 +88,7 @@ impl fmt::Display for CommonMeetingTag {
     }
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone, Copy)]
 pub enum QueerMeetingTag {
@@ -103,7 +105,7 @@ pub enum QueerMeetingTag {
     Pan,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
 pub struct User {
@@ -113,7 +115,7 @@ pub struct User {
     pub capabilities: Option<Vec<UserCapabilities>>,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
 pub enum UserCapabilities {
@@ -124,32 +126,34 @@ pub enum UserCapabilities {
     SendMassEmail,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema, Validate)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
-#[derive(Validate, Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
 pub struct SubmittedMember {
     #[serde(rename = "type")]
     pub _type: MemberType,
     pub natural_person: bool,
+    #[validate]
     pub name: Option<Name>,
-    #[validate(length(min = 1, max = 100))]
+    #[validate(max_length = 100)]
     pub institution: Option<String>,
-    #[validate(length(min = 1, max = 20))]
+    #[validate(max_length = 20)]
     pub pronouns: Option<String>,
+    #[validate]
     pub address: Address,
-    #[validate(email)]
+    #[validate(pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")]
     pub email: String,
     pub phone: Option<String>,
-    #[validate(length(min = 1, max = 500))]
+    #[validate(max_length = 500)]
     pub user_notes: Option<String>,
-    #[validate(length(min = 1, max = 100))]
+    #[validate(max_length = 100)]
     pub reference: Option<String>,
     pub approved_charter: bool,
     pub approved_privacy: bool,
     pub above_18: bool,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
 pub struct InternalMember {
@@ -174,7 +178,7 @@ pub struct InternalMember {
     pub honorary: bool,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
 pub enum MembershipStatus {
@@ -185,29 +189,23 @@ pub enum MembershipStatus {
     Expelled,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema, Validate)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
-#[derive(Validate, Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
 pub struct Name {
-    /**
-     * Voller Name wie er im Pass oder Personaldokument steht
-     */
-    #[validate(length(min = 1, max = 100))]
+    /// Voller Name wie er im Pass oder Personaldokument steht
+    #[validate(min_length = 1)]
+    #[validate(max_length = 100)]
     pub passport: String,
-    #[validate(length(min = 1, max = 100))]
+    #[validate(min_length = 1)]
+    #[validate(max_length = 100)]
     pub first_name: String,
-    #[validate(length(min = 1, max = 100))]
+    #[validate(min_length = 1)]
+    #[validate(max_length = 100)]
     pub last_name: String,
 }
 
-// Notifcations
-/*
-- Mitgliederversammlung
-- Laufende Updates zur Organisation o.ä.
-- Treffen
-*/
-
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone, Copy)]
 pub enum MemberType {
@@ -215,24 +213,30 @@ pub enum MemberType {
     Supporting,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema, Validate)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
-#[derive(Validate, Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
 pub struct Address {
-    #[validate(length(min = 1, max = 50))]
+    #[validate(min_length = 1)]
+    #[validate(max_length = 50)]
     pub street: String,
-    #[validate(length(min = 1, max = 10))]
+    #[validate(min_length = 1)]
+    #[validate(max_length = 10)]
     pub number: String,
-    #[validate(length(min = 1, max = 50))]
+    #[validate(max_length = 50)]
     pub addition: Option<String>,
-    #[validate(length(min = 5, max = 5))]
+    #[validate(min_length = 5)]
+    #[validate(max_length = 5)]
     pub zip: String,
-    #[validate(length(min = 1, max = 50))]
+    #[validate(min_length = 1)]
+    #[validate(max_length = 50)]
     pub city: String,
-    #[validate(length(min = 1, max = 50))]
+    #[validate(min_length = 1)]
+    #[validate(max_length = 50)]
     pub country: String,
 }
-#[derive(TS)]
+
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct UpdateMeetingRequestBody {
@@ -240,7 +244,7 @@ pub struct UpdateMeetingRequestBody {
     pub delete: Option<bool>,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct GetMeetingsResponseBody {
@@ -248,7 +252,7 @@ pub struct GetMeetingsResponseBody {
     pub selected_total_count: u32,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct GetUsersResponseBody {
@@ -256,7 +260,7 @@ pub struct GetUsersResponseBody {
     pub total_count: u32,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone, Copy)]
 pub enum MeetingTypeQuery {
@@ -264,14 +268,14 @@ pub enum MeetingTypeQuery {
     Planned,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct SetOwnMemberDataRequestBody {
     pub member: SubmittedMember,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct UpdateMemberStatusRequestBody {
@@ -281,17 +285,17 @@ pub struct UpdateMemberStatusRequestBody {
     pub update_reason: Option<String>,
 }
 
-// Email types
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct EmailAttachment {
     pub filename: String,
     pub content_type: String,
-    pub data: String, // base64 encoded
+    /// base64 encoded data
+    pub data: String,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct SendEmailPreviewRequestBody {
@@ -301,7 +305,7 @@ pub struct SendEmailPreviewRequestBody {
     pub reply_to: Option<String>,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct SendEmailPreviewResponseBody {
@@ -309,7 +313,7 @@ pub struct SendEmailPreviewResponseBody {
     pub recipient_count: u32,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct ConfirmSendEmailRequestBody {
@@ -318,7 +322,7 @@ pub struct ConfirmSendEmailRequestBody {
     pub testing_mode: Option<bool>,
 }
 
-#[derive(TS)]
+#[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct ConfirmSendEmailResponseBody {
@@ -326,14 +330,12 @@ pub struct ConfirmSendEmailResponseBody {
     pub failed_count: u32,
 }
 
-// Email draft status for atomic operations
 #[derive(Deserialize, Debug, Serialize, Clone, PartialEq)]
 pub enum DraftStatus {
     Pending,
     Processing,
 }
 
-// Email draft for temporary storage (not exported to TS)
 #[derive(Deserialize, Debug, Serialize, Clone)]
 pub struct EmailDraft {
     pub _id: String,
@@ -349,7 +351,6 @@ pub struct EmailDraft {
     pub reply_to: Option<String>,
 }
 
-// Audit log for sent emails
 #[derive(Deserialize, Debug, Serialize, Clone)]
 pub struct SentEmailLog {
     pub _id: String,
@@ -363,4 +364,30 @@ pub struct SentEmailLog {
     pub failed_count: u32,
     pub failed_emails: Vec<String>,
     pub reply_to: Option<String>,
+}
+
+/// Query parameters for get_meetings endpoint
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct GetMeetingsQuery {
+    /// Meeting type: "Active" or "Planned"
+    pub t: String,
+    /// Limit number of results
+    pub l: Option<i64>,
+    /// From index (pagination offset)
+    pub i: Option<i64>,
+}
+
+/// Query parameters for get_users endpoint
+#[derive(Debug, Deserialize, ToSchema)]
+pub struct GetUsersQuery {
+    /// Limit number of results
+    pub l: Option<i64>,
+    /// From index (pagination offset)
+    pub i: Option<i64>,
+    /// Search term
+    pub s: Option<String>,
+    /// Sort by field
+    pub sb: Option<String>,
+    /// Sort order ("asc" or "desc")
+    pub so: Option<String>,
 }

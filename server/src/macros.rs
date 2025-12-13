@@ -10,26 +10,31 @@ macro_rules! some_or_bail {
 }
 
 #[macro_export]
-macro_rules! has_authorized_user_capability_or_error {
-    ($res:expr,$db:expr, $auth:expr, $capability:expr ) => {{
+macro_rules! require_capability {
+    ($state:expr, $auth:expr, $capability:expr) => {{
+        use axum::http::StatusCode;
+
         let user_id = match &$auth.authenticated_user {
             Some(user_id) => user_id,
-            None => return Ok($res.status(401).body(Body::from("Unauthorized"))?),
+            None => return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response(),
         };
 
-        let user = match $db.get_user(user_id).await? {
-            Some(user) => user,
-            None => return Ok($res.status(404).body(Body::from("User not found"))?),
+        let user = match $state.db.get_user(user_id).await {
+            Ok(Some(user)) => user,
+            Ok(None) => return (StatusCode::NOT_FOUND, "User not found").into_response(),
+            Err(_) => {
+                return (StatusCode::INTERNAL_SERVER_ERROR, "Database error").into_response()
+            }
         };
 
         match user.capabilities {
             Some(capabilities) => {
                 if !capabilities.contains(&$capability) {
-                    return Ok($res.status(403).body(Body::from("Not authorized"))?);
+                    return (StatusCode::FORBIDDEN, "Not authorized").into_response();
                 }
             }
             None => {
-                return Ok($res.status(403).body(Body::from("Not authorized"))?);
+                return (StatusCode::FORBIDDEN, "Not authorized").into_response();
             }
         }
     }};

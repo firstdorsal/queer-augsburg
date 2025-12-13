@@ -1,34 +1,52 @@
-use crate::has_authorized_user_capability_or_error;
-use crate::{db::DB, interossea::Auth, types::UpdateMeetingRequestBody};
-use hyper::{Body, Request, Response};
+use axum::{
+    extract::State,
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    Json,
+};
 
+use crate::{
+    extractors::AuthExtractor,
+    require_capability,
+    state::AppState,
+    types::{UpdateMeetingRequestBody, UserCapabilities},
+};
+
+#[utoipa::path(
+    post,
+    path = "/api/update_meeting/",
+    request_body = UpdateMeetingRequestBody,
+    responses(
+        (status = 200, description = "Meeting updated", body = crate::types::Meeting),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden")
+    ),
+    tag = "meetings"
+)]
 pub async fn update_meeting(
-    req: Request<Body>,
-    db: DB,
-    auth: &Auth,
-    res: hyper::http::response::Builder,
-) -> anyhow::Result<Response<Body>> {
-    has_authorized_user_capability_or_error!(
-        res,
-        db,
-        auth,
-        crate::types::UserCapabilities::UpdateMeetings
-    );
+    State(state): State<AppState>,
+    AuthExtractor(auth): AuthExtractor,
+    Json(mut body): Json<UpdateMeetingRequestBody>,
+) -> Response {
+    require_capability!(state, auth, UserCapabilities::UpdateMeetings);
 
-    let body = hyper::body::to_bytes(req.into_body()).await?;
-
-    let mut umrb: UpdateMeetingRequestBody = serde_json::from_slice(&body)?;
-
-    match umrb.delete {
+    match body.delete {
         Some(true) => {
-            db.delete_meeting(&umrb.meeting._id).await?;
-            Ok(res.body(Body::from("Ok"))?)
+            if let Err(e) = state.db.delete_meeting(&body.meeting._id).await {
+                return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+            }
+            (StatusCode::OK, "Ok").into_response()
         }
         _ => {
-            db.update_meeting(&mut umrb.meeting, auth).await?;
-            Ok(res
-                .header("Content-Type", "application/json")
-                .body(Body::from(serde_json::to_string(&umrb.meeting)?))?)
+            let db_auth = crate::interossea::Auth {
+                authenticated_user: auth.authenticated_user.clone(),
+                token: auth.token.clone(),
+                user_assertion: auth.user_assertion.clone(),
+            };
+            if let Err(e) = state.db.update_meeting(&mut body.meeting, &db_auth).await {
+                return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+            }
+            Json(body.meeting).into_response()
         }
     }
 }

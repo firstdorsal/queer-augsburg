@@ -1,14 +1,12 @@
-use crate::{config::SERVER_CONFIG, some_or_bail, types::EmailAttachment};
+use crate::{config::SERVER_CONFIG, types::EmailAttachment};
 use anyhow::bail;
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
-use hyper::{Body, Request};
 use lettre::{
     message::{header, Attachment, MultiPart, SinglePart},
     transport::smtp::authentication::Credentials,
     Message, SmtpTransport, Transport,
 };
-use qstring::QString;
-use std::collections::HashMap;
+
 pub async fn send_mail(
     recipient: &str,
     subject: &str,
@@ -94,47 +92,6 @@ pub async fn send_mail_with_attachments(
     mailer.send(&email)?;
 
     Ok(())
-}
-
-pub fn get_token_from_query(req: &Request<Body>) -> Option<String> {
-    get_query_item(req, "t")
-}
-
-#[allow(clippy::manual_map)]
-pub fn get_query_item(req: &Request<Body>, item: &str) -> Option<String> {
-    match req.uri().query() {
-        Some(q) => match QString::from(q).get(item) {
-            Some(qp) => Some(qp.to_string()),
-            None => None,
-        },
-        None => None,
-    }
-}
-
-pub fn get_query_item_number(req: &Request<Body>, item: &str) -> Option<i64> {
-    match get_query_item(req, item) {
-        Some(l) => match l.parse::<i64>() {
-            Ok(l) => Some(l),
-            Err(_) => None,
-        },
-        None => None,
-    }
-}
-
-pub fn get_cookies(req: &Request<Body>) -> anyhow::Result<HashMap<String, String>> {
-    let cookie_str = some_or_bail!(req.headers().get("cookie"), "No cookies found").to_str()?;
-    let split = cookie_str.split(';');
-
-    let mut cookies = HashMap::new();
-
-    for s in split {
-        let parsed_cookie = cookie::Cookie::parse(s);
-        if let Ok(p) = parsed_cookie {
-            cookies.insert(p.name().to_string(), p.value().to_string());
-        }
-    }
-
-    Ok(cookies)
 }
 
 pub fn generate_id(len: usize) -> String {

@@ -1,79 +1,86 @@
-use crate::has_authorized_user_capability_or_error;
+use axum::{
+    extract::State,
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    Json,
+};
+
 use crate::{
-    db::DB,
-    interossea::Auth,
-    types::{ConfirmSendEmailRequestBody, ConfirmSendEmailResponseBody, SentEmailLog},
+    extractors::AuthExtractor,
+    require_capability,
+    state::AppState,
+    types::{ConfirmSendEmailRequestBody, ConfirmSendEmailResponseBody, SentEmailLog, UserCapabilities},
     utils::{generate_id, send_mail_with_attachments},
 };
-use hyper::{Body, Request, Response};
 
 const DRAFT_TTL_MS: i64 = 30 * 60 * 1000; // 30 minutes
 const TEST_EMAIL: &str = "test@queer-augsburg.de";
 
+#[utoipa::path(
+    post,
+    path = "/api/confirm_send_email/",
+    request_body = ConfirmSendEmailRequestBody,
+    responses(
+        (status = 200, description = "Email sent", body = ConfirmSendEmailResponseBody),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden"),
+        (status = 400, description = "Validation error"),
+        (status = 404, description = "Draft not found")
+    ),
+    tag = "email"
+)]
 pub async fn confirm_send_email(
-    req: Request<Body>,
-    db: DB,
-    auth: &Auth,
-    res: hyper::http::response::Builder,
-) -> anyhow::Result<Response<Body>> {
-    has_authorized_user_capability_or_error!(
-        res,
-        db,
-        auth,
-        crate::types::UserCapabilities::SendMassEmail
-    );
+    State(state): State<AppState>,
+    AuthExtractor(auth): AuthExtractor,
+    Json(request): Json<ConfirmSendEmailRequestBody>,
+) -> Response {
+    require_capability!(state, auth, UserCapabilities::SendMassEmail);
 
-    let body = hyper::body::to_bytes(req.into_body()).await?;
-    let request: ConfirmSendEmailRequestBody = serde_json::from_slice(&body)?;
-
-    // Check if testing mode is enabled (from frontend checkbox)
+    // Check if testing mode is enabled
     let testing_mode = request.testing_mode.unwrap_or(false);
 
     // Atomically claim the draft (prevents race conditions)
-    let draft = match db.claim_email_draft(&request.preview_id).await? {
-        Some(d) => d,
-        None => {
-            // Could be not found OR already being processed
-            return Ok(res
-                .status(404)
-                .body(Body::from("Draft not found or already being processed"))?);
+    let draft = match state.db.claim_email_draft(&request.preview_id).await {
+        Ok(Some(d)) => d,
+        Ok(None) => {
+            return (
+                StatusCode::NOT_FOUND,
+                "Draft not found or already being processed",
+            )
+                .into_response();
         }
+        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
     };
 
     // Check TTL
     let now = chrono::Utc::now().timestamp_millis();
     if now - draft.created_at > DRAFT_TTL_MS {
-        db.delete_email_draft(&request.preview_id).await?;
-        return Ok(res
-            .status(400)
-            .body(Body::from("Draft expired, please try again"))?);
+        let _ = state.db.delete_email_draft(&request.preview_id).await;
+        return (StatusCode::BAD_REQUEST, "Draft expired, please try again").into_response();
     }
 
     // Verify sender
     let user_id = match auth.authenticated_user.as_ref() {
         Some(id) => id,
-        None => {
-            return Ok(res.status(401).body(Body::from("Unauthorized"))?);
-        }
+        None => return (StatusCode::UNAUTHORIZED, "Unauthorized").into_response(),
     };
     if draft.sender_id != *user_id {
-        return Ok(res
-            .status(403)
-            .body(Body::from("Not authorized to send this email"))?);
+        return (StatusCode::FORBIDDEN, "Not authorized to send this email").into_response();
     }
 
     // Verify code
     if draft.verification_code != request.verification_code {
-        return Ok(res
-            .status(400)
-            .body(Body::from("Invalid verification code"))?);
+        return (StatusCode::BAD_REQUEST, "Invalid verification code").into_response();
     }
 
     // Get recipient emails (test mode sends only to TEST_EMAIL)
     let recipient_emails = if testing_mode {
         vec![TEST_EMAIL.to_string()]
     } else {
-        db.get_approved_member_emails().await?
+        match state.db.get_approved_member_emails().await {
+            Ok(emails) => emails,
+            Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response(),
+        }
     };
 
     // Send to each recipient, tracking failures
@@ -113,10 +120,13 @@ pub async fn confirm_send_email(
         failed_emails,
         reply_to: draft.reply_to,
     };
-    db.insert_sent_email_log(&log).await?;
+
+    if let Err(e) = state.db.insert_sent_email_log(&log).await {
+        return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+    }
 
     // Delete draft
-    db.delete_email_draft(&request.preview_id).await?;
+    let _ = state.db.delete_email_draft(&request.preview_id).await;
 
     // Return response
     let response = ConfirmSendEmailResponseBody {
@@ -124,8 +134,5 @@ pub async fn confirm_send_email(
         failed_count,
     };
 
-    Ok(res
-        .status(200)
-        .header("Content-Type", "application/json")
-        .body(Body::from(serde_json::to_string(&response)?))?)
+    Json(response).into_response()
 }

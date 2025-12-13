@@ -1,36 +1,59 @@
-use crate::has_authorized_user_capability_or_error;
-use crate::utils::get_query_item;
-use crate::{db::DB, interossea::Auth, types::GetUsersResponseBody, utils::get_query_item_number};
-use hyper::{Body, Request, Response};
+use axum::{
+    extract::{Query, State},
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    Json,
+};
 
+use crate::{
+    extractors::AuthExtractor,
+    require_capability,
+    state::AppState,
+    types::{GetUsersQuery, GetUsersResponseBody, UserCapabilities},
+};
+
+#[utoipa::path(
+    get,
+    path = "/api/get_users/",
+    params(
+        ("l" = Option<i64>, Query, description = "Limit number of results"),
+        ("i" = Option<i64>, Query, description = "From index (pagination offset)"),
+        ("s" = Option<String>, Query, description = "Search term"),
+        ("sb" = Option<String>, Query, description = "Sort by field"),
+        ("so" = Option<String>, Query, description = "Sort order ('asc' or 'desc')")
+    ),
+    responses(
+        (status = 200, description = "List of users", body = GetUsersResponseBody),
+        (status = 401, description = "Unauthorized"),
+        (status = 403, description = "Forbidden")
+    ),
+    tag = "users"
+)]
 pub async fn get_users(
-    req: Request<Body>,
-    db: DB,
-    auth: &Auth,
-    res: hyper::http::response::Builder,
-) -> anyhow::Result<Response<Body>> {
-    has_authorized_user_capability_or_error!(
-        res,
-        db,
-        auth,
-        crate::types::UserCapabilities::GetUsers
-    );
+    State(state): State<AppState>,
+    AuthExtractor(auth): AuthExtractor,
+    Query(query): Query<GetUsersQuery>,
+) -> Response {
+    require_capability!(state, auth, UserCapabilities::GetUsers);
 
-    let limit = get_query_item_number(&req, "l");
-    let from_index = get_query_item_number(&req, "i").unwrap_or(0);
-    let search = get_query_item(&req, "s");
-    let sort_by = get_query_item(&req, "sb");
-    let sort_order = get_query_item(&req, "so");
+    let limit = query.l;
+    let from_index = query.i.unwrap_or(0);
+    let search = query.s;
+    let sort_by = query.sb;
+    let sort_order = query.so;
 
-    let (users, total_count) = db
+    let (users, total_count) = match state
+        .db
         .get_users(limit, from_index as u64, search, sort_by, sort_order)
-        .await?;
+        .await
+    {
+        Ok(result) => result,
+        Err(e) => {
+            return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
+        }
+    };
 
     let users_response = GetUsersResponseBody { users, total_count };
 
-    Ok(res
-        .status(200)
-        .header("Content-Type", "application/json")
-        .body(serde_json::to_string(&users_response)?.into())
-        .unwrap())
+    Json(users_response).into_response()
 }
