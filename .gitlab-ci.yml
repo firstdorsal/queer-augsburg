@@ -7,6 +7,9 @@ docker-build-server:
     image:
         name: gcr.io/kaniko-project/executor:debug
         entrypoint: [""]
+    rules:
+        - changes:
+            - server/**/*
     script:
         - export CI_PUBLIC_REGISTRY=index.docker.io
         - export CI_PRIVATE_REGISTRY=hub.vindelicum.eu
@@ -27,6 +30,9 @@ docker-build-web:
     image:
         name: gcr.io/kaniko-project/executor:debug
         entrypoint: [""]
+    rules:
+        - changes:
+            - web/**/*
     script:
         - export CI_PUBLIC_REGISTRY=index.docker.io
         - export CI_PRIVATE_REGISTRY=hub.vindelicum.eu
