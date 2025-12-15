@@ -165,31 +165,54 @@ export const commonPlaces: Place[] = [
     }
 ];
 
+// Cache for places - shared across all EditMeeting instances
+let placesCache: Place[] | null = null;
+let placesCachePromise: Promise<Place[]> | null = null;
+
 export const fetchPlacesFromPastMeetings = async (qaClient: QaClient): Promise<Place[]> => {
-    try {
-        // Only fetch Active meetings - Planned meetings are future events without location history
-        const allMeetingsResponse = await qaClient.get_meetings(0, null, "Active");
-        const allMeetings = allMeetingsResponse.meetings;
-
-        const placesMap = new Map<string, Place>();
-
-        allMeetings.forEach(meeting => {
-            const location = meeting.location;
-            if (location.name && location.name.trim() !== "" && location.lat !== 0 && location.lon !== 0) {
-                const key = location.name.toLowerCase().trim();
-                if (!placesMap.has(key)) {
-                    placesMap.set(key, {
-                        name: location.name.trim(),
-                        lat: location.lat,
-                        lon: location.lon
-                    });
-                }
-            }
-        });
-
-        return Array.from(placesMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-    } catch (error) {
-        console.warn("Failed to fetch places from past meetings, falling back to static list:", error);
-        return commonPlaces;
+    // Return cached result if available
+    if (placesCache !== null) {
+        return placesCache;
     }
+
+    // If a fetch is already in progress, wait for it
+    if (placesCachePromise !== null) {
+        return placesCachePromise;
+    }
+
+    // Start new fetch and cache the promise
+    placesCachePromise = (async () => {
+        try {
+            // Only fetch Active meetings - Planned meetings are future events without location history
+            const allMeetingsResponse = await qaClient.get_meetings(0, null, "Active");
+            const allMeetings = allMeetingsResponse.meetings;
+
+            const placesMap = new Map<string, Place>();
+
+            allMeetings.forEach(meeting => {
+                const location = meeting.location;
+                if (location.name && location.name.trim() !== "" && location.lat !== 0 && location.lon !== 0) {
+                    const key = location.name.toLowerCase().trim();
+                    if (!placesMap.has(key)) {
+                        placesMap.set(key, {
+                            name: location.name.trim(),
+                            lat: location.lat,
+                            lon: location.lon
+                        });
+                    }
+                }
+            });
+
+            placesCache = Array.from(placesMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+            return placesCache;
+        } catch (error) {
+            console.warn("Failed to fetch places from past meetings, falling back to static list:", error);
+            placesCache = commonPlaces;
+            return placesCache;
+        } finally {
+            placesCachePromise = null;
+        }
+    })();
+
+    return placesCachePromise;
 };

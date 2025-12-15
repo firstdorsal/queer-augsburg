@@ -10,6 +10,15 @@ export default defineConfig({
     build: {
         minify: "terser"
     },
+    server: {
+        proxy: {
+            "/api": {
+                target: "https://api.queer-augsburg.de",
+                changeOrigin: true,
+                secure: true
+            }
+        }
+    },
     plugins: [
         preact(),
         imagetools(),
