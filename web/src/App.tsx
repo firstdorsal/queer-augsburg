@@ -1,6 +1,7 @@
 import "@fontsource-variable/inter";
 import { Component } from "preact";
-import Router from "preact-router";
+import { lazy, Suspense } from "preact/compat";
+import Router, { route } from "preact-router";
 import Logo from "./components/Logo";
 import Nav from "./components/Nav";
 import Redirect from "./components/Redirect";
@@ -18,9 +19,31 @@ import Impressum from "./pages/Impressum";
 import { G, UiConfig } from "./types";
 import { prefersDarkMode } from "./utils";
 
+// Lazy load quiz components - only loaded when /quiz/* routes are accessed
+const LazyQuizBoard = lazy(() => import("./quiz/QuizBoard"));
+const LazyQuizControl = lazy(() => import("./quiz/QuizControl"));
+
+// Route wrapper components that handle Suspense
+function QuizBoardRoute(_props: { path?: string }) {
+    return (
+        <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Lädt...</div>}>
+            <LazyQuizBoard />
+        </Suspense>
+    );
+}
+
+function QuizControlRoute(_props: { path?: string }) {
+    return (
+        <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Lädt...</div>}>
+            <LazyQuizControl />
+        </Suspense>
+    );
+}
+
 interface AppProps {}
 interface AppState {
     g: G;
+    isQuizRoute: boolean;
 }
 
 export default class App extends Component<AppProps, AppState> {
@@ -49,6 +72,7 @@ export default class App extends Component<AppProps, AppState> {
         const meetingId = urlParams.get("m");
 
         super(props);
+        const isQuizRoute = window.location.pathname.startsWith('/quiz');
         this.state = {
             g: {
                 uiConfig: null,
@@ -57,9 +81,17 @@ export default class App extends Component<AppProps, AppState> {
                 account: null,
                 ref,
                 meetingId
-            }
+            },
+            isQuizRoute
         };
     }
+
+    handleRoute = (e: { url: string }) => {
+        const isQuizRoute = e.url.startsWith('/quiz');
+        if (isQuizRoute !== this.state.isQuizRoute) {
+            this.setState({ isQuizRoute });
+        }
+    };
 
     componentDidMount = async () => {
         const uiConfig: UiConfig = await fetch("/config.json").then((res) => res.json());
@@ -125,22 +157,28 @@ export default class App extends Component<AppProps, AppState> {
     };
 
     render = () => {
+        const { isQuizRoute } = this.state;
+
         return (
             <div className="App">
                 <CustomProvider theme={prefersDarkMode() ? "dark" : "light"}>
-                    <div className="Header">
-                        <Logo />
-                        <Nav g={this.state.g} />
-                    </div>
+                    {!isQuizRoute && (
+                        <div className="Header">
+                            <Logo />
+                            <Nav g={this.state.g} />
+                        </div>
+                    )}
 
-                    <div className="Page">
-                        <Router>
+                    <div className={isQuizRoute ? "Page Page--fullscreen" : "Page"}>
+                        <Router onChange={this.handleRoute}>
                             <Treffen g={this.state.g} path="/" />
                             <Wir g={this.state.g} path="/wir" />
                             <Kontakt path="/kontakt" />
                             <Ich g={this.state.g} path="/ich" />
                             <Admin g={this.state.g} path="/admin" />
                             <Impressum path="/impressum" />
+                            <QuizBoardRoute path="/quiz/board" />
+                            <QuizControlRoute path="/quiz/control" />
                             <Redirect
                                 external={true}
                                 path="/data/"

@@ -417,3 +417,23 @@ body,
     background: linear-gradient(60deg, #5bcefa 10%, #ffffff 50%, #f5a9b8 90%) !important;
     color: black;
 }
+
+// Quiz fullscreen page
+.Page--fullscreen {
+    height: 100% !important;
+
+    > div {
+        height: 100%;
+        overflow: auto;
+    }
+}
+
+.quiz-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-size: 1.5rem;
+    color: var(--text-color);
+    background: var(--background-color);
+}
