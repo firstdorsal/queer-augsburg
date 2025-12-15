@@ -10,6 +10,24 @@ import { SendEmailPreviewResponseBody } from "./apiTypes/SendEmailPreviewRespons
 import { SubmittedMember } from "./apiTypes/SubmittedMember";
 import { User } from "./apiTypes/User";
 
+interface MeetingsCache {
+    meetings: Meeting[];
+    total_count: number;
+    /** Server's last_updated timestamp - use this for delta sync, not client time */
+    last_updated: number | null;
+}
+
+/**
+ * Check if the app is running as an installed PWA
+ */
+function isPwaInstalled(): boolean {
+    return (
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as Navigator & { standalone?: boolean }).standalone === true ||
+        document.referrer.includes("android-app://")
+    );
+}
+
 export class QaClient {
     interosseaClient: InterosseaClient;
     qaEndpoint: string;
@@ -36,52 +54,284 @@ export class QaClient {
         await this.interosseaClient.init();
     };
 
+    /**
+     * Get the cache key for a meeting type
+     */
+    private getMeetingsCacheKey = (meeting_type: MeetingTypeQuery): string => {
+        return `meetings_cache_v2_${meeting_type}`;
+    };
+
+    /**
+     * Get cached meetings for a type, or null if not cached
+     */
+    private getCachedMeetings = (meeting_type: MeetingTypeQuery): MeetingsCache | null => {
+        const cacheKey = this.getMeetingsCacheKey(meeting_type);
+        const cached = localStorage.getItem(cacheKey);
+        if (!cached) return null;
+        try {
+            return JSON.parse(cached) as MeetingsCache;
+        } catch {
+            return null;
+        }
+    };
+
+    /**
+     * Save meetings to cache
+     */
+    private setCachedMeetings = (
+        meeting_type: MeetingTypeQuery,
+        meetings: Meeting[],
+        total_count: number,
+        last_updated: number | null
+    ): void => {
+        const cacheKey = this.getMeetingsCacheKey(meeting_type);
+        const cache: MeetingsCache = {
+            meetings,
+            total_count,
+            last_updated
+        };
+        try {
+            localStorage.setItem(cacheKey, JSON.stringify(cache));
+        } catch (e) {
+            // localStorage might be full, log and continue
+            console.warn("Failed to cache meetings:", e);
+        }
+    };
+
+    /**
+     * Invalidate the meetings cache for a specific type or all types
+     */
+    invalidateMeetingsCache = (meeting_type?: MeetingTypeQuery): void => {
+        if (meeting_type) {
+            localStorage.removeItem(this.getMeetingsCacheKey(meeting_type));
+        } else {
+            localStorage.removeItem(this.getMeetingsCacheKey("Active"));
+            localStorage.removeItem(this.getMeetingsCacheKey("Planned"));
+        }
+    };
+
+    /**
+     * Fetch meetings from API
+     */
+    private fetchMeetings = async (
+        meeting_type: MeetingTypeQuery,
+        from_index?: number,
+        limit?: number | null,
+        since?: number
+    ): Promise<GetMeetingsResponseBody> => {
+        let url = `${this.qaEndpoint}/api/get_meetings/?t=${meeting_type}`;
+
+        if (from_index !== undefined && from_index > 0) {
+            url += `&i=${from_index}`;
+        }
+        if (limit !== undefined && limit !== null) {
+            url += `&l=${limit}`;
+        }
+        if (since !== undefined) {
+            url += `&since=${since}`;
+        }
+
+        const res = await fetch(url, {
+            credentials: "include"
+        });
+
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+        }
+
+        return res.json();
+    };
+
+    /**
+     * Merge delta updates into cached meetings
+     */
+    private mergeDeltaUpdates = (
+        cached: MeetingsCache,
+        updates: Meeting[],
+        newTotalCount: number,
+        serverLastUpdated: number | null
+    ): MeetingsCache => {
+        const meetingsMap = new Map<string, Meeting>();
+
+        // Add all cached meetings
+        for (const meeting of cached.meetings) {
+            meetingsMap.set(meeting._id, meeting);
+        }
+
+        // Apply updates (add/update/remove deleted)
+        for (const meeting of updates) {
+            if (meeting.deleted_at) {
+                // Remove deleted meetings
+                meetingsMap.delete(meeting._id);
+            } else {
+                // Add or update meeting
+                meetingsMap.set(meeting._id, meeting);
+            }
+        }
+
+        return {
+            meetings: Array.from(meetingsMap.values()),
+            total_count: newTotalCount,
+            // Use server's last_updated if available, otherwise keep existing
+            last_updated: serverLastUpdated ?? cached.last_updated
+        };
+    };
+
+    /**
+     * Get meetings - behavior depends on whether app is installed as PWA:
+     * - PWA: Cache all meetings locally, use delta sync
+     * - Browser: Fetch paginated data on demand
+     *
+     * Note: Delta sync has a limitation with status-changed meetings.
+     * If a meeting's status changes (e.g., Active to Planned), it won't
+     * appear in delta sync because the server filters by status first.
+     * The count mismatch check partially handles this by triggering a
+     * full refresh when counts don't match. However, if meetings move
+     * between statuses symmetrically (one Active->Planned, one Planned->Active),
+     * the count stays the same but caches may be stale. User-initiated changes
+     * clear the cache via invalidateMeetingsCache().
+     */
     get_meetings = async (
         from_index: number,
         limit: number | null,
         meeting_type: MeetingTypeQuery = "Active"
-    ) => {
-        const cacheKey = `meetings_${from_index}_${limit}_${meeting_type}`;
+    ): Promise<GetMeetingsResponseBody> => {
+        const isPwa = isPwaInstalled();
+
+        if (!isPwa) {
+            // Guest/browser mode: fetch paginated data directly from API
+            // No caching to minimize storage, load only what's needed
+            try {
+                return await this.fetchMeetings(meeting_type, from_index, limit);
+            } catch (error) {
+                // Try to return cached data if available (offline support)
+                const cached = this.getCachedMeetings(meeting_type);
+                if (cached) {
+                    const startIdx = from_index;
+                    const endIdx = limit === null ? undefined : from_index + limit;
+                    const paginatedMeetings = cached.meetings
+                        .filter(m => !m.deleted_at)
+                        .slice(startIdx, endIdx);
+
+                    console.warn("Using cached meetings (offline):", error);
+                    return {
+                        meetings: paginatedMeetings,
+                        selected_total_count: cached.total_count,
+                        last_updated: cached.last_updated as unknown as bigint | null
+                    };
+                }
+                throw error;
+            }
+        }
+
+        // PWA mode: cache all meetings and use delta sync
+        const cached = this.getCachedMeetings(meeting_type);
 
         try {
-            const url = `${this.qaEndpoint}/api/get_meetings/?i=${from_index}${
-                limit === null ? "" : "&l=" + limit
-            }&t=${meeting_type}`;
+            if (cached && cached.last_updated !== null) {
+                // Try delta sync - fetch only meetings changed since last sync
+                const deltaResponse = await this.fetchMeetings(
+                    meeting_type,
+                    undefined,
+                    undefined,
+                    cached.last_updated
+                );
 
-            const res = await fetch(url, {
-                credentials: "include"
-            });
+                let updatedCache: MeetingsCache;
 
-            if (!res.ok) {
-                throw new Error(`HTTP ${res.status}`);
-            }
-
-            const meetings: GetMeetingsResponseBody = await res.json();
-
-            // Cache the successful response
-            localStorage.setItem(
-                cacheKey,
-                JSON.stringify({
-                    data: meetings,
-                    timestamp: Date.now()
-                })
-            );
-
-            return meetings;
-        } catch (error) {
-            // Try to return cached data when offline or on error
-            const cached = localStorage.getItem(cacheKey);
-            if (cached) {
-                try {
-                    const { data } = JSON.parse(cached);
-                    console.warn("Using cached meetings data due to network error:", error);
-                    return data;
-                } catch (parseError) {
-                    console.error("Failed to parse cached meetings data:", parseError);
+                if (deltaResponse.meetings.length > 0) {
+                    // Merge updates into cache
+                    const serverLastUpdated = deltaResponse.last_updated !== null
+                        ? Number(deltaResponse.last_updated)
+                        : null;
+                    updatedCache = this.mergeDeltaUpdates(
+                        cached,
+                        deltaResponse.meetings,
+                        deltaResponse.selected_total_count,
+                        serverLastUpdated
+                    );
+                    this.setCachedMeetings(
+                        meeting_type,
+                        updatedCache.meetings,
+                        updatedCache.total_count,
+                        updatedCache.last_updated
+                    );
+                } else if (deltaResponse.selected_total_count !== cached.total_count) {
+                    // Count mismatch but no updates - something's wrong, do full refresh
+                    const fullResponse = await this.fetchMeetings(meeting_type);
+                    const fullLastUpdated = fullResponse.last_updated !== null
+                        ? Number(fullResponse.last_updated)
+                        : null;
+                    this.setCachedMeetings(
+                        meeting_type,
+                        fullResponse.meetings,
+                        fullResponse.selected_total_count,
+                        fullLastUpdated
+                    );
+                    updatedCache = {
+                        meetings: fullResponse.meetings,
+                        total_count: fullResponse.selected_total_count,
+                        last_updated: fullLastUpdated
+                    };
+                } else {
+                    // No changes, use existing cache
+                    updatedCache = cached;
                 }
-            }
 
-            // Re-throw the original error if no cache available
+                // Return paginated results from cache
+                const startIdx = from_index;
+                const endIdx = limit === null ? undefined : from_index + limit;
+                const paginatedMeetings = updatedCache.meetings
+                    .filter(m => !m.deleted_at)
+                    .slice(startIdx, endIdx);
+
+                return {
+                    meetings: paginatedMeetings,
+                    selected_total_count: updatedCache.total_count,
+                    last_updated: updatedCache.last_updated as unknown as bigint | null
+                };
+            } else {
+                // No cache or no last_updated - fetch all meetings
+                const response = await this.fetchMeetings(meeting_type);
+                const responseLastUpdated = response.last_updated !== null
+                    ? Number(response.last_updated)
+                    : null;
+                this.setCachedMeetings(
+                    meeting_type,
+                    response.meetings,
+                    response.selected_total_count,
+                    responseLastUpdated
+                );
+
+                // Return paginated results
+                const startIdx = from_index;
+                const endIdx = limit === null ? undefined : from_index + limit;
+                const paginatedMeetings = response.meetings
+                    .filter(m => !m.deleted_at)
+                    .slice(startIdx, endIdx);
+
+                return {
+                    meetings: paginatedMeetings,
+                    selected_total_count: response.selected_total_count,
+                    last_updated: response.last_updated
+                };
+            }
+        } catch (error) {
+            // Offline or error - use cache if available
+            if (cached) {
+                const startIdx = from_index;
+                const endIdx = limit === null ? undefined : from_index + limit;
+                const paginatedMeetings = cached.meetings
+                    .filter(m => !m.deleted_at)
+                    .slice(startIdx, endIdx);
+
+                console.warn("Using cached meetings (offline/error):", error);
+                return {
+                    meetings: paginatedMeetings,
+                    selected_total_count: cached.total_count,
+                    last_updated: cached.last_updated as unknown as bigint | null
+                };
+            }
             throw error;
         }
     };
@@ -124,6 +374,8 @@ export class QaClient {
             body: JSON.stringify({ meeting })
         });
         const updated_meeting: Meeting = await res.json();
+        // Invalidate cache since meeting data has changed
+        this.invalidateMeetingsCache();
         return updated_meeting;
     };
 
@@ -135,6 +387,10 @@ export class QaClient {
             body: JSON.stringify({ meeting, delete: true })
         });
         const success = res.status === 200;
+        if (success) {
+            // Invalidate cache since meeting data has changed
+            this.invalidateMeetingsCache();
+        }
         return success;
     };
 

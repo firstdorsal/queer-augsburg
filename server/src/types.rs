@@ -25,6 +25,8 @@ pub struct Meeting {
     pub status: MeetingStatus,
     pub changed: Option<Vec<ChangedMeeting>>,
     pub cancelled: Option<bool>,
+    /// Timestamp (ms) when the meeting was soft-deleted. None means not deleted.
+    pub deleted_at: Option<i64>,
 }
 
 #[derive(TS, ToSchema)]
@@ -250,7 +252,10 @@ pub struct UpdateMeetingRequestBody {
 pub struct GetMeetingsResponseBody {
     pub meetings: Vec<Meeting>,
     pub selected_total_count: u32,
+    /// Timestamp (ms) of the most recent meeting update across all meetings of this type
+    pub last_updated: Option<i64>,
 }
+
 
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
@@ -375,6 +380,8 @@ pub struct GetMeetingsQuery {
     pub l: Option<i64>,
     /// From index (pagination offset)
     pub i: Option<i64>,
+    /// Only return meetings updated/deleted since this timestamp (ms). Used for delta sync.
+    pub since: Option<i64>,
 }
 
 /// Query parameters for get_users endpoint

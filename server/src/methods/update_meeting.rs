@@ -32,7 +32,12 @@ pub async fn update_meeting(
 
     match body.delete {
         Some(true) => {
-            if let Err(e) = state.db.delete_meeting(&body.meeting._id).await {
+            let db_auth = crate::interossea::Auth {
+                authenticated_user: auth.authenticated_user.clone(),
+                token: auth.token.clone(),
+                user_assertion: auth.user_assertion.clone(),
+            };
+            if let Err(e) = state.db.delete_meeting(&body.meeting._id, &db_auth).await {
                 return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
             }
             (StatusCode::OK, "Ok").into_response()

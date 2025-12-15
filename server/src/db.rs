@@ -35,44 +35,96 @@ impl DB {
         Ok(())
     }
 
+    /// Get meetings by type.
+    /// - `since`: If provided, returns only meetings updated/deleted since this timestamp (for delta sync)
+    /// - `include_deleted`: If true, includes soft-deleted meetings in results
     pub async fn get_meetings(
         &self,
-
         meeting_type: MeetingTypeQuery,
+        since: Option<i64>,
+        include_deleted: bool,
     ) -> anyhow::Result<(Vec<Meeting>, u32)> {
         let collection = self.db.collection::<Meeting>("meetings");
         let find_options = FindOptions::builder().sort(doc! {"time": -1}).build();
 
-        let filter = match meeting_type {
-            MeetingTypeQuery::Planned => {
-                doc! {
-                    "status": "Planned"
-                }
+        let status_str = match meeting_type {
+            MeetingTypeQuery::Planned => "Planned",
+            MeetingTypeQuery::Active => "Active",
+        };
+
+        // Build the filter
+        // Note: In MongoDB, { "field": null } matches documents where field is null OR doesn't exist
+        let filter = if let Some(since_ts) = since {
+            // Delta sync: return meetings changed or deleted since timestamp
+            // This includes soft-deleted meetings so clients can remove them from cache
+            doc! {
+                "status": status_str,
+                "$or": [
+                    { "changed": { "$elemMatch": { "at": { "$gt": since_ts } } } },
+                    { "deleted_at": { "$gt": since_ts } }
+                ]
             }
-            MeetingTypeQuery::Active => {
-                doc! {
-                    "status": "Active"
-                }
+        } else if include_deleted {
+            // Include all meetings (including deleted)
+            doc! {
+                "status": status_str
             }
+        } else {
+            // Normal query: exclude deleted meetings
+            // { "deleted_at": null } matches both null values AND missing fields
+            doc! {
+                "status": status_str,
+                "deleted_at": null
+            }
+        };
+
+        // For count, we always count non-deleted meetings only
+        let count_filter = doc! {
+            "status": status_str,
+            "deleted_at": null
         };
 
         let (meetings, count) = (
             collection
-                .find(filter.clone(), find_options)
+                .find(filter, find_options)
                 .await?
                 .try_collect::<Vec<_>>()
                 .await?,
-            collection.count_documents(filter, None).await?,
+            collection.count_documents(count_filter, None).await?,
         );
 
         Ok((meetings, count as u32))
     }
 
-    pub async fn delete_meeting(&self, meeting_id: &str) -> anyhow::Result<()> {
+    /// Soft-delete a meeting by setting deleted_at timestamp and recording who deleted it
+    pub async fn delete_meeting(&self, meeting_id: &str, auth: &Auth) -> anyhow::Result<()> {
         let collection = self.db.collection::<Meeting>("meetings");
-        collection
-            .delete_one(doc! { "_id": meeting_id }, None)
+        let now = chrono::Utc::now().timestamp_millis();
+        let deleted_by = auth
+            .authenticated_user
+            .clone()
+            .unwrap_or_else(|| "unknown".to_string());
+
+        // Add change record and set deleted_at in one operation
+        let result = collection
+            .update_one(
+                doc! { "_id": meeting_id },
+                doc! {
+                    "$set": { "deleted_at": now },
+                    "$push": {
+                        "changed": {
+                            "at": now,
+                            "by": deleted_by
+                        }
+                    }
+                },
+                None,
+            )
             .await?;
+
+        if result.matched_count == 0 {
+            bail!("Meeting not found");
+        }
         Ok(())
     }
 

@@ -34,7 +34,8 @@ export const defaultMeeting: Meeting = {
     status: "Active",
     accessibility: null,
     cancelled: false,
-    changed: null
+    changed: null,
+    deleted_at: null
 };
 
 export const prefersDarkMode = () => {

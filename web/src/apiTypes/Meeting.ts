@@ -4,4 +4,4 @@ import type { MeetingLocation } from "./MeetingLocation";
 import type { MeetingStatus } from "./MeetingStatus";
 import type { MeetingTags } from "./MeetingTags";
 
-export interface Meeting { _id: string, title: string, authority: string, age_restriction: Array<number>, time: bigint | null, location: MeetingLocation, description: string, price: Array<number>, trigger_warning: string | null, attendance: number | null, rating: number | null, accessibility: string | null, tags: MeetingTags, status: MeetingStatus, changed: Array<ChangedMeeting> | null, cancelled: boolean | null, }
+export interface Meeting { _id: string, title: string, authority: string, age_restriction: Array<number>, time: bigint | null, location: MeetingLocation, description: string, price: Array<number>, trigger_warning: string | null, attendance: number | null, rating: number | null, accessibility: string | null, tags: MeetingTags, status: MeetingStatus, changed: Array<ChangedMeeting> | null, cancelled: boolean | null, deleted_at: bigint | null, }

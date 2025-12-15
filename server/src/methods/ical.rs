@@ -26,12 +26,12 @@ pub async fn ical_feed(
         .name("Queer Augsburg")
         .timezone("Europe/Berlin")
         .description(
-            "Kalender mit allen Veranstaltungen von Queer Augsburg e.V. (https://queer-augsburg.de)",
-        );
+        "Kalender mit allen Veranstaltungen von Queer Augsburg e.V. (https://queer-augsburg.de)",
+    );
 
     let meetings = match state
         .db
-        .get_meetings(crate::types::MeetingTypeQuery::Active)
+        .get_meetings(crate::types::MeetingTypeQuery::Active, None, false)
         .await
     {
         Ok((meetings, _)) => meetings,
