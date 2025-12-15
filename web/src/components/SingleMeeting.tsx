@@ -370,13 +370,15 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                         </>
                     )}
                 </div>
-                <EditMeeting
-                    reloadMeetingList={this.props.reloadMeetingList}
-                    changEditing={this.changeEditing}
-                    editing={this.state.editing}
-                    g={this.props.g}
-                    meeting={this.props.meeting}
-                ></EditMeeting>
+                {this.props.g.account?.capabilities?.includes("UpdateMeetings") && (
+                    <EditMeeting
+                        reloadMeetingList={this.props.reloadMeetingList}
+                        changEditing={this.changeEditing}
+                        editing={this.state.editing}
+                        g={this.props.g}
+                        meeting={this.props.meeting}
+                    />
+                )}
             </div>
         );
     };

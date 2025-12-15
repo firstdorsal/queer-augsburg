@@ -167,13 +167,9 @@ export const commonPlaces: Place[] = [
 
 export const fetchPlacesFromPastMeetings = async (qaClient: QaClient): Promise<Place[]> => {
     try {
+        // Only fetch Active meetings - Planned meetings are future events without location history
         const allMeetingsResponse = await qaClient.get_meetings(0, null, "Active");
-        const activeMeetings = allMeetingsResponse.meetings;
-
-        const plannedMeetingsResponse = await qaClient.get_meetings(0, null, "Planned");
-        const plannedMeetings = plannedMeetingsResponse.meetings;
-
-        const allMeetings = [...activeMeetings, ...plannedMeetings];
+        const allMeetings = allMeetingsResponse.meetings;
 
         const placesMap = new Map<string, Place>();
 
