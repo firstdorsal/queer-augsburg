@@ -130,9 +130,27 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
         }
     };
 
-    reloadMeetingList = async () => {
-        const res = await this.props.qaClient.get_meetings(0, null, this.props.type);
-        this.setState({ meetings: res.meetings, meetingCount: res.selected_total_count });
+    reloadMeetingList = async (updatedMeeting?: Meeting, deleted?: boolean) => {
+        if (updatedMeeting) {
+            // Update or remove a single meeting in place
+            this.setState(state => {
+                if (deleted) {
+                    // Remove the deleted meeting
+                    const meetings = state.meetings.filter(m => m._id !== updatedMeeting._id);
+                    return { meetings, meetingCount: state.meetingCount - 1 };
+                } else {
+                    // Update the meeting in place
+                    const meetings = state.meetings.map(m =>
+                        m._id === updatedMeeting._id ? updatedMeeting : m
+                    );
+                    return { meetings };
+                }
+            });
+        } else {
+            // Full refresh (fallback)
+            const res = await this.props.qaClient.get_meetings(0, null, this.props.type);
+            this.setState({ meetings: res.meetings, meetingCount: res.selected_total_count });
+        }
     };
 
     getItemHeight = (index: number) => {

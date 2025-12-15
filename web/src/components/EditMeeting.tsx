@@ -77,9 +77,9 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
     updateMeeting = async () => {
         if (!this.props.g.qaClient) return;
 
-        const success = await this.props.g.qaClient.update_meeting(this.state.editingMeeting);
-        if (success) {
-            await this.props.reloadMeetingList();
+        const updatedMeeting = await this.props.g.qaClient.update_meeting(this.state.editingMeeting);
+        if (updatedMeeting) {
+            await this.props.reloadMeetingList(updatedMeeting);
             this.props.changEditing(false);
             this.props.toaster.push(
                 <Message showIcon type={"success"} closable>
@@ -107,9 +107,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
         if (!this.props.g.qaClient) return;
         const success = await this.props.g.qaClient.delete_meeting(this.state.editingMeeting);
         if (success) {
-            await this.props.reloadMeetingList();
+            await this.props.reloadMeetingList(this.state.editingMeeting, true);
             this.props.changEditing(false);
-            this.props;
             this.props.toaster.push(
                 <Message showIcon type={"success"} closable>
                     Treffen erfolgreich gelöscht!
