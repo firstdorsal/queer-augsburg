@@ -1,7 +1,6 @@
-{{- $config :=  yamlFile "../../config.yml" -}}
-{{- $interosseaWebHostname := joindomain $config.interossea.web.publicHostname.subdomain (ternary "localhost" $config.interossea.web.publicHostname.domain (eq $config.routing "local")) -}}
-{{- $interosseaServerHostname := joindomain $config.interossea.server.publicHostname.subdomain (ternary "localhost" $config.interossea.server.publicHostname.domain (eq $config.routing "local")) -}}
-{{- $qaWebHostname := joindomain $config.qa.web.publicHostname.subdomain (ternary "localhost" $config.qa.web.publicHostname.domain (eq $config.routing "local")) -}}
+{{- $interosseaWebHostname := mowsJoinDomain $config.interossea.web.publicHostname.subdomain (ternary "localhost" $config.interossea.web.publicHostname.domain (eq $config.routing "local")) -}}
+{{- $interosseaServerHostname := mowsJoinDomain $config.interossea.server.publicHostname.subdomain (ternary "localhost" $config.interossea.server.publicHostname.domain (eq $config.routing "local")) -}}
+{{- $qaWebHostname := mowsJoinDomain $config.qa.web.publicHostname.subdomain (ternary "localhost" $config.qa.web.publicHostname.domain (eq $config.routing "local")) -}}
 variablePrefix: "$"
 
 allowNewUsers: {{ $config.interossea.server.allowNewUsers}}

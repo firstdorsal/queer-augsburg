@@ -1,14 +1,12 @@
-{{- $config :=  yamlFile "../config.yml" -}}
+{{- $interosseaServerHostname := mowsJoinDomain $config.interossea.server.publicHostname.subdomain (ternary "localhost" $config.interossea.server.publicHostname.domain (eq $config.routing "local")) -}}
 
-{{- $interosseaServerHostname := joindomain $config.interossea.server.publicHostname.subdomain (ternary "localhost" $config.interossea.server.publicHostname.domain (eq $config.routing "local")) -}}
+{{- $interosseaWebHostname := mowsJoinDomain $config.interossea.web.publicHostname.subdomain (ternary "localhost" $config.interossea.web.publicHostname.domain (eq $config.routing "local")) -}}
 
-{{- $interosseaWebHostname := joindomain $config.interossea.web.publicHostname.subdomain (ternary "localhost" $config.interossea.web.publicHostname.domain (eq $config.routing "local")) -}}
+{{- $qaWebHostname := mowsJoinDomain $config.qa.web.publicHostname.subdomain (ternary "localhost" $config.qa.web.publicHostname.domain (eq $config.routing "local")) -}}
 
-{{- $qaWebHostname := joindomain $config.qa.web.publicHostname.subdomain (ternary "localhost" $config.qa.web.publicHostname.domain (eq $config.routing "local")) -}}
+{{- $qaServerHostname := mowsJoinDomain $config.qa.server.publicHostname.subdomain (ternary "localhost" $config.qa.server.publicHostname.domain (eq $config.routing "local")) -}}
 
-{{- $qaServerHostname := joindomain $config.qa.server.publicHostname.subdomain (ternary "localhost" $config.qa.server.publicHostname.domain (eq $config.routing "local")) -}}
-
-{{- $matterMostHostname := joindomain $config.internal.mattermost.subdomain (ternary "localhost" $config.internal.mattermost.domain (eq $config.routing "local")) -}}
+{{- $matterMostHostname := mowsJoinDomain $config.internal.mattermost.subdomain (ternary "localhost" $config.internal.mattermost.domain (eq $config.routing "local")) -}}
 
 version: "3.9"
 

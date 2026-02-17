@@ -10,6 +10,7 @@ interface ImageProps {
     alt: string;
     readonly style?: CSSProperties;
 }
+
 interface ImageState {}
 export default class Image extends Component<ImageProps, ImageState> {
     render = () => {

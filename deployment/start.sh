@@ -1,20 +1,24 @@
 #!/bin/bash
 
-mkdir results > /dev/null 2>&1
-set -e
+set -euo pipefail
 
-mozart render-dir templates/config/ -o results/config/
+export RUST_LOG=trace
 
-mozart yaml-to-json results/config/qa-web-ui.yml -o results/config/qa-web-ui.json
+mkdir results > /dev/null 2>&1 || true
+
+
+mpm template -i templates/config/ -o results/config/ --variable config:config.yml
+
+mpm tools yaml-to-json -i results/config/qa-web-ui.yml -o results/config/qa-web-ui.json
 rm -rf results/config/qa-web-ui.yml
 
-mozart yaml-to-json results/config/interossea-web-ui.yml -o results/config/interossea-web-ui.json
+mpm tools yaml-to-json -i results/config/interossea-web-ui.yml -o results/config/interossea-web-ui.json
 rm -rf results/config/interossea-web-ui.yml
 
-mozart render templates/docker-compose.yml -o results/docker-compose.yml
-mozart labels-to-compose results/docker-compose.yml -o results/docker-compose.yml
+mpm template -i templates/docker-compose.yml -o results/docker-compose.yml --variable config:config.yml
+mpm tools flatten-object -i results/docker-compose.yml -o results/docker-compose.yml
 
-mozart render templates/admin.yml -o results/admin.yml
+mpm template -i templates/admin.yml -o results/admin.yml --variable config:config.yml --variable secrets:./results/.env
 
 cp -r templates/email-templates results/
 cp -r templates/data results/

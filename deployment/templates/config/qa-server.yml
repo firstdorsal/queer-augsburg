@@ -1,5 +1,4 @@
-{{- $config :=  yamlFile "../../config.yml" -}}
-{{- $qaWebHostname := joindomain $config.qa.web.publicHostname.subdomain (ternary "localhost" $config.qa.web.publicHostname.domain (eq $config.routing "local")) -}}
+{{- $qaWebHostname := mowsJoinDomain $config.qa.web.publicHostname.subdomain (ternary "localhost" $config.qa.web.publicHostname.domain (eq $config.routing "local")) -}}
 variablePrefix: "$"
 http:
     internalAddress: "[::]:80"
