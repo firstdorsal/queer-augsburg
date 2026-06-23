@@ -11,6 +11,8 @@ export default defineConfig({
         minify: "terser"
     },
     server: {
+        port: 20210,
+        strictPort: true,
         proxy: {
             "/api": {
                 target: "https://api.queer-augsburg.de",
