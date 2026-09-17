@@ -421,6 +421,11 @@ networks:
         name: qa-db
     {{ $config.reverseProxy.network }}:
         name: {{ $config.reverseProxy.network }}
+        {{- if eq $config.reverseProxy.create false }}
+        # The reverse proxy network is owned by the proxy's own compose project;
+        # without `external` newer compose versions try to recreate it on every `up`.
+        external: true
+        {{- end }}
     qa-interossea-server:
         name: qa-interossea-server
     {{- if eq $config.internal.mattermost.enabled true }}
