@@ -282,7 +282,7 @@ export default class Wir extends Component<WirProps, WirState> {
                         </span>
                     </li>
                     <li className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1 border-b border-[var(--background-color-2)] py-2.5">
-                        <strong>Benji Kalide</strong>
+                        <strong>Benji</strong>
                         <span className="text-sm opacity-60">er/ihm</span>
                         <span className="ml-auto text-right text-sm opacity-80">Marketing</span>
                     </li>
