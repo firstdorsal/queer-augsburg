@@ -397,8 +397,8 @@ export default class Wir extends Component<WirProps, WirState> {
                     <img
                         src={vorstandBild.src}
                         loading="lazy"
-                        alt="Drei Personen die Lächeln, eine hält die Satzung von Queer Augsburg in der Hand. Aufgenommen bei der Gründungsversammlung 2023."
-                        className="aspect-square w-full rounded-2xl object-cover object-center md:w-1/3 md:max-w-[360px]"
+                        alt="Die drei Vorstandsmitglieder stehen nebeneinander auf einer kleinen Bühne und halten Progress-Pride- und Trans-Flaggen in den Händen."
+                        className="aspect-square w-full rounded-2xl object-cover object-top md:w-1/3 md:max-w-[360px]"
                     />
                     <div className="md:flex-1">
                         <p className="mb-4 max-w-[600px]">
