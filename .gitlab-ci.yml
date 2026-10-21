@@ -1,7 +1,34 @@
 image: docker:latest
 
 stages:
+    - test
     - docker-build
+# v1 tests run before the image builds; a failing test stops the pipeline before any
+# image is pushed. The shared validation fixture lives in server/, so the web job needs
+# the full checkout (not just web/).
+test-server:
+    stage: test
+    image: rust:1
+    rules:
+        - changes:
+            - server/**/*
+    script:
+        - cd server
+        - cargo test --locked
+
+test-web:
+    stage: test
+    image: node:24-alpine
+    rules:
+        - changes:
+            - web/**/*
+            - server/src/meeting_validation_cases.json
+    script:
+        - cd web
+        - corepack enable pnpm
+        - pnpm install --frozen-lockfile
+        - pnpm test
+
 docker-build-server:
     stage: docker-build
     image:

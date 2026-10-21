@@ -1,5 +1,9 @@
 import { InterosseaClient } from "@firstdorsal/interossea-client";
 import { ConfirmSendEmailResponseBody } from "./apiTypes/ConfirmSendEmailResponseBody";
+import type { CreateMeetingsErrorBody } from "./apiTypes/CreateMeetingsErrorBody";
+import type { CreateMeetingsRequestBody } from "./apiTypes/CreateMeetingsRequestBody";
+import type { CreateMeetingsResponseBody } from "./apiTypes/CreateMeetingsResponseBody";
+import type { NewMeeting } from "./apiTypes/NewMeeting";
 import { EmailAttachment } from "./apiTypes/EmailAttachment";
 import { GetMeetingsResponseBody } from "./apiTypes/GetMeetingsResponseBody";
 import { GetUsersResponseBody } from "./apiTypes/GetUsersResponseBody";
@@ -27,6 +31,18 @@ function isPwaInstalled(): boolean {
         document.referrer.includes("android-app://")
     );
 }
+
+export type CreateMeetingsResult =
+    | { readonly ok: true; readonly meetings: Meeting[] }
+    | {
+          readonly ok: false;
+          /** rejected/failed: nothing was created. unknown: some meetings may exist. */
+          readonly kind: "rejected" | "failed" | "unknown";
+          /** Zero-based index of the offending meeting, if the server named one. */
+          readonly index: number | null;
+          /** German text for the member. */
+          readonly message: string;
+      };
 
 export class QaClient {
     interosseaClient: InterosseaClient;
@@ -377,6 +393,78 @@ export class QaClient {
         // Invalidate cache since meeting data has changed
         this.invalidateMeetingsCache();
         return updated_meeting;
+    };
+
+    /**
+     * Creates meetings in one batch. `rejected` and `failed` guarantee that nothing was
+     * created; after `unknown` some meetings may exist, so the list must be checked.
+     */
+    create_meetings = async (meetings: NewMeeting[]): Promise<CreateMeetingsResult> => {
+        const body: CreateMeetingsRequestBody = { meetings };
+        let res: Response;
+        try {
+            res = await fetch(`${this.qaEndpoint}/api/create_meetings/`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+        } catch (error) {
+            console.error("create_meetings request failed:", error);
+            return {
+                ok: false,
+                kind: "unknown",
+                index: null,
+                message:
+                    "Keine Antwort vom Server. Es ist unklar, ob die Treffen angelegt wurden, bitte die Liste prüfen."
+            };
+        }
+        // Any write may have happened from here on, so the cache must go even on errors.
+        this.invalidateMeetingsCache();
+
+        if (res.ok) {
+            try {
+                const created: CreateMeetingsResponseBody = await res.json();
+                return { ok: true, meetings: created.meetings };
+            } catch (error) {
+                console.error("create_meetings returned an unreadable body:", error);
+                return {
+                    ok: false,
+                    kind: "unknown",
+                    index: null,
+                    message: "Unerwartete Antwort vom Server, bitte die Liste prüfen."
+                };
+            }
+        }
+
+        if (res.status === 401 || res.status === 403 || res.status === 404) {
+            return {
+                ok: false,
+                kind: "rejected",
+                index: null,
+                message: "Keine Berechtigung, Treffen anzulegen. Bitte neu anmelden."
+            };
+        }
+        const errorBody = await res
+            .json()
+            .then((value: CreateMeetingsErrorBody) => value)
+            .catch(() => null);
+        if (errorBody === null) {
+            // E.g. a proxy error page: the request may or may not have reached the server.
+            return {
+                ok: false,
+                kind: "unknown",
+                index: null,
+                message: `Serverfehler (HTTP ${res.status}). Es ist unklar, ob die Treffen angelegt wurden, bitte die Liste prüfen.`
+            };
+        }
+        const kind =
+            errorBody.code === "PartiallyCreated"
+                ? "unknown"
+                : errorBody.code === "Internal"
+                  ? "failed"
+                  : "rejected";
+        return { ok: false, kind, index: errorBody.index, message: errorBody.message };
     };
 
     delete_meeting = async (meeting: Meeting) => {

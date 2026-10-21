@@ -8,6 +8,8 @@ interface LocationPickerProps {
     onLocationSelect: (lat: number, lon: number) => void;
     show: boolean;
     onClose: () => void;
+    /** Pre-fills the search field, e.g. with a place name that is not known yet. */
+    initialSearchQuery?: string;
 }
 
 interface LocationPickerState {
@@ -41,7 +43,7 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
             marker: null,
             leafletLoaded: false,
             cssLoaded: false,
-            searchQuery: "",
+            searchQuery: props.initialSearchQuery ?? "",
             searchResults: [],
             isSearching: false
         };

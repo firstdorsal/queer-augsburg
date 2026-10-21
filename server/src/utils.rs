@@ -94,6 +94,23 @@ pub async fn send_mail_with_attachments(
     Ok(())
 }
 
+/// `count` distinct ids from `generate` that are not in `taken`.
+pub fn fresh_ids(
+    count: usize,
+    taken: &std::collections::HashSet<String>,
+    mut generate: impl FnMut() -> String,
+) -> Vec<String> {
+    let mut ids = std::collections::HashSet::new();
+    let mut ordered = Vec::with_capacity(count);
+    while ordered.len() < count {
+        let id = generate();
+        if !taken.contains(&id) && ids.insert(id.clone()) {
+            ordered.push(id);
+        }
+    }
+    ordered
+}
+
 pub fn generate_id(len: usize) -> String {
     use rand::Rng;
     const CHARSET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
@@ -131,4 +148,25 @@ pub fn is_allowed_service_id(service_id_to_test: &str) -> anyhow::Result<()> {
         );
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashSet;
+
+    #[test]
+    fn fresh_ids_skips_taken_and_duplicate_ids() {
+        let mut sequence = ["a", "b", "a", "c", "d"].into_iter().map(str::to_string);
+        let taken = HashSet::from(["b".to_string()]);
+        let ids = fresh_ids(3, &taken, || sequence.next().unwrap());
+        assert_eq!(ids, ["a", "c", "d"]);
+    }
+
+    #[test]
+    fn fresh_ids_with_real_generator_are_distinct() {
+        let ids = fresh_ids(50, &HashSet::new(), || generate_id(5));
+        assert_eq!(ids.iter().collect::<HashSet<_>>().len(), 50);
+        assert!(ids.iter().all(|id| id.len() == 5));
+    }
 }

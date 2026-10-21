@@ -1,13 +1,27 @@
 use crate::interossea::Auth;
 use crate::types::{
     ChangedMeeting, EmailDraft, InternalMember, Meeting, MeetingTypeQuery, MembershipStatus,
-    SentEmailLog, SubmittedMember, User,
+    NewMeeting, SentEmailLog, SubmittedMember, User,
 };
-use crate::utils::generate_id;
+use crate::utils::{fresh_ids, generate_id};
 use anyhow::bail;
 use futures::stream::TryStreamExt;
 use mongodb::options::{FindOneAndUpdateOptions, FindOptions, ReturnDocument};
 use mongodb::{bson::doc, options::ClientOptions, Client, Database};
+use std::collections::HashSet;
+
+#[derive(Debug, thiserror::Error)]
+pub enum CreateMeetingsError {
+    #[error("looking up existing meeting ids failed: {0}")]
+    IdLookup(#[source] Box<mongodb::error::Error>),
+    #[error("inserting meetings failed and was rolled back: {0}")]
+    RolledBack(#[source] Box<mongodb::error::Error>),
+    #[error("inserting meetings failed ({insert}) and the rollback failed too ({rollback})")]
+    RollbackFailed {
+        insert: Box<mongodb::error::Error>,
+        rollback: Box<mongodb::error::Error>,
+    },
+}
 
 pub struct DB {
     pub client: Client,
@@ -170,6 +184,66 @@ impl DB {
         };
 
         Ok(())
+    }
+
+    /// Inserts new meetings with server-assigned ids and change history. Callers
+    /// must validate the meetings first (see `meeting_validation`).
+    ///
+    /// MongoDB here is a standalone server, so there are no transactions: a failed
+    /// insert is compensated by deleting the ids of this batch again.
+    pub async fn create_meetings(
+        &self,
+        new_meetings: Vec<NewMeeting>,
+        created_by: &str,
+    ) -> Result<Vec<Meeting>, CreateMeetingsError> {
+        let collection = self.db.collection::<Meeting>("meetings");
+        let ids = self.unused_meeting_ids(new_meetings.len()).await?;
+        let created = ChangedMeeting {
+            by: created_by.to_string(),
+            at: chrono::Utc::now().timestamp_millis(),
+        };
+        let meetings: Vec<Meeting> = new_meetings
+            .into_iter()
+            .zip(ids.iter().cloned())
+            .map(|(new_meeting, id)| new_meeting.into_meeting(id, created.clone()))
+            .collect();
+
+        if let Err(insert) = collection.insert_many(&meetings, None).await {
+            return match collection
+                .delete_many(doc! { "_id": { "$in": &ids } }, None)
+                .await
+            {
+                Ok(_) => Err(CreateMeetingsError::RolledBack(Box::new(insert))),
+                Err(rollback) => Err(CreateMeetingsError::RollbackFailed {
+                    insert: Box::new(insert),
+                    rollback: Box::new(rollback),
+                }),
+            };
+        }
+
+        Ok(meetings)
+    }
+
+    /// `count` distinct meeting ids that no stored meeting uses yet.
+    async fn unused_meeting_ids(&self, count: usize) -> Result<Vec<String>, CreateMeetingsError> {
+        let collection = self.db.collection::<Meeting>("meetings");
+        let mut taken = HashSet::new();
+        // Collisions in a 64^5 id space are rare, so this almost always runs once.
+        loop {
+            let ids = fresh_ids(count, &taken, || generate_id(5));
+            let existing = collection
+                .distinct("_id", doc! { "_id": { "$in": &ids } }, None)
+                .await
+                .map_err(|e| CreateMeetingsError::IdLookup(Box::new(e)))?;
+            if existing.is_empty() {
+                return Ok(ids);
+            }
+            taken.extend(
+                existing
+                    .into_iter()
+                    .filter_map(|id| id.as_str().map(str::to_string)),
+            );
+        }
     }
 
     pub async fn insert_old_meetings(&self, meetings: Vec<Meeting>) -> anyhow::Result<()> {

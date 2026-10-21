@@ -46,7 +46,9 @@ pub async fn ical_feed(
             let time_end = time_start + chrono::Duration::hours(1);
             let location_string = format!(
                 "{}: {},{}",
-                meeting.location.name, meeting.location.lat, meeting.location.lon
+                ical_line(&meeting.location.name),
+                meeting.location.lat,
+                meeting.location.lon
             );
 
             let categories_string = meeting
@@ -66,7 +68,7 @@ pub async fn ical_feed(
                     })
                     .append_property(
                         Property::new("ORGANIZER", "mailto:mail@queer-augsburg.de")
-                            .add_parameter("CN", &meeting.authority),
+                            .add_parameter("CN", &ical_parameter(&meeting.authority)),
                     )
                     .append_property(Property::new("CATEGORIES", categories_string))
                     .append_property(Property::new(
@@ -79,9 +81,9 @@ pub async fn ical_feed(
                     ))
                     .append_property(Property::new("REFRESH-INTERVAL", "PT1H"))
                     .append_property(Property::new("X-PUBLISHED-TTL", "PT1H"))
-                    .summary(&meeting.title)
+                    .summary(&ical_line(&meeting.title))
                     .location(&location_string)
-                    .description(&meeting.description)
+                    .description(&ical_multiline(&meeting.description))
                     .starts(time_start)
                     .ends(time_end),
             );
@@ -102,4 +104,41 @@ pub async fn ical_feed(
         calendar_string,
     )
         .into_response()
+}
+
+// icalendar escapes `\n` in text values but neither bare `\r` nor parameter values,
+// so stored text could otherwise inject extra lines/properties into the public feed.
+
+/// Single-line text value: control characters become spaces.
+fn ical_line(value: &str) -> String {
+    value
+        .chars()
+        .map(|c| if c.is_control() { ' ' } else { c })
+        .collect()
+}
+
+/// Multi-line text value: keeps `\n` (escaped by icalendar), drops other control characters.
+fn ical_multiline(value: &str) -> String {
+    value
+        .replace("\r\n", "\n")
+        .chars()
+        .filter(|c| *c == '\n' || !c.is_control())
+        .collect()
+}
+
+/// Parameter value (RFC 5545 3.1: no control characters and no DQUOTE).
+fn ical_parameter(value: &str) -> String {
+    ical_line(value).replace('"', "'")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ical_text_cannot_break_out_of_its_line() {
+        assert_eq!(ical_line("A\r\nATTACH:x"), "A  ATTACH:x");
+        assert_eq!(ical_multiline("a\r\nb\rc\u{7}"), "a\nbc");
+        assert_eq!(ical_parameter("Paul\"\r\nATTACH:x"), "Paul'  ATTACH:x");
+    }
 }

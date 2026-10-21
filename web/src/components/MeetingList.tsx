@@ -9,6 +9,7 @@ import { CSSProperties, Ref } from "preact/compat";
 import { G } from "../types";
 import { MeetingTypeQuery } from "../apiTypes/MeetingTypeQuery";
 import { Button } from "rsuite";
+import BulkImportMeetings from "./BulkImportMeetings";
 import EditMeeting from "./EditMeeting";
 import { defaultMeeting } from "../utils";
 import update from "immutability-helper";
@@ -26,6 +27,7 @@ interface MeetingListState {
     readonly meetingsStyle: MeetingStyle[];
     readonly meetingCount: number;
     readonly newMeeting: boolean;
+    readonly bulkImport: boolean;
 }
 export default class MeetingList extends Component<MeetingListProps, MeetingListState> {
     moreLoading = false;
@@ -37,6 +39,7 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
             meetings: [],
             meetingCount: 0,
             newMeeting: false,
+            bulkImport: false,
             meetingsStyle: []
         };
     }
@@ -194,6 +197,24 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
                         >
                             Neues Treffen
                         </Button>
+                        <Button
+                            appearance="primary"
+                            onClick={() => {
+                                this.setState({ bulkImport: true });
+                            }}
+                        >
+                            Mehrere Treffen (JSON)
+                        </Button>
+                        {this.state.bulkImport && (
+                            <BulkImportMeetings
+                                g={this.props.g}
+                                status={this.props.type}
+                                onClose={() => {
+                                    this.setState({ bulkImport: false });
+                                }}
+                                onCreated={() => this.reloadMeetingList()}
+                            />
+                        )}
                         {this.state.newMeeting && (
                             <EditMeeting
                                 g={this.props.g}

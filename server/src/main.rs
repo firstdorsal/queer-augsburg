@@ -1,5 +1,5 @@
 use axum::{
-    extract::ConnectInfo,
+    extract::{ConnectInfo, DefaultBodyLimit},
     http::{header, Method, StatusCode},
     response::{Html, IntoResponse},
     routing::{get, post},
@@ -8,8 +8,10 @@ use axum::{
 use backend::config::SERVER_CONFIG;
 use backend::db::DB;
 use backend::interossea::{Interossea, UserAssertion, INTEROSSEA};
+use backend::meeting_validation::MAX_BATCH_BODY_BYTES;
 use backend::methods::admin_create_member::admin_create_member;
 use backend::methods::confirm_send_email::confirm_send_email;
+use backend::methods::create_meetings::create_meetings;
 use backend::methods::create_own_user::create_own_user;
 use backend::methods::get_meetings::get_meetings;
 use backend::methods::get_own_user::get_own_user;
@@ -36,6 +38,7 @@ use utoipa_scalar::{Scalar, Servable};
         backend::methods::ical::ical_feed,
         backend::methods::get_users::get_users,
         backend::methods::update_meeting::update_meeting,
+        backend::methods::create_meetings::create_meetings,
         backend::methods::get_own_user::get_own_user,
         backend::methods::create_own_user::create_own_user,
         backend::methods::admin_create_member::admin_create_member,
@@ -62,6 +65,11 @@ use utoipa_scalar::{Scalar, Servable};
         backend::types::Name,
         backend::types::Address,
         backend::types::UpdateMeetingRequestBody,
+        backend::types::NewMeeting,
+        backend::types::CreateMeetingsRequestBody,
+        backend::types::CreateMeetingsErrorBody,
+        backend::types::CreateMeetingsErrorCode,
+        backend::types::CreateMeetingsResponseBody,
         backend::types::GetMeetingsResponseBody,
         backend::types::GetUsersResponseBody,
         backend::types::MeetingTypeQuery,
@@ -129,6 +137,10 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .route("/ical_feed/", get(ical_feed))
         .route("/get_users/", get(get_users))
         .route("/update_meeting/", post(update_meeting))
+        .route(
+            "/create_meetings/",
+            post(create_meetings).layer(DefaultBodyLimit::max(MAX_BATCH_BODY_BYTES)),
+        )
         .route("/get_own_user/", get(get_own_user))
         .route("/create_own_user/", post(create_own_user))
         .route("/admin_create_member/", post(admin_create_member))

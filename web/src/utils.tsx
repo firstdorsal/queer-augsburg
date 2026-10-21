@@ -1,6 +1,8 @@
 import { useToaster } from "rsuite";
 import { Meeting } from "./apiTypes/Meeting";
-import { QaClient } from "./api";
+import type { QaClient } from "./api";
+import { normalizePlaceName } from "./bulkImport";
+import { defaultMeetingContent } from "./meetingDefaults";
 
 export const withToasterHook = (Component: any) => {
     return (props: any) => {
@@ -19,20 +21,14 @@ export const getUtcTimeStampNow = () => {
 };
 
 export const defaultMeeting: Meeting = {
+    ...defaultMeetingContent(),
     _id: "",
     title: "",
-    description: "",
     time: getUtcTimeStampNow() as unknown as bigint,
     attendance: null,
-    authority: "",
-    age_restriction: [0],
     location: { name: "", lat: 0, lon: 0 },
-    price: [0],
-    trigger_warning: null,
     rating: null,
-    tags: { freeform: [], common: [], queer: ["Everyone"] },
     status: "Active",
-    accessibility: null,
     cancelled: false,
     changed: null,
     deleted_at: null
@@ -192,7 +188,7 @@ export const fetchPlacesFromPastMeetings = async (qaClient: QaClient): Promise<P
             allMeetings.forEach(meeting => {
                 const location = meeting.location;
                 if (location.name && location.name.trim() !== "" && location.lat !== 0 && location.lon !== 0) {
-                    const key = location.name.toLowerCase().trim();
+                    const key = normalizePlaceName(location.name);
                     if (!placesMap.has(key)) {
                         placesMap.set(key, {
                             name: location.name.trim(),
@@ -206,9 +202,9 @@ export const fetchPlacesFromPastMeetings = async (qaClient: QaClient): Promise<P
             placesCache = Array.from(placesMap.values()).sort((a, b) => a.name.localeCompare(b.name));
             return placesCache;
         } catch (error) {
+            // Not cached, so the next caller retries instead of being stuck with the builtin list.
             console.warn("Failed to fetch places from past meetings, falling back to static list:", error);
-            placesCache = commonPlaces;
-            return placesCache;
+            return commonPlaces;
         } finally {
             placesCachePromise = null;
         }

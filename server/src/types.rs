@@ -65,7 +65,7 @@ pub struct MeetingTags {
 
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
-#[derive(Deserialize, Debug, Serialize, PartialEq, Clone, Copy)]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum CommonMeetingTag {
     Kultur,
     Party,
@@ -92,7 +92,7 @@ impl fmt::Display for CommonMeetingTag {
 
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
-#[derive(Deserialize, Debug, Serialize, PartialEq, Clone, Copy)]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum QueerMeetingTag {
     Everyone,
     Queer,
@@ -246,6 +246,95 @@ pub struct UpdateMeetingRequestBody {
     pub delete: Option<bool>,
 }
 
+/// The author-supplied content of a new meeting. Server-owned fields (`_id`,
+/// `changed`, `deleted_at`, `attendance`, `rating`, `cancelled`) are deliberately
+/// absent so a client cannot set them.
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct NewMeeting {
+    pub title: String,
+    pub authority: String,
+    pub age_restriction: Vec<u8>,
+    /// Start time as UTC timestamp in milliseconds.
+    // Exported as `number` because the JSON value is a plain number, not a bigint.
+    #[ts(type = "number")]
+    pub time: i64,
+    pub location: MeetingLocation,
+    pub description: String,
+    pub price: Vec<f32>,
+    pub trigger_warning: Option<String>,
+    pub accessibility: Option<String>,
+    pub tags: MeetingTags,
+    pub status: MeetingStatus,
+}
+
+impl NewMeeting {
+    pub fn into_meeting(self, id: String, created: ChangedMeeting) -> Meeting {
+        Meeting {
+            _id: id,
+            title: self.title,
+            authority: self.authority,
+            age_restriction: self.age_restriction,
+            time: Some(self.time),
+            location: self.location,
+            description: self.description,
+            price: self.price,
+            trigger_warning: self.trigger_warning,
+            attendance: None,
+            rating: None,
+            accessibility: self.accessibility,
+            tags: self.tags,
+            status: self.status,
+            changed: Some(vec![created]),
+            cancelled: Some(false),
+            deleted_at: None,
+        }
+    }
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct CreateMeetingsRequestBody {
+    pub meetings: Vec<NewMeeting>,
+}
+
+/// The created meetings with their server-assigned `_id`, in request order.
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+pub struct CreateMeetingsResponseBody {
+    pub meetings: Vec<Meeting>,
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Eq, Clone, Copy)]
+pub enum CreateMeetingsErrorCode {
+    /// The body is not valid JSON or does not match `CreateMeetingsRequestBody`. Nothing was created.
+    InvalidBody,
+    /// At least one meeting failed validation (see `index`). Nothing was created.
+    InvalidMeeting,
+    /// The insert failed and was rolled back. Nothing was created.
+    Internal,
+    /// The insert failed and rolling it back failed too: some meetings may exist.
+    PartiallyCreated,
+}
+
+/// Error body of `POST /api/create_meetings/`. `message` is German and meant for the member.
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+pub struct CreateMeetingsErrorBody {
+    pub code: CreateMeetingsErrorCode,
+    /// Zero-based index of the offending meeting for `InvalidMeeting`.
+    pub index: Option<u32>,
+    pub message: String,
+}
+
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
@@ -397,4 +486,64 @@ pub struct GetUsersQuery {
     pub sb: Option<String>,
     /// Sort order ("asc" or "desc")
     pub so: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn into_meeting_sets_server_owned_fields() {
+        let new_meeting = NewMeeting {
+            title: "Stammtisch".to_string(),
+            authority: "Paul".to_string(),
+            age_restriction: vec![18],
+            time: 1_793_124_000_000,
+            location: MeetingLocation {
+                name: "Café Neruda".to_string(),
+                lat: 48.37,
+                lon: 10.89,
+            },
+            description: "Beschreibung".to_string(),
+            price: vec![5.0],
+            trigger_warning: Some("Laut".to_string()),
+            accessibility: None,
+            tags: MeetingTags {
+                freeform: vec!["Tanz".to_string()],
+                common: vec![CommonMeetingTag::Meet],
+                queer: vec![QueerMeetingTag::Everyone],
+            },
+            status: MeetingStatus::Planned,
+        };
+        let created = ChangedMeeting {
+            by: "user".to_string(),
+            at: 42,
+        };
+
+        let meeting = new_meeting
+            .clone()
+            .into_meeting("abcde".to_string(), created.clone());
+
+        assert_eq!(meeting._id, "abcde");
+        assert_eq!(meeting.changed, Some(vec![created]));
+        assert_eq!(meeting.time, Some(new_meeting.time));
+        assert_eq!(meeting.attendance, None);
+        assert_eq!(meeting.rating, None);
+        assert_eq!(meeting.cancelled, Some(false));
+        assert_eq!(meeting.deleted_at, None);
+        assert_eq!(meeting.title, new_meeting.title);
+        assert_eq!(meeting.location, new_meeting.location);
+        assert_eq!(meeting.tags, new_meeting.tags);
+        assert_eq!(meeting.status, MeetingStatus::Planned);
+    }
+
+    #[test]
+    fn new_meeting_rejects_server_owned_fields() {
+        let json = r#"{"title":"A","authority":"","age_restriction":[0],"time":1793124000000,
+            "location":{"name":"X","lat":48.0,"lon":10.0},"description":"","price":[0],
+            "trigger_warning":null,"accessibility":null,
+            "tags":{"freeform":[],"common":[],"queer":[]},"status":"Active","rating":5}"#;
+        let err = serde_json::from_str::<NewMeeting>(json).unwrap_err();
+        assert!(err.to_string().contains("unknown field `rating`"), "{err}");
+    }
 }
