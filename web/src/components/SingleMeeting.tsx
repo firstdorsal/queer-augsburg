@@ -18,11 +18,14 @@ import { Modal } from "rsuite";
 import { match } from "ts-pattern";
 import { CommonMeetingTag } from "../apiTypes/CommonMeetingTag";
 import { Meeting } from "../apiTypes/Meeting";
+import { MeetingLocation } from "../apiTypes/MeetingLocation";
 import { QueerMeetingTag } from "../apiTypes/QueerMeetingTag";
+import { meetingVenueText } from "../places";
 import { G } from "../types";
 import EditMeeting from "./EditMeeting";
 import Md from "./Md";
 import MeetingList from "./MeetingList";
+import OnlineMeetingInfo from "./OnlineMeetingInfo";
 import QrCode from "./QrCode";
 
 const ICalendarLink = lazy(() => import("react-icalendar-link"));
@@ -56,6 +59,62 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
         this.setState({ editing });
     };
 
+    // Only for meetings at a place; online meetings show OnlineMeetingInfo instead.
+    renderLocationModal = (location: MeetingLocation) => {
+        // cut the cords after six decimal places
+        const lon = Number(location.lon).toFixed(6);
+        const lat = Number(location.lat).toFixed(6);
+        return (
+            <Modal
+                open={this.state.locationModalOpen}
+                onClose={() => {
+                    this.setState({ locationModalOpen: false });
+                }}
+            >
+                <Modal.Header>
+                    <Modal.Title>Ort</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <h1>{location.name}</h1>
+                    <h2>
+                        <a href={`geo:${lat},${lon}`}>
+                            {lat}, {lon}
+                        </a>
+                    </h2>
+                    <h2>
+                        <a
+                            rel="no-referrer"
+                            target="_blank"
+                            href={`
+                                https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=16/${lat}/${lon}
+                                    `}
+                        >
+                            OpenStreetMap
+                        </a>
+                    </h2>
+                    <h2>
+                        <a
+                            rel="no-referrer"
+                            target="_blank"
+                            href={`https://www.google.com/maps/place/${lat},${lon}`}
+                        >
+                            Google Maps
+                        </a>
+                    </h2>
+                    <h2>
+                        <a
+                            rel="no-referrer"
+                            target="_blank"
+                            href={`https://www.bing.com/maps?q=${lat},${lon}`}
+                        >
+                            Bing Maps
+                        </a>
+                    </h2>
+                </Modal.Body>
+            </Modal>
+        );
+    };
+
     render = () => {
         const m = this.props.meeting;
 
@@ -70,63 +129,13 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
 
         const isPast = Number(m.time) < Date.now();
 
-        // cut the cords after six decimal places
-        const lon = Number(m.location.lon).toFixed(6);
-        const lat = Number(m.location.lat).toFixed(6);
-
         return (
             <div
                 className={`SingleMeeting Pad${
                     this.props.g.meetingId === m._id ? "ShortHighlight" : ""
                 }`}
             >
-                <Modal
-                    open={this.state.locationModalOpen}
-                    onClose={() => {
-                        this.setState({ locationModalOpen: false });
-                    }}
-                >
-                    <Modal.Header>
-                        <Modal.Title>Ort</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <h1>{m.location.name}</h1>
-                        <h2>
-                            <a href={`geo:${lat},${lon}`}>
-                                {lat}, {lon}
-                            </a>
-                        </h2>
-                        <h2>
-                            <a
-                                rel="no-referrer"
-                                target="_blank"
-                                href={`
-                            https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=16/${lat}/${lon}
-                                `}
-                            >
-                                OpenStreetMap
-                            </a>
-                        </h2>
-                        <h2>
-                            <a
-                                rel="no-referrer"
-                                target="_blank"
-                                href={`https://www.google.com/maps/place/${lat},${lon}`}
-                            >
-                                Google Maps
-                            </a>
-                        </h2>
-                        <h2>
-                            <a
-                                rel="no-referrer"
-                                target="_blank"
-                                href={`https://www.bing.com/maps?q=${lat},${lon}`}
-                            >
-                                Bing Maps
-                            </a>
-                        </h2>
-                    </Modal.Body>
-                </Modal>
+                {m.location && this.renderLocationModal(m.location)}
 
                 <div className="Title">
                     {m.cancelled === true && (
@@ -142,16 +151,27 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                 </div>
                 <div className="Infos">
                     <div className="Left">
-                        <div
-                            className="Location flex items-center"
-                            title="Ort"
-                            onClick={() => {
-                                this.setState({ locationModalOpen: true });
-                            }}
-                        >
-                            <IoLocation />
-                            <span className="InfoText">{m.location.name}</span>
-                        </div>
+                        {m.online ? (
+                            <OnlineMeetingInfo
+                                key={m._id}
+                                meeting={m}
+                                online={m.online}
+                                g={this.props.g}
+                            />
+                        ) : (
+                            <div
+                                className="Location flex items-center"
+                                title="Ort"
+                                onClick={() => {
+                                    this.setState({ locationModalOpen: true });
+                                }}
+                            >
+                                <IoLocation />
+                                <span className="InfoText">
+                                    {m.location?.name ?? "Ort unbekannt"}
+                                </span>
+                            </div>
+                        )}
                         <div className="Authority flex items-center" title="Organisator">
                             <BsFillPeopleFill />
                             <span className="InfoText">{m.authority}</span>
@@ -191,12 +211,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                                             event={{
                                                 title: m.title,
                                                 description: m.description,
-                                                location:
-                                                    m.location.name +
-                                                    ", " +
-                                                    m.location.lat +
-                                                    ", " +
-                                                    m.location.lon,
+                                                location: meetingVenueText(m),
                                                 startTime: new Date(Number(m.time)).toISOString(),
                                                 endTime: new Date(
                                                     Number(m.time) + 3600000

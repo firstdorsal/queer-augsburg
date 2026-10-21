@@ -11,10 +11,12 @@ use backend::interossea::{Interossea, UserAssertion, INTEROSSEA};
 use backend::methods::admin_create_member::admin_create_member;
 use backend::methods::confirm_send_email::confirm_send_email;
 use backend::methods::create_own_user::create_own_user;
+use backend::methods::get_meeting_link::get_meeting_link;
 use backend::methods::get_meetings::get_meetings;
 use backend::methods::get_own_user::get_own_user;
 use backend::methods::get_users::get_users;
 use backend::methods::ical::ical_feed;
+use backend::methods::places::{create_place, get_places};
 use backend::methods::send_email_preview::send_email_preview;
 use backend::methods::update_meeting::update_meeting;
 use backend::methods::update_member_status::update_member_status;
@@ -33,6 +35,9 @@ use utoipa_scalar::{Scalar, Servable};
 #[openapi(
     paths(
         backend::methods::get_meetings::get_meetings,
+        backend::methods::get_meeting_link::get_meeting_link,
+        backend::methods::places::get_places,
+        backend::methods::places::create_place,
         backend::methods::ical::ical_feed,
         backend::methods::get_users::get_users,
         backend::methods::update_meeting::update_meeting,
@@ -48,6 +53,12 @@ use utoipa_scalar::{Scalar, Servable};
     components(schemas(
         backend::types::Meeting,
         backend::types::MeetingLocation,
+        backend::types::OnlineMeeting,
+        backend::types::Place,
+        backend::types::CreatePlaceRequestBody,
+        backend::types::CreatePlaceResponseBody,
+        backend::types::GetPlacesResponseBody,
+        backend::types::MeetingLinkResponseBody,
         backend::types::MeetingTags,
         backend::types::MeetingStatus,
         backend::types::CommonMeetingTag,
@@ -75,6 +86,7 @@ use utoipa_scalar::{Scalar, Servable};
     )),
     tags(
         (name = "meetings", description = "Meeting management endpoints"),
+        (name = "places", description = "Places meetings take place at"),
         (name = "users", description = "User management endpoints"),
         (name = "members", description = "Member management endpoints"),
         (name = "email", description = "Email sending endpoints"),
@@ -129,6 +141,9 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .route("/ical_feed/", get(ical_feed))
         .route("/get_users/", get(get_users))
         .route("/update_meeting/", post(update_meeting))
+        .route("/meeting_link/", get(get_meeting_link))
+        .route("/places/", get(get_places))
+        .route("/create_place/", post(create_place))
         .route("/get_own_user/", get(get_own_user))
         .route("/create_own_user/", post(create_own_user))
         .route("/admin_create_member/", post(admin_create_member))

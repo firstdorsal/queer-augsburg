@@ -1,0 +1,2168 @@
+{
+  "_comment": "Assignment per meeting (public active meetings as of 2026-10-21): place id, online platform, or unknown (left unchanged). Meetings not listed are resolved by the alias table in migrate.js.",
+  "aliases": {
+    "ProjektRaum": "Projektraum Rechts-der-Wertach",
+    "ProjektRaum Rechts-der-Wertach": "Projektraum Rechts-der-Wertach",
+    "Projektraum": "Projektraum Rechts-der-Wertach",
+    "Wolfgangstraße 2": "Projektraum Rechts-der-Wertach",
+    "Mo CLub": "Mo Club",
+    "Henry's Coffee": "Henry's Coffee World",
+    "Henry‘s Coffee": "Henry's Coffee World",
+    "Grandhotel": "Grandhotel Cosmopolis",
+    "Zwischenzeit Annastr. 16": "Zwischenzeit (Annastraße 16)",
+    "Zwischenzeit Annastraße": "Zwischenzeit (Annastraße 16)",
+    "Botanischer Garten Augsburg": "Botanischer Garten",
+    "Murdocks": "Murdock's Irish Pub",
+    "Schwibbogenpl. 1": "Schwibbogenplatz 1",
+    "Augusta Saal": "Augustanasaal (Annaforum)"
+  },
+  "meetings": {
+    "lecDw": {
+      "place": "hLD6T",
+      "name": "Uni Augsburg",
+      "evidence": "location field: Uni Augsburg"
+    },
+    "T3B2K": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "location field: Thing"
+    },
+    "CbOzx": {
+      "place": "dV6qk",
+      "name": "Augustanasaal (Annaforum)",
+      "evidence": "location field: Augusta Saal"
+    },
+    "CSKtZ": {
+      "place": "VTrBv",
+      "name": "Räume der Gleichstellungsstelle Augsburg",
+      "evidence": "location field: Räume der Gleichstellungsstelle Augsburg"
+    },
+    "sx8u9": {
+      "place": "DBojC",
+      "name": "Rathaus Augsburg (Oberer Fletz)",
+      "evidence": "Ort: Augsburger Rathaus, Oberer Fletz"
+    },
+    "4TfaH": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "location field: Provinoclub"
+    },
+    "DA2wa": {
+      "online": "Zoom",
+      "evidence": "Zoom Link auf Anfrage!"
+    },
+    "uvWDY": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "location field: Provinoclub"
+    },
+    "lk6IB": {
+      "place": "EMGx8",
+      "name": "Hofgarten",
+      "evidence": "location field: Hofgarten"
+    },
+    "4W5_r": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "location field: Provinoclub"
+    },
+    "PptQ_": {
+      "place": "EMGx8",
+      "name": "Hofgarten",
+      "evidence": "location field: Hofgarten"
+    },
+    "ZWcrS": {
+      "place": "EMGx8",
+      "name": "Hofgarten",
+      "evidence": "location field: Hofgarten"
+    },
+    "T7XMJ": {
+      "place": "EoNK1",
+      "name": "Rathausplatz",
+      "evidence": "location field: Rathausplatz"
+    },
+    "iECCV": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "location field: Provinoclub"
+    },
+    "TE8Yp": {
+      "place": "hWjRc",
+      "name": "Sonnendeck",
+      "evidence": "location field: Sonnendeck"
+    },
+    "Qh9pA": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "1YEh8": {
+      "place": "EoNK1",
+      "name": "Rathausplatz",
+      "evidence": "location field: Rathausplatz"
+    },
+    "JzxWY": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: Projektraum Rechts-der-Wertach"
+    },
+    "hQ1vx": {
+      "place": "ond09",
+      "name": "Fuggerplatz",
+      "evidence": "location field: Fuggerplatz"
+    },
+    "3jIHz": {
+      "place": "lrLAe",
+      "name": "Zwischenzeit (Annastraße 16)",
+      "evidence": "location field: Zwischenzeit Annastr. 16"
+    },
+    "Ogoah": {
+      "place": "lrLAe",
+      "name": "Zwischenzeit (Annastraße 16)",
+      "evidence": "location field: Zwischenzeit Annastr. 16"
+    },
+    "v8KRy": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "8DjpL": {
+      "place": "lrLAe",
+      "name": "Zwischenzeit (Annastraße 16)",
+      "evidence": "location field: Zwischenzeit Annastraße"
+    },
+    "tbsJ8": {
+      "place": "0KhgX",
+      "name": "Königsplatz",
+      "evidence": "location field: Königsplatz"
+    },
+    "vmR3u": {
+      "place": "qu6vY",
+      "name": "Mo Club",
+      "evidence": "location field: Mo Club"
+    },
+    "NxK-H": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "F_Psu": {
+      "place": "eIFnu",
+      "name": "ZAS",
+      "evidence": "location field: ZAS"
+    },
+    "z_aOi": {
+      "place": "OjWRT",
+      "name": "Kulperhütte",
+      "evidence": "location field: Kulperhütte"
+    },
+    "p4O5m": {
+      "place": "I9yL2",
+      "name": "100hz",
+      "evidence": "location field: 100hz"
+    },
+    "aeq_g": {
+      "place": "hLD6T",
+      "name": "Uni Augsburg",
+      "evidence": "location field: Uni Augsburg"
+    },
+    "Abe16": {
+      "online": "Zoom",
+      "evidence": "20.April, 22 Uhr online (Zoom)"
+    },
+    "5n-Jr": {
+      "place": "08Kfn",
+      "name": "Stadtbücherei",
+      "evidence": "location field: Stadtbücherei"
+    },
+    "Doddq": {
+      "place": "ond09",
+      "name": "Fuggerplatz",
+      "evidence": "location field: Fuggerplatz"
+    },
+    "Xaxr1": {
+      "place": "jiUG1",
+      "name": "Grandhotel Cosmopolis",
+      "evidence": "location field: Grandhotel Cosmopolis"
+    },
+    "1ATC5": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: Projektraum Rechts-der-Wertach"
+    },
+    "uSFdQ": {
+      "online": "Zoom",
+      "evidence": "Die Veranstaltung findet online (Zoom) statt"
+    },
+    "y9dN8": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: Projektraum Rechts-der-Wertach"
+    },
+    "Ojo89": {
+      "place": "wlJt0",
+      "name": "Henry's Coffee World",
+      "evidence": "location field: Henry‘s Coffee"
+    },
+    "-tLxV": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: Projektraum Rechts-der-Wertach"
+    },
+    "PeA9k": {
+      "place": "kVoud",
+      "name": "Karo 10",
+      "evidence": "location field: Karo 10"
+    },
+    "Cj2Yw": {
+      "place": "kVoud",
+      "name": "Karo 10",
+      "evidence": "location field: Karo 10"
+    },
+    "mrDkX": {
+      "place": "kVoud",
+      "name": "Karo 10",
+      "evidence": "location field: Karo 10"
+    },
+    "jDyuZ": {
+      "place": "kVoud",
+      "name": "Karo 10",
+      "evidence": "location field: Karo 10"
+    },
+    "MUbTX": {
+      "place": "kVoud",
+      "name": "Karo 10",
+      "evidence": "location field: Karo 10"
+    },
+    "LW62Q": {
+      "place": "kVoud",
+      "name": "Karo 10",
+      "evidence": "location field: Karo 10"
+    },
+    "OIswg": {
+      "place": "kVoud",
+      "name": "Karo 10",
+      "evidence": "location field: Karo 10"
+    },
+    "oKx2B": {
+      "place": "kVoud",
+      "name": "Karo 10",
+      "evidence": "location field: Karo 10"
+    },
+    "R3BcM": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "tbvbe": {
+      "place": "rD4Pu",
+      "name": "Kantine",
+      "evidence": "location field: Kantine"
+    },
+    "32hOn": {
+      "place": "qu6vY",
+      "name": "Mo Club",
+      "evidence": "location field: Mo Club"
+    },
+    "WsNzW": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "NiHVI": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: Projektraum Rechts-der-Wertach"
+    },
+    "2rvtj": {
+      "place": "I80oP",
+      "name": "Rübenrot",
+      "evidence": "location field: Rübenrot"
+    },
+    "vKclw": {
+      "place": "gZyBZ",
+      "name": "Cafe 13",
+      "evidence": "location field: Cafe 13"
+    },
+    "8OqQa": {
+      "place": "wlJt0",
+      "name": "Henry's Coffee World",
+      "evidence": "location field: Henry's Coffee World"
+    },
+    "U9Y1D": {
+      "place": "Z68MJ",
+      "name": "Maximilianmuseum",
+      "evidence": "location field: Maximilianmuseum"
+    },
+    "4uWZY": {
+      "online": "Zoom",
+      "evidence": "Wir treffen uns online auf Zoom"
+    },
+    "g7YMk": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "location field: Thing"
+    },
+    "YsX4A": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "location field: Provinoclub"
+    },
+    "AuUKx": {
+      "place": "pVNu8",
+      "name": "Enchilada",
+      "evidence": "location field: Enchilada"
+    },
+    "7cCo-": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "DopAs": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "location field: Provinoclub"
+    },
+    "yUMQT": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "location field: Provinoclub"
+    },
+    "LwPDC": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "CdqFI": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: Projektraum Rechts-der-Wertach"
+    },
+    "XXlTk": {
+      "place": "Q3Nhs",
+      "name": "Schwibbogenplatz 1",
+      "evidence": "location field: Schwibbogenpl. 1"
+    },
+    "X_YtW": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "Cfda4": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: Projektraum Rechts-der-Wertach"
+    },
+    "6TYcp": {
+      "place": "gjgtZ",
+      "name": "Beim Weissen Lamm",
+      "evidence": "location field: Beim Weissen Lamm"
+    },
+    "PNbJ6": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: Projektraum Rechts-der-Wertach"
+    },
+    "1x3q6": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: Projektraum Rechts-der-Wertach"
+    },
+    "tE5uc": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "X3rKx": {
+      "place": "EoNK1",
+      "name": "Rathausplatz",
+      "evidence": "location field: Rathausplatz"
+    },
+    "9lPlA": {
+      "place": "EMGx8",
+      "name": "Hofgarten",
+      "evidence": "location field: Hofgarten"
+    },
+    "E_4QK": {
+      "place": "EMGx8",
+      "name": "Hofgarten",
+      "evidence": "location field: Hofgarten"
+    },
+    "WQwhH": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: Projektraum Rechts-der-Wertach"
+    },
+    "oKMxD": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: Projektraum Rechts-der-Wertach"
+    },
+    "zJqta": {
+      "place": "qu6vY",
+      "name": "Mo Club",
+      "evidence": "location field: Mo Club"
+    },
+    "iMC63": {
+      "place": "gjgtZ",
+      "name": "Beim Weissen Lamm",
+      "evidence": "location field: Beim Weissen Lamm"
+    },
+    "UOLmJ": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "zuGmi": {
+      "unknown": "Nur \"Stand in der Innenstadt\", kein konkreter Ort",
+      "evidence": "am gemeinsamen Stand in der Innenstadt"
+    },
+    "oe9bE": {
+      "place": "08Kfn",
+      "name": "Stadtbücherei",
+      "evidence": "location field: Stadtbücherei"
+    },
+    "Z8CFo": {
+      "place": "I9yL2",
+      "name": "100hz",
+      "evidence": "location field: 100hz"
+    },
+    "P8MqL": {
+      "place": "hLD6T",
+      "name": "Uni Augsburg",
+      "evidence": "location field: Uni Augsburg"
+    },
+    "3rJFo": {
+      "place": "08Kfn",
+      "name": "Stadtbücherei",
+      "evidence": "location field: Stadtbücherei"
+    },
+    "uJPsx": {
+      "place": "yJqsJ",
+      "name": "Staatstheater Bstg. F",
+      "evidence": "location field: Staatstheater Bstg. F"
+    },
+    "1NCcq": {
+      "place": "jiUG1",
+      "name": "Grandhotel Cosmopolis",
+      "evidence": "location field: Grandhotel Cosmopolis"
+    },
+    "pB_KH": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "location field: Thing"
+    },
+    "T2g2F": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "HOs-e": {
+      "place": "nxQ9T",
+      "name": "Katzentempel",
+      "evidence": "location field: Katzentempel"
+    },
+    "LqKSs": {
+      "place": "ond09",
+      "name": "Fuggerplatz",
+      "evidence": "location field: Fuggerplatz"
+    },
+    "5XdMW": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "location field: Thing"
+    },
+    "pcf4U": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "1Q2pV": {
+      "online": "Zoom",
+      "evidence": "treffen wir uns ... einfach: online. (Ortsfeld: Zoom)"
+    },
+    "QpNqj": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "GcxcI": {
+      "place": "LJxrH",
+      "name": "Barfly",
+      "evidence": "location field: Barfly"
+    },
+    "tiI6k": {
+      "place": "qu6vY",
+      "name": "Mo Club",
+      "evidence": "location field: Mo CLub"
+    },
+    "h_jYT": {
+      "place": "rbZzx",
+      "name": "Ulrichseck",
+      "evidence": "location field: Ulrichseck"
+    },
+    "mkpl0": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "dH_ZH": {
+      "place": "cJymF",
+      "name": "Moritzplatz",
+      "evidence": "location field: Moritzplatz"
+    },
+    "Gj3zI": {
+      "place": "wlJt0",
+      "name": "Henry's Coffee World",
+      "evidence": "location field: Henry's Coffee"
+    },
+    "zmyAf": {
+      "online": "Zoom",
+      "evidence": "Sonntag, 17.11. 19:00 Uhr auf Zoom"
+    },
+    "7CJBX": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: Projektraum Rechts-der-Wertach"
+    },
+    "xEgFC": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "FAh7B": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "location field: Provinoclub"
+    },
+    "XLsyQ": {
+      "place": "rbZzx",
+      "name": "Ulrichseck",
+      "evidence": "location field: Ulrichseck"
+    },
+    "D3MyG": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "location field: Thing"
+    },
+    "3DzSO": {
+      "online": "Zoom",
+      "evidence": "Link folgt kurz vor der Veranstaltung. (Ortsfeld: Zoom)"
+    },
+    "tNtSJ": {
+      "place": "ZrLvG",
+      "name": "Unikum",
+      "evidence": "location field: Unikum"
+    },
+    "F9gAD": {
+      "place": "jiUG1",
+      "name": "Grandhotel Cosmopolis",
+      "evidence": "location field: Grandhotel Cosmopolis"
+    },
+    "6gGFx": {
+      "place": "LJxrH",
+      "name": "Barfly",
+      "evidence": "location field: Barfly"
+    },
+    "rFvI1": {
+      "place": "HxUeM",
+      "name": "Flannigan's Post",
+      "evidence": "location field: Flannigan's Post"
+    },
+    "eePpJ": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "59zTp": {
+      "place": "pUsZr",
+      "name": "Waffle Brothers",
+      "evidence": "location field: Waffle Brothers"
+    },
+    "LKsPs": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "ImGOm": {
+      "place": "qu6vY",
+      "name": "Mo Club",
+      "evidence": "location field: Mo Club"
+    },
+    "P54gf": {
+      "place": "YHG5K",
+      "name": "Studierendenwohnheim Bürgermeister-Miehle-Straße",
+      "evidence": "Hinterhof des privaten Studierendenwohnheims in der Bürgermeister-Miehle Straße 16"
+    },
+    "b2aEB": {
+      "place": "EoNK1",
+      "name": "Rathausplatz",
+      "evidence": "location field: Rathausplatz"
+    },
+    "Xgyvd": {
+      "place": "RLhoB",
+      "name": "Villa Jugendzentrum Stadtmitte sjr",
+      "evidence": "location field: Villa Jugendzentrum Stadtmitte sjr"
+    },
+    "pybbO": {
+      "place": "Df29g",
+      "name": "Botanischer Garten",
+      "evidence": "location field: Botanischer Garten"
+    },
+    "vkSzy": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "1sSBp": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "location field: Thing"
+    },
+    "F6F8Y": {
+      "place": "jiUG1",
+      "name": "Grandhotel Cosmopolis",
+      "evidence": "location field: Grandhotel"
+    },
+    "qm4iI": {
+      "place": "jiUG1",
+      "name": "Grandhotel Cosmopolis",
+      "evidence": "location field: Grandhotel Cosmopolis"
+    },
+    "AYo3h": {
+      "place": "Y4JXW",
+      "name": "Kraetzwerk",
+      "evidence": "location field: Kraetzwerk"
+    },
+    "Zg4Yo": {
+      "place": "jiUG1",
+      "name": "Grandhotel Cosmopolis",
+      "evidence": "location field: Grandhotel Cosmopolis"
+    },
+    "BuU6d": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "location field: Thing"
+    },
+    "aevEC": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: Projektraum Rechts-der-Wertach"
+    },
+    "GUAnC": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: Projektraum Rechts-der-Wertach"
+    },
+    "0MLVP": {
+      "place": "Zljjh",
+      "name": "Augsburg Hauptbahnhof",
+      "evidence": "Wir treffen uns um 13:45 Uhr am Hbf in Augsburg"
+    },
+    "YfEeZ": {
+      "place": "wlJt0",
+      "name": "Henry's Coffee World",
+      "evidence": "location field: Henry's Coffee"
+    },
+    "fGF1c": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "FTJAN": {
+      "place": "0KhgX",
+      "name": "Königsplatz",
+      "evidence": "location field: Königsplatz"
+    },
+    "yqZ7g": {
+      "place": "EoNK1",
+      "name": "Rathausplatz",
+      "evidence": "location field: Rathausplatz"
+    },
+    "5619O": {
+      "place": "aJDnl",
+      "name": "Fuggerstraße (am Kö Richtung Theater)",
+      "evidence": "location field: Fuggerstraße (am Kö Richtung Theater)"
+    },
+    "WdYV-": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: ProjektRaum Rechts-der-Wertach"
+    },
+    "53JA5": {
+      "place": "jiUG1",
+      "name": "Grandhotel Cosmopolis",
+      "evidence": "location field: Grandhotel Cosmopolis"
+    },
+    "J7Ent": {
+      "place": "Df29g",
+      "name": "Botanischer Garten",
+      "evidence": "location field: Botanischer Garten"
+    },
+    "gdTaq": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "location field: Thing"
+    },
+    "L0Of_": {
+      "place": "08Kfn",
+      "name": "Stadtbücherei",
+      "evidence": "location field: Stadtbücherei"
+    },
+    "FNPu6": {
+      "place": "xCOTf",
+      "name": "Jochberg",
+      "evidence": "location field: Jochberg"
+    },
+    "kICUl": {
+      "place": "LJxrH",
+      "name": "Barfly",
+      "evidence": "location field: Barfly"
+    },
+    "Ds0xA": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "location field: Thing"
+    },
+    "cMdAT": {
+      "place": "ZrLvG",
+      "name": "Unikum",
+      "evidence": "location field: Unikum"
+    },
+    "-Zn08": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "5TunA": {
+      "place": "EoNK1",
+      "name": "Rathausplatz",
+      "evidence": "location field: Rathausplatz"
+    },
+    "86kv_": {
+      "place": "pbkOW",
+      "name": "Qualle",
+      "evidence": "location field: Qualle"
+    },
+    "nw5KO": {
+      "place": "rD4Pu",
+      "name": "Kantine",
+      "evidence": "location field: Kantine"
+    },
+    "qRWvv": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "location field: Thing"
+    },
+    "XTBtd": {
+      "online": "Zoom",
+      "evidence": "findet der Themenabend online statt (Ortsfeld: Zoom)"
+    },
+    "uwv__": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: ProjektRaum"
+    },
+    "kFJbR": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "8CYgu": {
+      "place": "J3HoR",
+      "name": "Strafjustizzentrum Augsburg",
+      "evidence": "location field: Strafjustizzentrum Augsburg"
+    },
+    "MVsCz": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "location field: Thing"
+    },
+    "6ItOz": {
+      "online": "Discord",
+      "evidence": "Wir spielen wieder ab 18 Uhr auf unserem Discord Server!"
+    },
+    "4cFPV": {
+      "place": "nxQ9T",
+      "name": "Katzentempel",
+      "evidence": "location field: Katzentempel"
+    },
+    "Ec-qn": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: ProjektRaum"
+    },
+    "QkDRa": {
+      "place": "wVUa3",
+      "name": "Bar des Maximilian's",
+      "evidence": "location field: Bar des Maximilian's"
+    },
+    "YPoCS": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "FO_PF": {
+      "place": "ZrLvG",
+      "name": "Unikum",
+      "evidence": "location field: Unikum"
+    },
+    "AAdos": {
+      "place": "C2QY8",
+      "name": "Zentralbibliothek",
+      "evidence": "location field: Zentralbibliothek"
+    },
+    "l-3xJ": {
+      "online": "Zoom",
+      "evidence": "Dienstag, 30.01.2024, ab 19 Uhr auf Zoom."
+    },
+    "BzQms": {
+      "place": "wlJt0",
+      "name": "Henry's Coffee World",
+      "evidence": "location field: Henry‘s Coffee"
+    },
+    "JvHR4": {
+      "online": "Discord",
+      "evidence": "online Spieleabend auf unserem neuen Discord Server"
+    },
+    "Nm98f": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "fdZeD": {
+      "place": "nxQ9T",
+      "name": "Katzentempel",
+      "evidence": "location field: Katzentempel"
+    },
+    "KqBdq": {
+      "place": "rD4Pu",
+      "name": "Kantine",
+      "evidence": "location field: Kantine"
+    },
+    "46kex": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "location field: Rockfabrik"
+    },
+    "yyaJq": {
+      "place": "quTlc",
+      "name": "ESG Cafete",
+      "evidence": "location field: ESG Cafete"
+    },
+    "Hj-_x": {
+      "place": "ZeSqH",
+      "name": "Elias Holl Platz",
+      "evidence": "location field: Elias Holl Platz"
+    },
+    "f4Jft": {
+      "place": "cGeSp",
+      "name": "König von Flandern im CAPITOL",
+      "evidence": "location field: König von Flandern im CAPITOL"
+    },
+    "ytaRj": {
+      "place": "JQRrP",
+      "name": "Café Viktor",
+      "evidence": "location field: Café Viktor"
+    },
+    "_KgfE": {
+      "online": "Zoom",
+      "evidence": "Online Talk-Abend über Zoom"
+    },
+    "7l3hj": {
+      "online": "Zoom",
+      "evidence": "Linkanfrage per Mail. (Ortsfeld: Zoom)"
+    },
+    "k18ld": {
+      "place": "RNLOd",
+      "name": "Annapam",
+      "evidence": "location field: Annapam"
+    },
+    "i-zAq": {
+      "online": "Zoom",
+      "evidence": "Online Vortrag über Zoom zur trans*-inklusiven Sprache"
+    },
+    "SDrn5": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "location field: Thing"
+    },
+    "FAEVy": {
+      "place": "uKyvH",
+      "name": "Messe Augsburg",
+      "evidence": "location field: Messe Augsburg"
+    },
+    "dDYIA": {
+      "online": "Zoom",
+      "evidence": "Ort: digital im Zoom nach Anmeldung"
+    },
+    "GdzYG": {
+      "place": "HxUeM",
+      "name": "Flannigan's Post",
+      "evidence": "location field: Flannigan's Post"
+    },
+    "CKiZh": {
+      "place": "pXrsj",
+      "name": "Il Porcino",
+      "evidence": "location field: Il Porcino"
+    },
+    "l2yxx": {
+      "place": "95XEG",
+      "name": "Haifischbar",
+      "evidence": "location field: Haifischbar"
+    },
+    "zpwo_": {
+      "place": "EoNK1",
+      "name": "Rathausplatz",
+      "evidence": "location field: Rathausplatz"
+    },
+    "Nfkig": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "location field: Wolfgangstraße 2"
+    },
+    "r3Jp9": {
+      "place": "gjgtZ",
+      "name": "Beim Weissen Lamm",
+      "evidence": "location field: Beim Weissen Lamm"
+    },
+    "pVTx1": {
+      "place": "95XEG",
+      "name": "Haifischbar",
+      "evidence": "location field: Haifischbar"
+    },
+    "LM3KM": {
+      "place": "ayzuO",
+      "name": "Al Teatro",
+      "evidence": "ab 19 Uhr im Al Teatro, St. Ursula 1"
+    },
+    "7DkHj": {
+      "unknown": "Ort wurde nur auf Anfrage verschickt",
+      "evidence": "Wir schicken dir dann den genauen und Ort und die genaue Zeit"
+    },
+    "BCEws": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "um 18 Uhr im Projektraum Rechts-der-Wertach"
+    },
+    "9mXK8": {
+      "online": "Zoom",
+      "evidence": "Ab 18 Uhr auf Zoom."
+    },
+    "xzupl": {
+      "unknown": "Kein Ort im Text; nur Link-Slug nennt Rockfabrik, LOVEPOP-Slugs werden aber wiederverwendet",
+      "evidence": "LOVEPOP - Queer Clubbing auf 2 Floors"
+    },
+    "nrsVY": {
+      "place": "haYjI",
+      "name": "Planetarium Augsburg",
+      "evidence": "um 17:30 Uhr vor dem Planetarium"
+    },
+    "4xpi7": {
+      "place": "B5ufO",
+      "name": "Riegele Biergarten",
+      "evidence": "uns am Freitag, den 1. September im Riegele Biergarten zu treffen"
+    },
+    "JwT9V": {
+      "place": "4khMY",
+      "name": "Plärrer (Festplatz)",
+      "evidence": "um 17 Uhr im Schallerfestzelt auf dem Plärrergelände"
+    },
+    "WpDub": {
+      "unknown": "Queergarten-Reihe meist im Provinoclub, aber Text nennt keinen Ort",
+      "evidence": "Wir werden einen Queer Augsburg Tisch haben."
+    },
+    "7zjSl": {
+      "unknown": "Kein Ort im Text; nur Link-Slug nennt Kantine, LOVEPOP-Slugs werden aber wiederverwendet",
+      "evidence": "Queer Birthday Clubbing auf 2 Floors"
+    },
+    "f3MTk": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "ab 19:00 Uhr im Thing, Vorderer Lech 45"
+    },
+    "0jGNN": {
+      "place": "UXNMb",
+      "name": "Cinestar Augsburg",
+      "evidence": "ab spätestens 16:20 Uhr zum Cinestar im Helio am Hauptbahnhof"
+    },
+    "Gc6WV": {
+      "place": "EoNK1",
+      "name": "Rathausplatz",
+      "evidence": "um 10:30 Uhr vor dem großen Tor des Rathauses"
+    },
+    "1FMY5": {
+      "place": "SCdjy",
+      "name": "House of New Realities",
+      "evidence": "House in der Bäckergasse 4, (alte Wiedemann Glasfabrik), im Café Êdēr"
+    },
+    "uJnrN": {
+      "place": "MRRVO",
+      "name": "Zeughausstuben",
+      "evidence": "Ort: Zeughaus Stuben (Zeugpl. 4, 86150 Augsburg)"
+    },
+    "OQTCL": {
+      "place": "RNLOd",
+      "name": "Annapam",
+      "evidence": "UPDATE: Wir treffen uns im Annapam."
+    },
+    "MegHw": {
+      "place": "B5ufO",
+      "name": "Riegele Biergarten",
+      "evidence": "wir machen jetzt einfach den Riegele Biergarten in der Fröhlichstraße queer"
+    },
+    "8pU5E": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "Im Projektraum Rechts-der-Wertach Wolfgangstraße 2"
+    },
+    "ttbKa": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "Ort: Thing, Vorderer Lech 45, 86150 Augsburg"
+    },
+    "FOZyz": {
+      "place": "quTlc",
+      "name": "ESG Cafete",
+      "evidence": "im ersten Stock der ESG Augsburg, Salomon-Idler-Straße 14"
+    },
+    "6Usvh": {
+      "place": "EMGx8",
+      "name": "Hofgarten",
+      "evidence": "Wir treffen uns ab 19:00 Uhr im Hofgarten."
+    },
+    "yvlLM": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "LOVEPOP CSD EDITION Rockfabrik"
+    },
+    "2Fy0J": {
+      "place": "0KhgX",
+      "name": "Königsplatz",
+      "evidence": "ab 10:30 Uhr: Buntmachen am Kö vor der Deutschen Bank"
+    },
+    "GvqgW": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "Im Projektraum Rechts-der-Wertach Wolfgangstraße 2"
+    },
+    "DlTVr": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "ab 18 Uhr im Provinoclub"
+    },
+    "6Rqyn": {
+      "place": "08Kfn",
+      "name": "Stadtbücherei",
+      "evidence": "ein Meet a Queer in der Stadtbücherei am Ernst-Reuter-Platz"
+    },
+    "cpKmD": {
+      "place": "Df29g",
+      "name": "Botanischer Garten",
+      "evidence": "location field: Botanischer Garten Augsburg"
+    },
+    "R42Yu": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "LOVEPOP Rockfabrik"
+    },
+    "R7X5T": {
+      "place": "95XEG",
+      "name": "Haifischbar",
+      "evidence": "location field: Haifischbar"
+    },
+    "MZe55": {
+      "place": "96UsM",
+      "name": "Murdock's Irish Pub",
+      "evidence": "location field: Murdocks"
+    },
+    "XESJM": {
+      "place": "96UsM",
+      "name": "Murdock's Irish Pub",
+      "evidence": "ab 18:30 Uhr im Murdock's"
+    },
+    "OKwAV": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "ab 18 Uhr im Provinoclub"
+    },
+    "n8ajV": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "ab 18 Uhr im Provinoclub"
+    },
+    "Tex5T": {
+      "place": "4khMY",
+      "name": "Plärrer (Festplatz)",
+      "evidence": "um 18 Uhr im Schallerfestzelt auf dem Plärrergelände"
+    },
+    "GOoPr": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "ab 19:00 Uhr im Thing, Vorderer Lech 45"
+    },
+    "Xd85k": {
+      "place": "rD4Pu",
+      "name": "Kantine",
+      "evidence": "LOVEPOP Kantine"
+    },
+    "tAJ0Z": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "um 18:30 Uhr im Projektraum-Rechts-der-Wertach"
+    },
+    "oF0IH": {
+      "place": "4DpPy",
+      "name": "Rockfabrik",
+      "evidence": "LOVEPOP Rockfabrik"
+    },
+    "dvtR2": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "um 19:00 Uhr im Projektraum-Rechts-der -Wertach"
+    },
+    "pmoSS": {
+      "place": "nxQ9T",
+      "name": "Katzentempel",
+      "evidence": "ab 17:00 Uhr im Katzentempel, Jakoberstraße 6"
+    },
+    "LjLi7": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "ab 19:00 Uhr im Thing, Vorderer Lech 45"
+    },
+    "3faU1": {
+      "unknown": "Text nennt keinen Ort, nur Anmeldung",
+      "evidence": "Teilnahme nach Anmeldung unter mail@queer.augsburg.de"
+    },
+    "uZ4WS": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "ab 19:00 Uhr im Thing, Vorderer Lech 45"
+    },
+    "d1iqA": {
+      "place": "gZyBZ",
+      "name": "Cafe 13",
+      "evidence": "im Café Dreizehn in der Kresselsmühle, Barfüßerstraße 4"
+    },
+    "pgIU5": {
+      "unknown": "Neujahrsgruß/Jahresrückblick ohne Ortsangabe",
+      "evidence": "Frohes Neues! Liebe Queer Augsburg Community"
+    },
+    "QG2kO": {
+      "place": "quTlc",
+      "name": "ESG Cafete",
+      "evidence": "im ersten Stock der ESG Augsburg, Salomon-Idler-Straße 14"
+    },
+    "gKluF": {
+      "place": "ZeSqH",
+      "name": "Elias Holl Platz",
+      "evidence": "um 18:30 Uhr hinter dem Rathaus am Obelisken (Elias-Holl-Denkmal)"
+    },
+    "bOLfy": {
+      "place": "hDAfg",
+      "name": "Apostolin-Junia-Kirche",
+      "evidence": "ab 19 Uhr in der Apostolin-Junia-Kirche"
+    },
+    "Jsid3": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "im ProjektRaum Rechts der Wertach"
+    },
+    "024cL": {
+      "place": "rbZzx",
+      "name": "Ulrichseck",
+      "evidence": "im kleinen Saal des UlrichsEcks, Ulrichsplatz 17"
+    },
+    "K8A7i": {
+      "place": "jiUG1",
+      "name": "Grandhotel Cosmopolis",
+      "evidence": "um 18 Uhr im \"Astronautenraum\" des Café Grandhotel Cosmopolis"
+    },
+    "vyRzQ": {
+      "place": "jiUG1",
+      "name": "Grandhotel Cosmopolis",
+      "evidence": "um 18 Uhr im \"Astronautenraum\" des Café Grandhotel Cosmopolis"
+    },
+    "Qov7V": {
+      "place": "pavNQ",
+      "name": "Oki's",
+      "evidence": "ab 19:00 Uhr im Okis, Georgenstraße 2"
+    },
+    "Azt3c": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "ab 18 Uhr im Provino"
+    },
+    "63ifC": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "ab 19:00 Uhr im Thing, Vorderer Lech 45"
+    },
+    "OU7JN": {
+      "place": "Z68MJ",
+      "name": "Maximilianmuseum",
+      "evidence": "kurz vor 18 Uhr am Eingang zum Maxmuseum, Fuggerplatz 1"
+    },
+    "Ldcy5": {
+      "place": "rbZzx",
+      "name": "Ulrichseck",
+      "evidence": "im kleinen Saal des UlrichsEcks, Ulrichsplatz 17"
+    },
+    "agnZ3": {
+      "place": "ZrLvG",
+      "name": "Unikum",
+      "evidence": "ab 19:00 Uhr im Unikum, Salomon Idler Straße 24F"
+    },
+    "qof1O": {
+      "place": "KnKzP",
+      "name": "Bürgertreff Hochzoll",
+      "evidence": "Treffen am Bürgertreff Hochzoll / Holzerbau, Neuschwansteinstr. 23a"
+    },
+    "uMWfu": {
+      "place": "OTnhr",
+      "name": "Kulturhaus Abraxas",
+      "evidence": "ab 19:30 Uhr im Kulturhaus Abraxas"
+    },
+    "zuEA6": {
+      "place": "RNLOd",
+      "name": "Annapam",
+      "evidence": "ab 19:00 Uhr im Annapam, Bäckergasse 23"
+    },
+    "xuEDf": {
+      "place": "jiUG1",
+      "name": "Grandhotel Cosmopolis",
+      "evidence": "ab 19:00 Uhr im Grandhotel Cosmopolis, Springergäßchen 5"
+    },
+    "SGKzm": {
+      "place": "jiUG1",
+      "name": "Grandhotel Cosmopolis",
+      "evidence": "im \"Astronautenraum\" des Café Grandhotel Cosmopolis, Springergässchen 5"
+    },
+    "iJc91": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "ab 18 Uhr im Provinoclub"
+    },
+    "75p8E": {
+      "place": "rbZzx",
+      "name": "Ulrichseck",
+      "evidence": "ab 19 Uhr im Ulrichseck"
+    },
+    "PhB0J": {
+      "place": "YhOBi",
+      "name": "Thing",
+      "evidence": "ab 19:00 Uhr im Thing, Vorderer Lech 45"
+    },
+    "nKPKA": {
+      "unknown": "Text nennt keinen Ort",
+      "evidence": "In einem kleinen Workshop werden kreative Texte entstehen"
+    },
+    "KxFxl": {
+      "place": "4khMY",
+      "name": "Plärrer (Festplatz)",
+      "evidence": "Wir treffen uns um 19 Uhr am großen Eingang auf dem Festgelände."
+    },
+    "5nKOM": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "ab 18 Uhr im Provinoclub"
+    },
+    "uEYCb": {
+      "place": "hWjRc",
+      "name": "Sonnendeck",
+      "evidence": "ab 19:00 Uhr auf dem Sonnendeck, Ludwigsstraße 28"
+    },
+    "zlOuO": {
+      "place": "rbZzx",
+      "name": "Ulrichseck",
+      "evidence": "ab 19 Uhr im Ulrichseck"
+    },
+    "sUbTq": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "jeweils ganztags ab 15:30 Uhr im Provino Club Augsburg"
+    },
+    "SQI5S": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "Ab 19 Uhr im Projektraum, Wolfgangstraße 2."
+    },
+    "GBhFj": {
+      "place": "hLD6T",
+      "name": "Uni Augsburg",
+      "evidence": "Management Center des ZWW – Universität Augsburg, Universitätsstraße 12"
+    },
+    "AmEfc": {
+      "place": "hWjRc",
+      "name": "Sonnendeck",
+      "evidence": "ab 17:30 Uhr auf dem Sonnendeck, Ludwigsstraße 28"
+    },
+    "M9fvA": {
+      "place": "Zljjh",
+      "name": "Augsburg Hauptbahnhof",
+      "evidence": "Wir nehmen um 9:05 Uhr den Zug nach München."
+    },
+    "nvzNh": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "ab 18 Uhr im Provinoclub"
+    },
+    "OO1cv": {
+      "place": "rbZzx",
+      "name": "Ulrichseck",
+      "evidence": "ab 19 Uhr im Ulrichseck"
+    },
+    "GXWTQ": {
+      "place": "Zljjh",
+      "name": "Augsburg Hauptbahnhof",
+      "evidence": "Treffpunkt und Abfahrt ist um 7:24 Uhr am Hauptbahnhof in Augsburg."
+    },
+    "nVIhw": {
+      "place": "a6obd",
+      "name": "Amerikahaus München",
+      "evidence": "treffen wir uns um 14:30 Uhr direkt vor Ort im Amerikahaus"
+    },
+    "iC3bY": {
+      "place": "SXAL3",
+      "name": "Liliom Kino",
+      "evidence": "Dieses mal treffen wir uns im Biergarten des Liliom Kino"
+    },
+    "qeXCu": {
+      "place": "h1cq0",
+      "name": "Moritzkirche",
+      "evidence": "ab 20:30 Uhr Moritzkirche ... direkt nach dem CSD Gottesdienst"
+    },
+    "h348g": {
+      "place": "EoNK1",
+      "name": "Rathausplatz",
+      "evidence": "ab 9 Uhr an den Bänken vor der Tourist*innen-Information am Rathausplatz"
+    },
+    "M32U2": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "ab 19 Uhr im Provinoclub"
+    },
+    "kZo8f": {
+      "place": "SXAL3",
+      "name": "Liliom Kino",
+      "evidence": "Wir treffen uns im Foyer des Liliom."
+    },
+    "j55St": {
+      "place": "HxUeM",
+      "name": "Flannigan's Post",
+      "evidence": "ab 19 Uhr im Flannigan's Post"
+    },
+    "TS6HN": {
+      "unknown": "Aufruf zur Umfrage für CSD-Fahrten, kein Ort",
+      "evidence": "Fülle die Umfrage aus, hilf eine Fahrt zu organisieren"
+    },
+    "9YaKu": {
+      "place": "vhPjJ",
+      "name": "Ratskeller",
+      "evidence": "ab 19 Uhr im Ratskeller"
+    },
+    "VeqMX": {
+      "place": "rbZzx",
+      "name": "Ulrichseck",
+      "evidence": "im UlrichsEck, Ulrichsplatz 17"
+    },
+    "Gbkel": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "q9jeI": {
+      "place": "pVNu8",
+      "name": "Enchilada",
+      "evidence": "ab 19 Uhr Enchilada"
+    },
+    "TFa0Z": {
+      "place": "Df29g",
+      "name": "Botanischer Garten",
+      "evidence": "am großen Brunnen beim Eingang des Botanischen Gartens"
+    },
+    "0fM9e": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "nKTVO": {
+      "place": "MRRVO",
+      "name": "Zeughausstuben",
+      "evidence": "Wir treffen uns um 19 Uhr in der Zeughausstuben."
+    },
+    "XWOtf": {
+      "place": "rbZzx",
+      "name": "Ulrichseck",
+      "evidence": "im UlrichsEck, Ulrichsplatz 17"
+    },
+    "yURSt": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "kQecI": {
+      "online": "Zoom",
+      "evidence": "ab 20 Uhr auf Zoom"
+    },
+    "4cTTp": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr Zoom"
+    },
+    "ywfLh": {
+      "place": "rbZzx",
+      "name": "Ulrichseck",
+      "evidence": "ab 19 Uhr im Ulrichseck"
+    },
+    "vUfdp": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "gJlNn": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "ehPPe": {
+      "online": "Zoom",
+      "evidence": "ab 20 Uhr auf Zoom"
+    },
+    "37s6x": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "GgKSI": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "ZywEP": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "DfLvo": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "iMo9X": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "lZe1k": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom ... in digitaler Runde"
+    },
+    "pRy6r": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "Oz8u1": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "yP0a4": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "qhSx7": {
+      "unknown": "Neujahrsgruß ohne Ortsangabe",
+      "evidence": "Frohes Neues!"
+    },
+    "P1eU4": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "PbR9g": {
+      "online": "Online",
+      "evidence": "Die Queeren Christ*innen treffen sich auch diesen Freitag in digitaler Runde."
+    },
+    "0LunC": {
+      "online": "Zoom",
+      "evidence": "ab 18:55 Uhr auf Zoom"
+    },
+    "lmlwR": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "eH4I7": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "YaFVz": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "u2q1E": {
+      "place": "rbZzx",
+      "name": "Ulrichseck",
+      "evidence": "kleiner Saal, Gemeindehaus St. Ulrich, Ulrichsplatz 17"
+    },
+    "giPhi": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "zCr2p": {
+      "place": "pVNu8",
+      "name": "Enchilada",
+      "evidence": "Diesmal im Enchilada, Hallstraße 4."
+    },
+    "Zvq8b": {
+      "place": "rbZzx",
+      "name": "Ulrichseck",
+      "evidence": "im Kleinen Saal, Gemeindehaus St. Ulrich, Ulrichsplatz 17"
+    },
+    "kaMhn": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "qdS8e": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "Ab 19 Uhr im Projektraum, Wolfgangstraße 2."
+    },
+    "9y5dF": {
+      "place": "rbZzx",
+      "name": "Ulrichseck",
+      "evidence": "kleiner Saal, Gemeindehaus St. Ulrich, Ulrichsplatz 17"
+    },
+    "lZOy4": {
+      "place": "HxUeM",
+      "name": "Flannigan's Post",
+      "evidence": "Diesmal im Flannigan's Post, Fuggerstraße 5-7."
+    },
+    "k2CQ1": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "XI1aD": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "i2Lz5": {
+      "place": "SXAL3",
+      "name": "Liliom Kino",
+      "evidence": "um 11:30 Uhr am Liliom Kino"
+    },
+    "5q6Xe": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "den WirGarten im Provino"
+    },
+    "DdEsm": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "l9sfA": {
+      "unknown": "Präsenztreffen angekündigt, aber kein Ort genannt",
+      "evidence": "Sie treffen sich am Freitag 17.09. ab 19 Uhr."
+    },
+    "gOXz6": {
+      "place": "ZrLvG",
+      "name": "Unikum",
+      "evidence": "ab 19 Uhr im Unikum"
+    },
+    "ElVlY": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "9KxMs": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "zyaT2": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "den WirGarten im Provino"
+    },
+    "xo23Y": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "CxdR7": {
+      "online": "Zoom",
+      "evidence": "ACHTUNG ÄNDERUNG: ... FINDET DER MEET ONLINE AUF ZOOM STATT!!"
+    },
+    "9Mqk1": {
+      "place": "yeehi",
+      "name": "Pfarrgarten St. Ulrich",
+      "evidence": "im Pfarrgarten von St. Ulrich, Ulrichsplatz 11"
+    },
+    "USVbb": {
+      "place": "rG4z6",
+      "name": "Zoo Augsburg",
+      "evidence": "die Augsburger Zoolandschaft ... um 15 Uhr vor dem Kassenbereich"
+    },
+    "cEhjm": {
+      "place": "Df29g",
+      "name": "Botanischer Garten",
+      "evidence": "Wir treffen uns gegen 19 Uhr vor dem Kassenbereich."
+    },
+    "bIwIr": {
+      "place": "95XEG",
+      "name": "Haifischbar",
+      "evidence": "Diesmal in der Haifi."
+    },
+    "IPyI8": {
+      "place": "TJnsQ",
+      "name": "Freiwilligen-Zentrum Augsburg",
+      "evidence": "im Freiwilligen-Zentrum ... Am Mittleren Lech 5"
+    },
+    "A1I7z": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "vuB39": {
+      "place": "ZeSqH",
+      "name": "Elias Holl Platz",
+      "evidence": "ab 12 Uhr auf dem Elias-Holl-Platz"
+    },
+    "fhQ9i": {
+      "online": "Zoom",
+      "evidence": "Diesmal auf Zoom."
+    },
+    "4MV3G": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "den WirGarten im Provino"
+    },
+    "VdlkP": {
+      "place": "quTlc",
+      "name": "ESG Cafete",
+      "evidence": "bei der ESG-Cafete, Salomon-Idler-Straße 14"
+    },
+    "3wTTu": {
+      "place": "yeehi",
+      "name": "Pfarrgarten St. Ulrich",
+      "evidence": "im Pfarrgarten von St. Ulrich, Ulrichsplatz 11"
+    },
+    "uxsxH": {
+      "online": "Zoom",
+      "evidence": "am 15.07. um 19 Uhr auf Zoom"
+    },
+    "OnBLo": {
+      "place": "pVNu8",
+      "name": "Enchilada",
+      "evidence": "Diesmal im Enchilada."
+    },
+    "vHXGH": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom"
+    },
+    "vmKEP": {
+      "online": "Zoom",
+      "evidence": "ORTSÄNDERUNG Wir treffen uns online auf Zoom!"
+    },
+    "jCULs": {
+      "place": "95XEG",
+      "name": "Haifischbar",
+      "evidence": "Wir starten um 17.30 Uhr in der Haifischbar."
+    },
+    "oHzsQ": {
+      "place": "quTlc",
+      "name": "ESG Cafete",
+      "evidence": "ab 17 Uhr draußen bei der ESG Cafete"
+    },
+    "yvRKO": {
+      "unknown": "Kein Ort/keine Plattform genannt (nur Tweedback für Vorschläge)",
+      "evidence": "Du hast Ideen für Queer Augsburg Treffen?"
+    },
+    "XfNuW": {
+      "place": "5dVrB",
+      "name": "Provinoclub",
+      "evidence": "übernehmen wir ... den WirGarten im Provino"
+    },
+    "dxiJc": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "wJ9yk": {
+      "place": "hWjRc",
+      "name": "Sonnendeck",
+      "evidence": "ab 19 Uhr am Sonnendeck"
+    },
+    "902iF": {
+      "place": "hWjRc",
+      "name": "Sonnendeck",
+      "evidence": "beide Gruppentreffen auf dem Sonnendeck stattfinden zu lassen"
+    },
+    "ciGjU": {
+      "place": "yeehi",
+      "name": "Pfarrgarten St. Ulrich",
+      "evidence": "im Pfarrgarten von St. Ulrich, Ulrichsplatz 11"
+    },
+    "v76Ks": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "eDezs": {
+      "online": "Online",
+      "evidence": "Am Abend lädt der CSD zu einem *Livestream* ein."
+    },
+    "rauUW": {
+      "unknown": "Kooperation mit der ESG, aber kein Ort genannt",
+      "evidence": "In Kooperation mit der Evangelischen Studierendengemeinde Augsburg"
+    },
+    "MGD5z": {
+      "online": "Zoom",
+      "evidence": "Diesmal auf Zoom."
+    },
+    "0BuqN": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "Ma3KN": {
+      "online": "Zoom",
+      "evidence": "Auf Zoom"
+    },
+    "UV6pX": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "s0ysR": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "9lZir": {
+      "online": "Jitsi",
+      "evidence": "Ab 19 Uhr auf Jitsi."
+    },
+    "SyJa8": {
+      "online": "Zoom",
+      "evidence": "Donnerstag 20.05.2021, ab 19 Uhr auf Zoom"
+    },
+    "CAPTK": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "uKFA8": {
+      "online": "Zoom",
+      "evidence": "Diesmal auf Zoom."
+    },
+    "G8tBd": {
+      "online": "Zoom",
+      "evidence": "Wo? Auf Zoom."
+    },
+    "ml7Fw": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "X4O7z": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "vTBOS": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "wYxeu": {
+      "online": "Discord",
+      "evidence": "Einen Zugang bekommst du über Discord"
+    },
+    "FMjQf": {
+      "online": "Zoom",
+      "evidence": "ein Workout über Zoom machen"
+    },
+    "3ffW8": {
+      "online": "Jitsi",
+      "evidence": "Ab 19 Uhr auf Jitsi."
+    },
+    "V8cjj": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "jF4Pq": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "CPYB8": {
+      "online": "Zoom",
+      "evidence": "Q&A Polyamorie am 08. April ab 19:00 auf Zoom."
+    },
+    "dmLKB": {
+      "unknown": "Text nennt keinen Ort, nur Anmeldeadresse",
+      "evidence": "Anmeldung unter: queer@stadtraumev.de"
+    },
+    "5nCW4": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "YNFuZ": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "FJwSV": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "9Dx5f": {
+      "online": "Jitsi",
+      "evidence": "werden wir digital jeweils morgens und abends zusammenkommen ... Jitsi-Link"
+    },
+    "o0m6I": {
+      "online": "Zoom",
+      "evidence": "Der Workshop findet über die Plattform Zoom statt"
+    },
+    "cPKyc": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "B39RL": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "RDrHJ": {
+      "online": "Zoom",
+      "evidence": "at 6 p.m. EST on Zoom"
+    },
+    "kW4mk": {
+      "online": "Jitsi",
+      "evidence": "Ab 19 Uhr auf Jitsi."
+    },
+    "IpCff": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "mxsKF": {
+      "online": "Zoom",
+      "evidence": "am 11. März um 19:00 Uhr via Zoom statt"
+    },
+    "Ah2rW": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "CCYlU": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom. Keine Anmeldung erforderlich."
+    },
+    "k3K8D": {
+      "online": "Online",
+      "evidence": "am 25. Februar um 19:00 Uhr [online]"
+    },
+    "hIveh": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "b2S9p": {
+      "online": "Discord",
+      "evidence": "Wo: http://discord.gg/sWkeFBb"
+    },
+    "ZQYoB": {
+      "online": "Jitsi",
+      "evidence": "Ab 19 Uhr auf Jitsi."
+    },
+    "k5Txy": {
+      "online": "Zoom",
+      "evidence": "on Zoom"
+    },
+    "wYTaq": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "N0sEj": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "YhNyF": {
+      "online": "Zoom",
+      "evidence": "um 19 Uhr mit queeren Gruppen ... auf Zoom"
+    },
+    "muzwC": {
+      "online": "Online",
+      "evidence": "Wie immer findet ihr den Link auf der Website und in unserer Instagram-Bio."
+    },
+    "9PIF3": {
+      "online": "Zoom",
+      "evidence": "Ab 19 Uhr auf Zoom."
+    },
+    "r4Tsq": {
+      "online": "Zoom",
+      "evidence": "ab 19 Uhr auf Zoom die Basics im Schminken"
+    },
+    "jyBVS": {
+      "online": "Jitsi",
+      "evidence": "Ab 19 Uhr auf Jitsi."
+    },
+    "CiCWc": {
+      "online": "Zoom",
+      "evidence": "Q&A-Session ab 19 Uhr auf Zoom."
+    },
+    "WIhbu": {
+      "online": "Zoom",
+      "evidence": "Los geht es am Donnerstag ab 19 Uhr auf Zoom."
+    },
+    "eMJDl": {
+      "online": "Discord",
+      "evidence": "Wo: http://discord.gg/sWkeFBb"
+    },
+    "bwu2a": {
+      "unknown": "Neujahrsgruß ohne Ortsangabe",
+      "evidence": "Frohes Neues!"
+    },
+    "hvtoG": {
+      "unknown": "Mehrtägige Auszeit ohne Ortsangabe, nur Kontaktadresse",
+      "evidence": "drei gemeinsame besinnliche Tage. Meldet euch unter ..."
+    },
+    "F7XIk": {
+      "online": "Zoom",
+      "evidence": "Lasst uns dieses besinnliche Fest gemeinsam über Zoom feiern"
+    },
+    "ABPRW": {
+      "online": "Zoom",
+      "evidence": "Wir setzen uns ab 19 Uhr per Zoom zusammen."
+    },
+    "OHCIA": {
+      "online": "Zoom",
+      "evidence": "Zoom-Link: [Entfernt]"
+    },
+    "Zgsoi": {
+      "place": "Hr6qf",
+      "name": "Evangelische Kirche St. Ulrich",
+      "evidence": "veranstalten in St.Ulrich ... ab 19 Uhr eine Andacht"
+    },
+    "EoUE7": {
+      "online": "Zoom",
+      "evidence": "[Zoom-Link entfernt]"
+    },
+    "9PJhI": {
+      "online": "Jitsi",
+      "evidence": "um 19 Uhr online auf Jitsi"
+    },
+    "T9Ko5": {
+      "online": "Discord",
+      "evidence": "findet auf dem Discord-Server von Kunterbunt Amberg statt"
+    },
+    "3qRWY": {
+      "online": "Online",
+      "evidence": "Wir veranstalten ein digitales Kennenlerntreffen!"
+    },
+    "d82aF": {
+      "online": "Zoom",
+      "evidence": "Das Treffen findet auf Zoom um 19 Uhr statt."
+    },
+    "30": {
+      "online": "Zoom",
+      "evidence": "esst dann gemeinsam mit uns ab 19 Uhr über Zoom zu Abend"
+    },
+    "qEnNd": {
+      "online": "Discord",
+      "evidence": "Ab 19 Uhr auf unserem Discord-Server."
+    },
+    "shkuu": {
+      "place": "rbZzx",
+      "name": "Ulrichseck",
+      "evidence": "im evangelische Gemeindehaus am Ulrichsplatz 17"
+    },
+    "FrqlN": {
+      "place": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "evidence": "Ab 19 Uhr im Projektraum, Wolfgangstraße 2!"
+    },
+    "wW3Tb": {
+      "place": "nPakv",
+      "name": "Café Tür an Tür",
+      "evidence": "um 19 Uhr zum Café Tür an Tür. (Wertachstraße 29)"
+    },
+    "BLr1p": {
+      "online": "Discord",
+      "evidence": "findet digital um 19 Uhr auf unserem Discord-Server statt"
+    },
+    "73mQ3": {
+      "place": "5J7b3",
+      "name": "Thalia Kino",
+      "evidence": "Wir gehen ins Thalia Kino (Obstmarkt 5)"
+    },
+    "DWPCl": {
+      "place": "rbZzx",
+      "name": "Ulrichseck",
+      "evidence": "ins evangelische Gemeindehaus am Ulrichsplatz 17"
+    },
+    "tYbIv": {
+      "place": "EoNK1",
+      "name": "Rathausplatz",
+      "evidence": "Treffpunkt ist 19 Uhr vor dem Rathaus"
+    },
+    "7c2Rw": {
+      "place": "95XEG",
+      "name": "Haifischbar",
+      "evidence": "Wir starten den Abend um 19:00 Uhr in der Haifischbar"
+    },
+    "EpBng": {
+      "place": "rbZzx",
+      "name": "Ulrichseck",
+      "evidence": "Wir treffen uns um 19 Uhr am Ulrichsplatz 17"
+    },
+    "p8KhB": {
+      "place": "rbZzx",
+      "name": "Ulrichseck",
+      "evidence": "im evangelischen Gemeindehaus am Ulrichsplatz 17"
+    },
+    "ogv84": {
+      "place": "7PdhT",
+      "name": "Augsburger Dom",
+      "evidence": "um 16 Uhr am Dom treffen, um dann im Hofgarten ... Picknick"
+    },
+    "37ionewvuin": {
+      "place": "EoNK1",
+      "name": "Rathausplatz",
+      "evidence": "dem Klimacamp neben dem Augsburger Rathaus ... direkt vor dem Camp"
+    },
+    "38": {
+      "place": "PqHYa",
+      "name": "Kongress am Park",
+      "evidence": "um 19 Uhr vor dem Kongress am Park"
+    },
+    "32": {
+      "unknown": "Private Adresse nur nach Anmeldung",
+      "evidence": "privat um 19 Uhr in Augsburg ... Adresse gibt es nach der Anmeldung"
+    },
+    "YC5l0": {
+      "place": "Zljjh",
+      "name": "Augsburg Hauptbahnhof",
+      "evidence": "Treffpunkt ist jeweils 20 Minuten vorher am Hbf"
+    },
+    "28": {
+      "place": "EoNK1",
+      "name": "Rathausplatz",
+      "evidence": "um 19 Uhr am Rathausplatz"
+    },
+    "Ldfor": {
+      "online": "Discord",
+      "evidence": "Der Einladungslink zur Discord-Gruppe wird ... gepostet"
+    },
+    "iofd8": {
+      "online": "Discord",
+      "evidence": "Den Link zu unserem Discord-Server posten wir kurz vor dem Treffen"
+    },
+    "29": {
+      "online": "Online",
+      "evidence": "Bei digitalen Brezen, Keksen und Trinken"
+    },
+    "24": {
+      "place": "PoEzz",
+      "name": "Albert-Einstein-Mittelschule Haunstetten",
+      "evidence": "Workshop ... an der Albert-Einstein-Mittelschule in Haunstetten"
+    },
+    "26": {
+      "online": "Online",
+      "evidence": "(Fand online statt.)"
+    },
+    "23": {
+      "place": "PqHYa",
+      "name": "Kongress am Park",
+      "evidence": "um 19 Uhr an der Tramhaltestelle \"Kongress am Park\""
+    },
+    "25": {
+      "place": "pavNQ",
+      "name": "Oki's",
+      "evidence": "ab 19 Uhr im Oki's. (Georgenstraße 2)"
+    },
+    "22": {
+      "place": "quTlc",
+      "name": "ESG Cafete",
+      "evidence": "Treffpunkt ist um 19 Uhr am 29.1.2020 in der ESG-Cafete"
+    },
+    "21": {
+      "place": "tW2Rq",
+      "name": "AStA Uni Augsburg",
+      "evidence": "ab 17 Uhr ein Planungstreffen im AStA"
+    },
+    "12": {
+      "place": "3B31o",
+      "name": "Hochschule Augsburg",
+      "evidence": "im Raum C1.23 in der Hochschule hinter der alten Mensa"
+    },
+    "hK8ln": {
+      "unknown": "Neujahrsgruß ohne Ortsangabe",
+      "evidence": "Frohes Neues!"
+    },
+    "10": {
+      "place": "quTlc",
+      "name": "ESG Cafete",
+      "evidence": "ab 18:30 Uhr in der ESG-Cafete im ersten Stock"
+    },
+    "9": {
+      "place": "tW2Rq",
+      "name": "AStA Uni Augsburg",
+      "evidence": "Treffpunkt ist ab 16:45 im AStA"
+    },
+    "8": {
+      "place": "hLD6T",
+      "name": "Uni Augsburg",
+      "evidence": "Treffpunkt ist in der Mensa"
+    },
+    "7": {
+      "place": "EoNK1",
+      "name": "Rathausplatz",
+      "evidence": "Treffpunkt ist um 19 Uhr direkt vor dem Rathaus"
+    },
+    "11": {
+      "place": "hLD6T",
+      "name": "Uni Augsburg",
+      "evidence": "ab 11 Uhr unten vor der Mensa informieren"
+    },
+    "20": {
+      "place": "3B31o",
+      "name": "Hochschule Augsburg",
+      "evidence": "in Raum C1.23 hinter der alten Mensa in der Hochschule"
+    },
+    "6": {
+      "place": "hLD6T",
+      "name": "Uni Augsburg",
+      "evidence": "Ab 18:00 im Raum D1087a"
+    },
+    "5": {
+      "place": "quTlc",
+      "name": "ESG Cafete",
+      "evidence": "Treffpunkt ist um 19 Uhr in der ESG-Cafete"
+    },
+    "4": {
+      "place": "0KhgX",
+      "name": "Königsplatz",
+      "evidence": "um 18:30 Uhr vor der swa am Königsplatz ... dann ins Pool City Billard"
+    },
+    "3": {
+      "place": "tW2Rq",
+      "name": "AStA Uni Augsburg",
+      "evidence": "Treffpunkt ist im AStA um 17:30 Uhr"
+    },
+    "19": {
+      "unknown": "Text nennt keinen Ort (vermutlich private Adresse wie beim ersten Keksebacken)",
+      "evidence": "Um 17:40 Uhr ist das Treffen"
+    },
+    "18": {
+      "place": "hLD6T",
+      "name": "Uni Augsburg",
+      "evidence": "im D-Gebäude an der roten Säule"
+    },
+    "17": {
+      "place": "hLD6T",
+      "name": "Uni Augsburg",
+      "evidence": "im Jura-Foyer, von 13:30 bis 15 Uhr im WiWi-Foyer"
+    },
+    "16": {
+      "place": "tW2Rq",
+      "name": "AStA Uni Augsburg",
+      "evidence": "Ab 16.45 Uhr im AStA"
+    },
+    "15": {
+      "unknown": "Adresse aus Datenschutzgründen entfernt",
+      "evidence": "Morgen ab 16 Uhr, (Adresse entfernt)."
+    },
+    "14": {
+      "place": "0KhgX",
+      "name": "Königsplatz",
+      "evidence": "um 18 Uhr am Kö"
+    },
+    "13": {
+      "place": "wBMej",
+      "name": "Rotes Tor",
+      "evidence": "beim Kiosk an der Haltestelle \"Rotes Tor\""
+    },
+    "2": {
+      "place": "Zljjh",
+      "name": "Augsburg Hauptbahnhof",
+      "evidence": "Treffpunkt ist ... um 9:30 Uhr am Augsburger Hauptbahnhof"
+    },
+    "1": {
+      "place": "hLD6T",
+      "name": "Uni Augsburg",
+      "evidence": "um 17:30 vor der Uni-Mensa"
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "_comment": "Expected place_name_key results; run by server/src/place_rules.rs, web/src/places.test.ts and (for migrate.js) via name_key.js.",
+  "cases": [
+    [
+      "Henry‘s  Coffee",
+      "henry's coffee"
+    ],
+    [
+      " Mo CLub ",
+      "mo club"
+    ],
+    [
+      "Café 13",
+      "café 13"
+    ],
+    [
+      "A B",
+      "a b"
+    ],
+    [
+      "A　B",
+      "a b"
+    ],
+    [
+      "AB",
+      "a b"
+    ],
+    [
+      "A B",
+      "a b"
+    ],
+    [
+      "A\tB\nC",
+      "a b c"
+    ],
+    [
+      "A﻿B",
+      "a﻿b"
+    ],
+    [
+      "İSTANBUL",
+      "i̇stanbul"
+    ],
+    [
+      "ΟΔΟΣ",
+      "οδος"
+    ],
+    [
+      "Straße",
+      "straße"
+    ],
+    [
+      "STRASSE",
+      "strasse"
+    ],
+    [
+      "Henryʼs",
+      "henry's"
+    ],
+    [
+      "Henry´s",
+      "henry's"
+    ],
+    [
+      "Henry`s",
+      "henry's"
+    ],
+    [
+      "Henry’s",
+      "henry's"
+    ],
+    [
+      "",
+      ""
+    ],
+    [
+      "   ",
+      ""
+    ]
+  ]
+}

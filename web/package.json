@@ -5,10 +5,12 @@
     "type": "module",
     "scripts": {
         "dev": "npm run copy-leaflet && vite",
-        "build": "npm run copy-leaflet && rm -rf node_modules/react-markdown/lib/complex-types.ts && tsc && vite build",
+        "build": "npm run copy-leaflet && pnpm fix-react-markdown-types && tsc && vite build",
         "preview": "vite preview",
+        "test": "pnpm fix-react-markdown-types && tsc --noEmit -p tsconfig.test.json && vitest run",
         "generate-pwa-assets": "pwa-assets-generator -p minimal public/logos/logo_full_size.png",
-        "copy-leaflet": "mkdir -p public/leaflet/images && cp node_modules/leaflet/dist/leaflet.css public/leaflet/ && cp node_modules/leaflet/dist/images/* public/leaflet/images/"
+        "copy-leaflet": "mkdir -p public/leaflet/images && cp node_modules/leaflet/dist/leaflet.css public/leaflet/ && cp node_modules/leaflet/dist/images/* public/leaflet/images/",
+        "fix-react-markdown-types": "rm -f node_modules/react-markdown/lib/complex-types.ts"
     },
     "dependencies": {
         "@firstdorsal/interossea-client": "^1.0.1",
@@ -57,7 +59,8 @@
         "prettier-plugin-tailwindcss": "0.7.0",
         "typescript": "^5.7.2",
         "vite": "7.1.10",
-        "vite-plugin-pwa": "1.1.0"
+        "vite-plugin-pwa": "1.1.0",
+        "vitest": "5.0.5"
     },
     "packageManager": "pnpm@9.1.3+sha1.6110a47202a78d07d0bf8c9f4f4c63cc83bb833a"
 }

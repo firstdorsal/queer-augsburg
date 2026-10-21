@@ -14,7 +14,13 @@ pub struct Meeting {
     pub authority: String,
     pub age_restriction: Vec<u8>,
     pub time: Option<i64>,
-    pub location: MeetingLocation,
+    /// Copy of the place (`place_id`) for display and the iCal feed; `None` for online meetings.
+    pub location: Option<MeetingLocation>,
+    /// The place the meeting takes place at; set by the server on save. Meetings
+    /// imported before places existed may have only a `location`.
+    pub place_id: Option<String>,
+    /// Set for online meetings, which have no place.
+    pub online: Option<OnlineMeeting>,
     pub description: String,
     pub price: Vec<f32>,
     pub trigger_warning: Option<String>,
@@ -52,6 +58,93 @@ pub struct MeetingLocation {
     pub name: String,
     pub lat: f64,
     pub lon: f64,
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+pub struct OnlineMeeting {
+    /// E.g. "Zoom"; may be empty.
+    pub platform: String,
+    /// Link to join. A members-only link is never sent in meeting lists, save responses or
+    /// the iCal feed — not even to members; they fetch it from `GET /api/meeting_link/`.
+    pub url: Option<String>,
+    /// The link is only shown to verified members (and editors), never publicly.
+    pub members_only: bool,
+    /// Set by the server when `url` was withheld (never stored). Sending it back with
+    /// `url: null` keeps the stored link; `url: ""` removes it.
+    #[serde(default)]
+    pub url_hidden: bool,
+}
+
+impl Meeting {
+    /// The meeting as it may be sent in lists and the iCal feed: members-only links removed.
+    pub fn without_private_link(mut self) -> Self {
+        if let Some(online) = &mut self.online {
+            if online.members_only && online.url.is_some() {
+                online.url = None;
+                online.url_hidden = true;
+            }
+        }
+        self
+    }
+}
+
+/// A place meetings can take place at.
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+pub struct Place {
+    pub _id: String,
+    pub name: String,
+    pub lat: f64,
+    pub lon: f64,
+}
+
+impl Place {
+    /// The copy stored in `Meeting.location`. Renaming or moving a place later must
+    /// rewrite these copies (and push a `changed` entry so delta sync delivers them).
+    pub fn as_location(&self) -> MeetingLocation {
+        MeetingLocation {
+            name: self.name.clone(),
+            lat: self.lat,
+            lon: self.lon,
+        }
+    }
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct CreatePlaceRequestBody {
+    pub name: String,
+    pub lat: f64,
+    pub lon: f64,
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+pub struct CreatePlaceResponseBody {
+    pub place: Place,
+    /// false: a place with the same name (ignoring case, spacing and apostrophe style)
+    /// already existed and is returned instead.
+    pub created: bool,
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+pub struct GetPlacesResponseBody {
+    pub places: Vec<Place>,
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+pub struct MeetingLinkResponseBody {
+    pub url: Option<String>,
 }
 
 #[derive(TS, ToSchema)]
@@ -115,6 +208,24 @@ pub struct User {
     pub id: String,
     pub member: Option<InternalMember>,
     pub capabilities: Option<Vec<UserCapabilities>>,
+}
+
+impl User {
+    pub fn has_capability(&self, capability: &UserCapabilities) -> bool {
+        self.capabilities
+            .as_ref()
+            .is_some_and(|capabilities| capabilities.contains(capability))
+    }
+
+    /// Verified members (membership approved by the board) and editors may see
+    /// members-only links of online meetings.
+    pub fn may_see_members_only_links(&self) -> bool {
+        self.has_capability(&UserCapabilities::UpdateMeetings)
+            || self
+                .member
+                .as_ref()
+                .is_some_and(|member| member.status == Some(MembershipStatus::Approved))
+    }
 }
 
 #[derive(TS, ToSchema)]

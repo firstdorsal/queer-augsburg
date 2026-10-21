@@ -1,4 +1,4 @@
-import { Component } from "preact";
+import { Component, ComponentChildren } from "preact";
 import { Button, Input, InputGroup, Modal } from "rsuite";
 import { FaSearch } from "react-icons/fa";
 
@@ -8,6 +8,14 @@ interface LocationPickerProps {
     onLocationSelect: (lat: number, lon: number) => void;
     show: boolean;
     onClose: () => void;
+    /** Pre-fills the search field, e.g. with a place name that is not known yet. */
+    initialSearchQuery?: string;
+    /** Defaults to "Ort auswählen". */
+    title?: string;
+    /** Rendered above the search field. */
+    children?: ComponentChildren;
+    /** Replaces the default OK button. */
+    footer?: ComponentChildren;
 }
 
 interface LocationPickerState {
@@ -41,7 +49,7 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
             marker: null,
             leafletLoaded: false,
             cssLoaded: false,
-            searchQuery: "",
+            searchQuery: props.initialSearchQuery ?? "",
             searchResults: [],
             isSearching: false
         };
@@ -268,16 +276,17 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
     };
 
     render() {
-        const { show, onClose } = this.props;
+        const { show, onClose, title, children, footer } = this.props;
         const { leafletLoaded, cssLoaded, searchQuery, searchResults, isSearching } = this.state;
         const isLoading = !leafletLoaded || !cssLoaded;
 
         return (
             <Modal open={show} size="lg" onClose={onClose}>
                 <Modal.Header>
-                    <Modal.Title>Ort auswählen</Modal.Title>
+                    <Modal.Title>{title ?? "Ort auswählen"}</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
+                    {children}
                     <div style={{ marginBottom: "15px", position: "relative" }}>
                         <InputGroup style={{ width: "100%" }}>
                             <Input
@@ -373,9 +382,11 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
                     />
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button onClick={onClose} appearance="primary">
-                        OK
-                    </Button>
+                    {footer ?? (
+                        <Button onClick={onClose} appearance="primary">
+                            OK
+                        </Button>
+                    )}
                 </Modal.Footer>
             </Modal>
         );

@@ -10,6 +10,8 @@ macro_rules! some_or_bail {
 }
 
 #[macro_export]
+/// Returns early with 401/403/404/500 unless the request's user has `$capability`;
+/// evaluates to that `User` otherwise.
 macro_rules! require_capability {
     ($state:expr, $auth:expr, $capability:expr) => {{
         use axum::http::StatusCode;
@@ -27,15 +29,10 @@ macro_rules! require_capability {
             }
         };
 
-        match user.capabilities {
-            Some(capabilities) => {
-                if !capabilities.contains(&$capability) {
-                    return (StatusCode::FORBIDDEN, "Not authorized").into_response();
-                }
-            }
-            None => {
-                return (StatusCode::FORBIDDEN, "Not authorized").into_response();
-            }
+        if !user.has_capability(&$capability) {
+            return (StatusCode::FORBIDDEN, "Not authorized").into_response();
         }
+        // The authorized user, for handlers that need it (e.g. to record who created what).
+        user
     }};
 }

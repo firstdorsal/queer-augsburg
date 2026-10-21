@@ -1,5 +1,10 @@
 import { InterosseaClient } from "@firstdorsal/interossea-client";
 import { ConfirmSendEmailResponseBody } from "./apiTypes/ConfirmSendEmailResponseBody";
+import type { CreatePlaceRequestBody } from "./apiTypes/CreatePlaceRequestBody";
+import type { CreatePlaceResponseBody } from "./apiTypes/CreatePlaceResponseBody";
+import type { GetPlacesResponseBody } from "./apiTypes/GetPlacesResponseBody";
+import type { MeetingLinkResponseBody } from "./apiTypes/MeetingLinkResponseBody";
+import type { Place } from "./apiTypes/Place";
 import { EmailAttachment } from "./apiTypes/EmailAttachment";
 import { GetMeetingsResponseBody } from "./apiTypes/GetMeetingsResponseBody";
 import { GetUsersResponseBody } from "./apiTypes/GetUsersResponseBody";
@@ -51,6 +56,11 @@ export class QaClient {
     }
 
     init = async () => {
+        // Caches of older versions have an older meeting shape.
+        const current = [this.getMeetingsCacheKey("Active"), this.getMeetingsCacheKey("Planned")];
+        Object.keys(localStorage)
+            .filter((key) => key.startsWith("meetings_cache_") && !current.includes(key))
+            .forEach((key) => localStorage.removeItem(key));
         await this.interosseaClient.init();
     };
 
@@ -58,7 +68,8 @@ export class QaClient {
      * Get the cache key for a meeting type
      */
     private getMeetingsCacheKey = (meeting_type: MeetingTypeQuery): string => {
-        return `meetings_cache_v2_${meeting_type}`;
+        // v3: meetings have place_id/online and an optional location since the places feature.
+        return `meetings_cache_v3_${meeting_type}`;
     };
 
     /**
@@ -366,17 +377,75 @@ export class QaClient {
         return users;
     };
 
-    update_meeting = async (meeting: Meeting) => {
-        const res = await fetch(`${this.qaEndpoint}/api/update_meeting/`, {
-            method: "POST",
-            credentials: "include",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ meeting })
+    /** Saves a meeting. Never throws; on rejection the server explains why (German text). */
+    update_meeting = async (
+        meeting: Meeting
+    ): Promise<{ ok: true; meeting: Meeting } | { ok: false; message: string }> => {
+        const result = await this.sendJson(`${this.qaEndpoint}/api/update_meeting/`, {
+            meeting
         });
-        const updated_meeting: Meeting = await res.json();
-        // Invalidate cache since meeting data has changed
+        // Invalidate cache since meeting data may have changed
         this.invalidateMeetingsCache();
-        return updated_meeting;
+        if (!result.ok) return result;
+        return { ok: true, meeting: result.body as Meeting };
+    };
+
+    get_places = async (): Promise<Place[]> => {
+        const res = await fetch(`${this.qaEndpoint}/api/places/`, { credentials: "include" });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const body: GetPlacesResponseBody = await res.json();
+        return body.places;
+    };
+
+    /** Creates a place, or returns the existing one with the same name (`created: false`). */
+    create_place = async (
+        place: CreatePlaceRequestBody
+    ): Promise<({ ok: true } & CreatePlaceResponseBody) | { ok: false; message: string }> => {
+        const result = await this.sendJson(`${this.qaEndpoint}/api/create_place/`, place);
+        if (!result.ok) return result;
+        return { ok: true, ...(result.body as CreatePlaceResponseBody) };
+    };
+
+    /** The join link of an online meeting incl. members-only links (verified members only).
+     * Never throws; `status` 0 means no answer from the server. */
+    get_meeting_link = async (
+        meeting_id: string
+    ): Promise<{ ok: true; url: string | null } | { ok: false; status: number }> => {
+        try {
+            const res = await fetch(
+                `${this.qaEndpoint}/api/meeting_link/?m=${encodeURIComponent(meeting_id)}`,
+                { credentials: "include" }
+            );
+            if (!res.ok) return { ok: false, status: res.status };
+            const body: MeetingLinkResponseBody = await res.json();
+            return { ok: true, url: body.url };
+        } catch (error) {
+            console.error("get_meeting_link failed:", error);
+            return { ok: false, status: 0 };
+        }
+    };
+
+    /** POSTs JSON; error bodies are German plain text from the server. Never throws. */
+    private sendJson = async (
+        url: string,
+        body: unknown
+    ): Promise<{ ok: true; body: unknown } | { ok: false; message: string }> => {
+        try {
+            const res = await fetch(url, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+            if (!res.ok) {
+                const text = await res.text().catch(() => "");
+                return { ok: false, message: text || `Fehler ${res.status}` };
+            }
+            return { ok: true, body: await res.json() };
+        } catch (error) {
+            console.error(`POST ${url} failed:`, error);
+            return { ok: false, message: "Keine oder ungültige Antwort vom Server." };
+        }
     };
 
     delete_meeting = async (meeting: Meeting) => {

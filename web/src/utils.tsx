@@ -1,6 +1,5 @@
 import { useToaster } from "rsuite";
 import { Meeting } from "./apiTypes/Meeting";
-import { QaClient } from "./api";
 
 export const withToasterHook = (Component: any) => {
     return (props: any) => {
@@ -26,7 +25,9 @@ export const defaultMeeting: Meeting = {
     attendance: null,
     authority: "",
     age_restriction: [0],
-    location: { name: "", lat: 0, lon: 0 },
+    location: null,
+    place_id: null,
+    online: null,
     price: [0],
     trigger_warning: null,
     rating: null,
@@ -46,173 +47,3 @@ export const prefersDarkMode = () => {
     }
 };
 
-export interface Place {
-    name: string;
-    lat: number;
-    lon: number;
-}
-
-export const commonPlaces: Place[] = [
-    {
-        name: "Thing",
-        lat: 48.3653543,
-        lon: 10.9017375
-    },
-    {
-        name: "Elias Holl Platz",
-        lat: 48.36875,
-        lon: 10.89923
-    },
-    {
-        name: "Ulrichseck",
-        lat: 48.36235,
-        lon: 10.90062
-    },
-    {
-        name: "Café Viktor",
-        lat: 48.3558453,
-        lon: 10.8946921
-    },
-    {
-        name: "ESG Cafete",
-        lat: 48.3337832,
-        lon: 10.9018916
-    },
-    {
-        name: "Rockfabrik",
-        lat: 48.34101,
-        lon: 10.89741
-    },
-    {
-        name: "Kantine",
-        lat: 48.3647874,
-        lon: 10.8934258
-    },
-    {
-        name: "Annapam",
-        lat: 48.362661,
-        lon: 10.902919
-    },
-    {
-        name: "Il Porcino",
-        lat: 48.333542,
-        lon: 10.900689
-    },
-    {
-        name: "Flannigan's Post",
-        lat: 48.367388,
-        lon: 10.89346
-    },
-    {
-        name: "Beim Weissen Lamm",
-        lat: 48.370772,
-        lon: 10.893002
-    },
-    {
-        name: "Haifischbar",
-        lat: 48.361225,
-        lon: 10.902929
-    },
-    {
-        name: "Botanischer Garten",
-        lat: 48.34957,
-        lon: 10.91476
-    },
-    {
-        name: "Murdock's Irish Pub",
-        lat: 48.36002,
-        lon: 10.90264
-    },
-    {
-        name: "Projektraum Rechts-der-Wertach",
-        lat: 48.3781092,
-        lon: 10.887578
-    },
-    {
-        name: "Unikum",
-        lat: 48.3337439,
-        lon: 10.8993841
-    },
-    {
-        name: "Grandhotel Cosmopolis",
-        lat: 48.372773,
-        lon: 10.899991
-    },
-    {
-        name: "Henry's Coffee World",
-        lat: 48.3691817,
-        lon: 10.8973092
-    },
-    {
-        name: "Barfly",
-        lat: 48.3638612,
-        lon: 10.8996608
-    },
-    {
-        name: "Stadtbücherei",
-        lat: 48.369164,
-        lon: 10.895149
-    },
-    {
-        name: "Mo Club",
-        lat: 48.364287,
-        lon: 10.9006397
-    },
-    {
-        name: "Rübenrot",
-        lat: 48.3520847,
-        lon: 10.8959902
-    }
-];
-
-// Cache for places - shared across all EditMeeting instances
-let placesCache: Place[] | null = null;
-let placesCachePromise: Promise<Place[]> | null = null;
-
-export const fetchPlacesFromPastMeetings = async (qaClient: QaClient): Promise<Place[]> => {
-    // Return cached result if available
-    if (placesCache !== null) {
-        return placesCache;
-    }
-
-    // If a fetch is already in progress, wait for it
-    if (placesCachePromise !== null) {
-        return placesCachePromise;
-    }
-
-    // Start new fetch and cache the promise
-    placesCachePromise = (async () => {
-        try {
-            // Only fetch Active meetings - Planned meetings are future events without location history
-            const allMeetingsResponse = await qaClient.get_meetings(0, null, "Active");
-            const allMeetings = allMeetingsResponse.meetings;
-
-            const placesMap = new Map<string, Place>();
-
-            allMeetings.forEach(meeting => {
-                const location = meeting.location;
-                if (location.name && location.name.trim() !== "" && location.lat !== 0 && location.lon !== 0) {
-                    const key = location.name.toLowerCase().trim();
-                    if (!placesMap.has(key)) {
-                        placesMap.set(key, {
-                            name: location.name.trim(),
-                            lat: location.lat,
-                            lon: location.lon
-                        });
-                    }
-                }
-            });
-
-            placesCache = Array.from(placesMap.values()).sort((a, b) => a.name.localeCompare(b.name));
-            return placesCache;
-        } catch (error) {
-            console.warn("Failed to fetch places from past meetings, falling back to static list:", error);
-            placesCache = commonPlaces;
-            return placesCache;
-        } finally {
-            placesCachePromise = null;
-        }
-    })();
-
-    return placesCachePromise;
-};

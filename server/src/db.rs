@@ -1,13 +1,53 @@
 use crate::interossea::Auth;
+use crate::place_rules::place_name_key;
 use crate::types::{
-    ChangedMeeting, EmailDraft, InternalMember, Meeting, MeetingTypeQuery, MembershipStatus,
+    ChangedMeeting, EmailDraft, InternalMember, Meeting, MeetingTypeQuery, MembershipStatus, Place,
     SentEmailLog, SubmittedMember, User,
 };
 use crate::utils::generate_id;
-use anyhow::bail;
+use anyhow::{bail, Context};
 use futures::stream::TryStreamExt;
-use mongodb::options::{FindOneAndUpdateOptions, FindOptions, ReturnDocument};
+use mongodb::options::{FindOneAndUpdateOptions, FindOptions, IndexOptions, ReturnDocument};
+use mongodb::IndexModel;
 use mongodb::{bson::doc, options::ClientOptions, Client, Database};
+use serde::{Deserialize, Serialize};
+
+/// Stored form of a place; `name_key` enforces unique names (unique index).
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct PlaceDocument {
+    _id: String,
+    name: String,
+    name_key: String,
+    lat: f64,
+    lon: f64,
+    created: Option<PlaceCreated>,
+}
+
+/// Who created a place and when (ms). The migration uses `MIGRATED_BY` from migrate.js.
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct PlaceCreated {
+    by: String,
+    at: i64,
+}
+
+impl From<PlaceDocument> for Place {
+    fn from(document: PlaceDocument) -> Self {
+        Place {
+            _id: document._id,
+            name: document.name,
+            lat: document.lat,
+            lon: document.lon,
+        }
+    }
+}
+
+fn is_duplicate_key(error: &mongodb::error::Error) -> bool {
+    matches!(
+        error.kind.as_ref(),
+        mongodb::error::ErrorKind::Write(mongodb::error::WriteFailure::WriteError(write_error))
+            if write_error.code == 11000
+    )
+}
 
 pub struct DB {
     pub client: Client,
@@ -27,11 +67,24 @@ impl DB {
             "originalUsers",
             "email_drafts",
             "sent_email_logs",
+            "places",
         ];
 
         for collection in collections {
             let _ = self.db.create_collection(collection, None).await;
         }
+
+        self.db
+            .collection::<PlaceDocument>("places")
+            .create_index(
+                IndexModel::builder()
+                    .keys(doc! { "name_key": 1 })
+                    .options(IndexOptions::builder().unique(true).build())
+                    .build(),
+                None,
+            )
+            .await
+            .context("creating the unique index places.name_key (duplicate place names?)")?;
         Ok(())
     }
 
@@ -170,6 +223,64 @@ impl DB {
         };
 
         Ok(())
+    }
+
+    pub async fn get_meeting(&self, meeting_id: &str) -> anyhow::Result<Option<Meeting>> {
+        let collection = self.db.collection::<Meeting>("meetings");
+        Ok(collection
+            .find_one(doc! { "_id": meeting_id }, None)
+            .await?)
+    }
+
+    pub async fn get_places(&self) -> anyhow::Result<Vec<Place>> {
+        let collection = self.db.collection::<PlaceDocument>("places");
+        let options = FindOptions::builder().sort(doc! { "name_key": 1 }).build();
+        let documents: Vec<PlaceDocument> =
+            collection.find(None, options).await?.try_collect().await?;
+        Ok(documents.into_iter().map(Place::from).collect())
+    }
+
+    pub async fn get_place(&self, place_id: &str) -> anyhow::Result<Option<Place>> {
+        let collection = self.db.collection::<PlaceDocument>("places");
+        Ok(collection
+            .find_one(doc! { "_id": place_id }, None)
+            .await?
+            .map(Place::from))
+    }
+
+    /// Creates a place unless one with the same normalized name exists; that one is
+    /// returned instead (`created == false`). `name` must already be validated.
+    pub async fn create_place(
+        &self,
+        name: String,
+        lat: f64,
+        lon: f64,
+        created_by: &str,
+    ) -> anyhow::Result<(Place, bool)> {
+        let collection = self.db.collection::<PlaceDocument>("places");
+        let document = PlaceDocument {
+            _id: generate_id(5),
+            name_key: place_name_key(&name),
+            name,
+            lat,
+            lon,
+            created: Some(PlaceCreated {
+                by: created_by.to_string(),
+                at: chrono::Utc::now().timestamp_millis(),
+            }),
+        };
+        match collection.insert_one(&document, None).await {
+            Ok(_) => Ok((document.into(), true)),
+            // The unique index on name_key: the place exists (or was created concurrently).
+            Err(e) if is_duplicate_key(&e) => {
+                let existing = collection
+                    .find_one(doc! { "name_key": &document.name_key }, None)
+                    .await?
+                    .ok_or_else(|| anyhow::anyhow!("duplicate place key vanished: {e}"))?;
+                Ok((existing.into(), false))
+            }
+            Err(e) => Err(e.into()),
+        }
     }
 
     pub async fn insert_old_meetings(&self, meetings: Vec<Meeting>) -> anyhow::Result<()> {

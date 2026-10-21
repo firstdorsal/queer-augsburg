@@ -1,0 +1,677 @@
+{
+  "_comment": "Places of the 2026-10-21 migration. name_key must equal server/src/place_rules.rs place_name_key(name); a server test checks it. source = where the coordinates come from.",
+  "places": [
+    {
+      "_id": "I9yL2",
+      "name": "100hz",
+      "name_key": "100hz",
+      "lat": 48.3687599,
+      "lon": 10.8936711,
+      "source": "most common coordinates in 2 existing meeting(s)"
+    },
+    {
+      "_id": "ayzuO",
+      "name": "Al Teatro",
+      "name_key": "al teatro",
+      "lat": 48.3662199,
+      "lon": 10.902466,
+      "source": "Nominatim: Al Teatro, Augsburg → Al Teatro, 1, Bei Sankt Ursula, Ulrichsviertel, Lechviertel, östliches Ulrichsviertel, Innenstadt, Augsburg, B"
+    },
+    {
+      "_id": "PoEzz",
+      "name": "Albert-Einstein-Mittelschule Haunstetten",
+      "name_key": "albert-einstein-mittelschule haunstetten",
+      "lat": 48.3096151,
+      "lon": 10.8987419,
+      "source": "Nominatim: Albert-Einstein-Mittelschule, Haunstetten, Augsburg → Albert Einstein Mittelschule, 12, Albert-Einstein-Straße, Haunstetten-West, Haunstetten-Siebenbrunn, Augsburg,"
+    },
+    {
+      "_id": "a6obd",
+      "name": "Amerikahaus München",
+      "name_key": "amerikahaus münchen",
+      "lat": 48.1443541,
+      "lon": 11.5679055,
+      "source": "Nominatim: Amerikahaus, Karolinenplatz 3, 80333 München → Amerikahaus, 3, Karolinenplatz, Kunstareal, Maxvorstadt, München, Bayern, 80333, Deutschland"
+    },
+    {
+      "_id": "RNLOd",
+      "name": "Annapam",
+      "name_key": "annapam",
+      "lat": 48.362661,
+      "lon": 10.902919,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "hDAfg",
+      "name": "Apostolin-Junia-Kirche",
+      "name_key": "apostolin-junia-kirche",
+      "lat": 48.3606891,
+      "lon": 10.8572631,
+      "source": "Nominatim: Junia-Kirche Augsburg → Apostelin-Junia-Kirche, 25, Siegfried-Aufhäuser-Straße, Pfersee-Süd, Pfersee, Augsburg, Bayern, 86157, Deutsch"
+    },
+    {
+      "_id": "tW2Rq",
+      "name": "AStA Uni Augsburg",
+      "name_key": "asta uni augsburg",
+      "lat": 48.3323059,
+      "lon": 10.8962693,
+      "source": "Nominatim: Universitätsstraße 2, Augsburg → Campus, 2, Universitätsstraße, Universitätsviertel, Augsburg, Bayern, 86159, Deutschland"
+    },
+    {
+      "_id": "Zljjh",
+      "name": "Augsburg Hauptbahnhof",
+      "name_key": "augsburg hauptbahnhof",
+      "lat": 48.3654907,
+      "lon": 10.8856913,
+      "source": "Nominatim: Augsburg Hauptbahnhof, Viktoriastraße 1, 86150 Augsburg → Augsburg Hauptbahnhof, 1, Viktoriastraße, Bahnhofsviertel, Bahnhofs- und Bismarckviertel, Innenstadt, Augsburg"
+    },
+    {
+      "_id": "7PdhT",
+      "name": "Augsburger Dom",
+      "name_key": "augsburger dom",
+      "lat": 48.3727272,
+      "lon": 10.896538,
+      "source": "Nominatim: Dom Mariä Heimsuchung, Frauentorstraße 1, 86152 Augsburg → Dom Mariä Heimsuchung, 1, Frauentorstraße, Innenstadt, St. Ulrich-Dom, Innenstadt, Augsburg, Bayern, 86152, De"
+    },
+    {
+      "_id": "dV6qk",
+      "name": "Augustanasaal (Annaforum)",
+      "name_key": "augustanasaal (annaforum)",
+      "lat": 48.3678207,
+      "lon": 10.8948019,
+      "source": "Nominatim: Im Annahof 4, Augsburg → Augustana Haus, 4, Im Annahof, Innenstadt, St. Ulrich-Dom, Innenstadt, Augsburg, Bayern, 86150, Deutschland"
+    },
+    {
+      "_id": "wVUa3",
+      "name": "Bar des Maximilian's",
+      "name_key": "bar des maximilian's",
+      "lat": 48.36561,
+      "lon": 10.899111,
+      "source": "most common coordinates in 1 existing meeting(s)"
+    },
+    {
+      "_id": "LJxrH",
+      "name": "Barfly",
+      "name_key": "barfly",
+      "lat": 48.3638612,
+      "lon": 10.8996608,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "gjgtZ",
+      "name": "Beim Weissen Lamm",
+      "name_key": "beim weissen lamm",
+      "lat": 48.370772,
+      "lon": 10.893002,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "Df29g",
+      "name": "Botanischer Garten",
+      "name_key": "botanischer garten",
+      "lat": 48.34957,
+      "lon": 10.91476,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "KnKzP",
+      "name": "Bürgertreff Hochzoll",
+      "name_key": "bürgertreff hochzoll",
+      "lat": 48.3568242,
+      "lon": 10.946272,
+      "source": "Nominatim: Neuschwansteinstraße 23a, 86163 Augsburg → Holzerbau, 23a, Neuschwansteinstraße, Hochzoll Nord, Hochzoll-Nord, Hochzoll, Augsburg, Bayern, 86163, Deutsch"
+    },
+    {
+      "_id": "gZyBZ",
+      "name": "Cafe 13",
+      "name_key": "cafe 13",
+      "lat": 48.3693545,
+      "lon": 10.8998483,
+      "source": "most common coordinates in 1 existing meeting(s)"
+    },
+    {
+      "_id": "nPakv",
+      "name": "Café Tür an Tür",
+      "name_key": "café tür an tür",
+      "lat": 48.3781082,
+      "lon": 10.8880359,
+      "source": "Nominatim: Wertachstraße 29, 86153 Augsburg → 29, Wertachstraße, Rechts der Wertach, Oberhausen, Augsburg, Bayern, 86153, Deutschland"
+    },
+    {
+      "_id": "JQRrP",
+      "name": "Café Viktor",
+      "name_key": "café viktor",
+      "lat": 48.3558453,
+      "lon": 10.8946921,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "UXNMb",
+      "name": "Cinestar Augsburg",
+      "name_key": "cinestar augsburg",
+      "lat": 48.3670931,
+      "lon": 10.8855519,
+      "source": "Nominatim: CineStar Augsburg → CineStar, 3, Viktoriastraße, Bahnhofsviertel, Bahnhofs- und Bismarckviertel, Innenstadt, Augsburg, Bayern, 861"
+    },
+    {
+      "_id": "ZeSqH",
+      "name": "Elias Holl Platz",
+      "name_key": "elias holl platz",
+      "lat": 48.3687438,
+      "lon": 10.8992962,
+      "source": "Nominatim: Elias-Holl-Platz, Augsburg → Elias-Holl-Platz, Innenstadt, St. Ulrich-Dom, Innenstadt, Augsburg, Bayern, 86152, Deutschland"
+    },
+    {
+      "_id": "pVNu8",
+      "name": "Enchilada",
+      "name_key": "enchilada",
+      "lat": 48.3645436,
+      "lon": 10.8989432,
+      "source": "most common coordinates in 1 existing meeting(s)"
+    },
+    {
+      "_id": "quTlc",
+      "name": "ESG Cafete",
+      "name_key": "esg cafete",
+      "lat": 48.3337832,
+      "lon": 10.9018916,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "Hr6qf",
+      "name": "Evangelische Kirche St. Ulrich",
+      "name_key": "evangelische kirche st. ulrich",
+      "lat": 48.3619817,
+      "lon": 10.8999099,
+      "source": "Nominatim: Evangelisch St. Ulrich, Augsburg → Evangelisch St. Ulrich, Kath. St. Ulrich und Afra, Weite Gasse, Innenstadt, St. Ulrich-Dom, Innenstadt, Augsbu"
+    },
+    {
+      "_id": "HxUeM",
+      "name": "Flannigan's Post",
+      "name_key": "flannigan's post",
+      "lat": 48.367388,
+      "lon": 10.89346,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "TJnsQ",
+      "name": "Freiwilligen-Zentrum Augsburg",
+      "name_key": "freiwilligen-zentrum augsburg",
+      "lat": 48.3690062,
+      "lon": 10.9008125,
+      "source": "Nominatim: Mittlerer Lech 5, Augsburg → 5, Mittlerer Lech, Lechviertel, östliches Ulrichsviertel, Innenstadt, Augsburg, Bayern, 86150, Deutschland"
+    },
+    {
+      "_id": "ond09",
+      "name": "Fuggerplatz",
+      "name_key": "fuggerplatz",
+      "lat": 48.36775,
+      "lon": 10.897,
+      "source": "most common coordinates in 3 existing meeting(s)"
+    },
+    {
+      "_id": "aJDnl",
+      "name": "Fuggerstraße (am Kö Richtung Theater)",
+      "name_key": "fuggerstraße (am kö richtung theater)",
+      "lat": 48.3674181,
+      "lon": 10.893688,
+      "source": "Nominatim: Fuggerstraße, Augsburg → Fuggerstraße, Bahnhofsviertel, Bahnhofs- und Bismarckviertel, Innenstadt, Augsburg, Bayern, 86150, Deutschland"
+    },
+    {
+      "_id": "jiUG1",
+      "name": "Grandhotel Cosmopolis",
+      "name_key": "grandhotel cosmopolis",
+      "lat": 48.372773,
+      "lon": 10.899991,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "95XEG",
+      "name": "Haifischbar",
+      "name_key": "haifischbar",
+      "lat": 48.361225,
+      "lon": 10.902929,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "wlJt0",
+      "name": "Henry's Coffee World",
+      "name_key": "henry's coffee world",
+      "lat": 48.3691817,
+      "lon": 10.8973092,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "3B31o",
+      "name": "Hochschule Augsburg",
+      "name_key": "hochschule augsburg",
+      "lat": 48.3554077,
+      "lon": 10.9043357,
+      "source": "Nominatim: Hochschule Augsburg → Technische Hochschule Augsburg, Friedberger Straße, Bahnhofs- und Bismarckviertel, Innenstadt, Augsburg, Bayer"
+    },
+    {
+      "_id": "EMGx8",
+      "name": "Hofgarten",
+      "name_key": "hofgarten",
+      "lat": 48.3722165,
+      "lon": 10.8934715,
+      "source": "most common coordinates in 4 existing meeting(s)"
+    },
+    {
+      "_id": "SCdjy",
+      "name": "House of New Realities",
+      "name_key": "house of new realities",
+      "lat": 48.3639617,
+      "lon": 10.9018327,
+      "source": "Nominatim: Bäckergasse 4, 86150 Augsburg → 4, Bäckergasse, Ulrichsviertel, Lechviertel, östliches Ulrichsviertel, Innenstadt, Augsburg, Bayern, 86150, De"
+    },
+    {
+      "_id": "pXrsj",
+      "name": "Il Porcino",
+      "name_key": "il porcino",
+      "lat": 48.333542,
+      "lon": 10.900689,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "xCOTf",
+      "name": "Jochberg",
+      "name_key": "jochberg",
+      "lat": 47.625939,
+      "lon": 11.3718596,
+      "source": "Nominatim: Jochberg, Kochel am See → Jochberg, Kochel am See, Kochel am See (VGem), Landkreis Bad Tölz-Wolfratshausen, Bayern, 82431, Deutschland"
+    },
+    {
+      "_id": "rD4Pu",
+      "name": "Kantine",
+      "name_key": "kantine",
+      "lat": 48.3647874,
+      "lon": 10.8934258,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "kVoud",
+      "name": "Karo 10",
+      "name_key": "karo 10",
+      "lat": 48.3698662,
+      "lon": 10.8983856,
+      "source": "Nominatim: Karolinenstraße 10, Augsburg → 10, Karolinenstraße, Jakobervorstadt-Nord, Innenstadt, Augsburg, Bayern, 86150, Deutschland"
+    },
+    {
+      "_id": "nxQ9T",
+      "name": "Katzentempel",
+      "name_key": "katzentempel",
+      "lat": 48.369658,
+      "lon": 10.90213,
+      "source": "most common coordinates in 3 existing meeting(s)"
+    },
+    {
+      "_id": "PqHYa",
+      "name": "Kongress am Park",
+      "name_key": "kongress am park",
+      "lat": 48.3593841,
+      "lon": 10.8871644,
+      "source": "Nominatim: Kongress am Park Augsburg → Kongress am Park, 10, Gögginger Straße, Antonsviertel, Augsburg, Bayern, 86159, Deutschland"
+    },
+    {
+      "_id": "Y4JXW",
+      "name": "Kraetzwerk",
+      "name_key": "kraetzwerk",
+      "lat": 48.3530742,
+      "lon": 10.8895137,
+      "source": "Nominatim: Kraetzwerk, Augsburg → Krätzwerk, 10a, Schertlinstraße, Antonsviertel, Augsburg, Bayern, 86159, Deutschland"
+    },
+    {
+      "_id": "OjWRT",
+      "name": "Kulperhütte",
+      "name_key": "kulperhütte",
+      "lat": 48.3511332,
+      "lon": 10.8677651,
+      "source": "most common coordinates in 1 existing meeting(s)"
+    },
+    {
+      "_id": "OTnhr",
+      "name": "Kulturhaus Abraxas",
+      "name_key": "kulturhaus abraxas",
+      "lat": 48.3773126,
+      "lon": 10.8680894,
+      "source": "Nominatim: Kulturhaus Abraxas, Sommestraße 30, 86156 Augsburg → Kulturhaus Abraxas, 30, Sommestraße, Kriegshaber, Augsburg, Bayern, 86156, Deutschland"
+    },
+    {
+      "_id": "cGeSp",
+      "name": "König von Flandern im CAPITOL",
+      "name_key": "könig von flandern im capitol",
+      "lat": 48.367427,
+      "lon": 10.898609,
+      "source": "most common coordinates in 1 existing meeting(s)"
+    },
+    {
+      "_id": "0KhgX",
+      "name": "Königsplatz",
+      "name_key": "königsplatz",
+      "lat": 48.3654894,
+      "lon": 10.8944651,
+      "source": "Nominatim: Königsplatz, Augsburg → Königsplatz, 1, Königsplatz, Innenstadt, St. Ulrich-Dom, Innenstadt, Augsburg, Bayern, 86150, Deutschland"
+    },
+    {
+      "_id": "SXAL3",
+      "name": "Liliom Kino",
+      "name_key": "liliom kino",
+      "lat": 48.3722702,
+      "lon": 10.9006237,
+      "source": "Nominatim: Liliom, Augsburg → Liliom Filmtheater, 1, Unterer Graben, Jakobervorstadt-Nord, Innenstadt, Augsburg, Bayern, 86152, Deutschland"
+    },
+    {
+      "_id": "Z68MJ",
+      "name": "Maximilianmuseum",
+      "name_key": "maximilianmuseum",
+      "lat": 48.3677651,
+      "lon": 10.8968469,
+      "source": "most common coordinates in 1 existing meeting(s)"
+    },
+    {
+      "_id": "uKyvH",
+      "name": "Messe Augsburg",
+      "name_key": "messe augsburg",
+      "lat": 48.3407887,
+      "lon": 10.891908,
+      "source": "Nominatim: Messe Augsburg → Messe Augsburg, Firnhaberstraße, Hochfeld, Augsburg, Bayern, 86159, Deutschland"
+    },
+    {
+      "_id": "qu6vY",
+      "name": "Mo Club",
+      "name_key": "mo club",
+      "lat": 48.364287,
+      "lon": 10.9006397,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "h1cq0",
+      "name": "Moritzkirche",
+      "name_key": "moritzkirche",
+      "lat": 48.3656515,
+      "lon": 10.9007256,
+      "source": "Nominatim: St. Moritz, Augsburg → St. Moritz, 11, Dominikanergasse, Ulrichsviertel, Lechviertel, östliches Ulrichsviertel, Innenstadt, Augsburg,"
+    },
+    {
+      "_id": "cJymF",
+      "name": "Moritzplatz",
+      "name_key": "moritzplatz",
+      "lat": 48.36715,
+      "lon": 10.898069,
+      "source": "most common coordinates in 1 existing meeting(s)"
+    },
+    {
+      "_id": "96UsM",
+      "name": "Murdock's Irish Pub",
+      "name_key": "murdock's irish pub",
+      "lat": 48.36002,
+      "lon": 10.90264,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "pavNQ",
+      "name": "Oki's",
+      "name_key": "oki's",
+      "lat": 48.3766932,
+      "lon": 10.8945277,
+      "source": "Nominatim: Georgenstraße 2, 86152 Augsburg → 2, Georgenstraße, Georgsviertel, Georgs- und Kreuzviertel, Innenstadt, Augsburg, Bayern, 86152, Deutschland"
+    },
+    {
+      "_id": "yeehi",
+      "name": "Pfarrgarten St. Ulrich",
+      "name_key": "pfarrgarten st. ulrich",
+      "lat": 48.3627981,
+      "lon": 10.9005476,
+      "source": "Nominatim: Ulrichsplatz 11, 86150 Augsburg → 11, Ulrichsplatz, Ulrichsviertel, Lechviertel, östliches Ulrichsviertel, Innenstadt, Augsburg, Bayern, 86150, "
+    },
+    {
+      "_id": "haYjI",
+      "name": "Planetarium Augsburg",
+      "name_key": "planetarium augsburg",
+      "lat": 48.370402,
+      "lon": 10.8945913,
+      "source": "Nominatim: Planetarium Augsburg → Sparkassen-Planetarium Augsburg, 14, Ludwigstraße, Innenstadt, St. Ulrich-Dom, Innenstadt, Augsburg, Bayern, 8"
+    },
+    {
+      "_id": "4khMY",
+      "name": "Plärrer (Festplatz)",
+      "name_key": "plärrer (festplatz)",
+      "lat": 48.3754355,
+      "lon": 10.8821134,
+      "source": "Nominatim: Plärrer, Augsburg → Plärrergelände P+R, Langenmantelstraße, Stadtjägerviertel, Innenstadt, Augsburg, Bayern, 86153, Deutschland"
+    },
+    {
+      "_id": "rAElT",
+      "name": "Projektraum Rechts-der-Wertach",
+      "name_key": "projektraum rechts-der-wertach",
+      "lat": 48.3781092,
+      "lon": 10.887578,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "5dVrB",
+      "name": "Provinoclub",
+      "name_key": "provinoclub",
+      "lat": 48.3631786,
+      "lon": 10.9117535,
+      "source": "most common coordinates in 7 existing meeting(s)"
+    },
+    {
+      "_id": "pbkOW",
+      "name": "Qualle",
+      "name_key": "qualle",
+      "lat": 48.3809888,
+      "lon": 10.8860889,
+      "source": "Nominatim: Qualle, Augsburg → Qualle - Quartier fuer Alle e.V., 5, Wiesenstraße, Rechts der Wertach, Oberhausen, Augsburg, Bayern, 86153, De"
+    },
+    {
+      "_id": "DBojC",
+      "name": "Rathaus Augsburg (Oberer Fletz)",
+      "name_key": "rathaus augsburg (oberer fletz)",
+      "lat": 48.3687447,
+      "lon": 10.8986791,
+      "source": "Nominatim: Rathaus Augsburg → Rathaus, 2, Rathausplatz, Innenstadt, St. Ulrich-Dom, Innenstadt, Augsburg, Bayern, 86150, Deutschland"
+    },
+    {
+      "_id": "EoNK1",
+      "name": "Rathausplatz",
+      "name_key": "rathausplatz",
+      "lat": 48.3688061,
+      "lon": 10.8980742,
+      "source": "most common coordinates in 3 existing meeting(s)"
+    },
+    {
+      "_id": "vhPjJ",
+      "name": "Ratskeller",
+      "name_key": "ratskeller",
+      "lat": 48.3687447,
+      "lon": 10.8986791,
+      "source": "Nominatim: Rathausplatz 2, Augsburg → Rathaus, 2, Rathausplatz, Innenstadt, St. Ulrich-Dom, Innenstadt, Augsburg, Bayern, 86150, Deutschland"
+    },
+    {
+      "_id": "B5ufO",
+      "name": "Riegele Biergarten",
+      "name_key": "riegele biergarten",
+      "lat": 48.3679381,
+      "lon": 10.8856777,
+      "source": "Nominatim: Riegele, Augsburg → Riegele, Frölichstraße, Stadtjägerviertel, Innenstadt, Augsburg, Bayern, 86150, Deutschland"
+    },
+    {
+      "_id": "4DpPy",
+      "name": "Rockfabrik",
+      "name_key": "rockfabrik",
+      "lat": 48.34101,
+      "lon": 10.89741,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "wBMej",
+      "name": "Rotes Tor",
+      "name_key": "rotes tor",
+      "lat": 48.3599298,
+      "lon": 10.903007,
+      "source": "Nominatim: Rotes Tor, Augsburg → Rotes Tor, 5, Am Roten Tor, Ulrichsviertel, Lechviertel, östliches Ulrichsviertel, Innenstadt, Augsburg, Bayer"
+    },
+    {
+      "_id": "VTrBv",
+      "name": "Räume der Gleichstellungsstelle Augsburg",
+      "name_key": "räume der gleichstellungsstelle augsburg",
+      "lat": 48.3685208,
+      "lon": 10.8975234,
+      "source": "Nominatim: Rathausplatz 1, Augsburg → Tourist-Information Regio Augsburg, 1, Rathausplatz, Innenstadt, St. Ulrich-Dom, Innenstadt, Augsburg, Bayern,"
+    },
+    {
+      "_id": "I80oP",
+      "name": "Rübenrot",
+      "name_key": "rübenrot",
+      "lat": 48.3520847,
+      "lon": 10.8959902,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "Q3Nhs",
+      "name": "Schwibbogenplatz 1",
+      "name_key": "schwibbogenplatz 1",
+      "lat": 48.3628427,
+      "lon": 10.9050953,
+      "source": "Nominatim: Schwibbogenplatz 1, Augsburg → 1, Schwibbogenplatz, Am Schäfflerbach, Innenstadt, Augsburg, Bayern, 86153, Deutschland"
+    },
+    {
+      "_id": "hWjRc",
+      "name": "Sonnendeck",
+      "name_key": "sonnendeck",
+      "lat": 48.3709019,
+      "lon": 10.8937093,
+      "source": "Nominatim: Sonnendeck, Augsburg → Sonnendeck Augsburg, 28, Ludwigstraße, Innenstadt, St. Ulrich-Dom, Innenstadt, Augsburg, Bayern, 86152, Deutsc"
+    },
+    {
+      "_id": "yJqsJ",
+      "name": "Staatstheater Bstg. F",
+      "name_key": "staatstheater bstg. f",
+      "lat": 48.368696,
+      "lon": 10.893443,
+      "source": "most common coordinates in 1 existing meeting(s)"
+    },
+    {
+      "_id": "08Kfn",
+      "name": "Stadtbücherei",
+      "name_key": "stadtbücherei",
+      "lat": 48.369164,
+      "lon": 10.895149,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "J3HoR",
+      "name": "Strafjustizzentrum Augsburg",
+      "name_key": "strafjustizzentrum augsburg",
+      "lat": 48.350093,
+      "lon": 10.8787725,
+      "source": "most common coordinates in 1 existing meeting(s)"
+    },
+    {
+      "_id": "YHG5K",
+      "name": "Studierendenwohnheim Bürgermeister-Miehle-Straße",
+      "name_key": "studierendenwohnheim bürgermeister-miehle-straße",
+      "lat": 48.3357482,
+      "lon": 10.8777987,
+      "source": "Nominatim: Bürgermeister-Miehle-Straße 16, 86199 Augsburg → 16, Bürgermeister-Miehle-Straße, Göggingen-Ost, Göggingen, Augsburg, Bayern, 86199, Deutschland"
+    },
+    {
+      "_id": "5J7b3",
+      "name": "Thalia Kino",
+      "name_key": "thalia kino",
+      "lat": 48.3708139,
+      "lon": 10.8968849,
+      "source": "Nominatim: Thalia Kino, Obstmarkt 5, 86152 Augsburg → Thalia, 5, Obstmarkt, Innenstadt, St. Ulrich-Dom, Innenstadt, Augsburg, Bayern, 86152, Deutschland"
+    },
+    {
+      "_id": "YhOBi",
+      "name": "Thing",
+      "name_key": "thing",
+      "lat": 48.3653543,
+      "lon": 10.9017375,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "rbZzx",
+      "name": "Ulrichseck",
+      "name_key": "ulrichseck",
+      "lat": 48.36235,
+      "lon": 10.90062,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "hLD6T",
+      "name": "Uni Augsburg",
+      "name_key": "uni augsburg",
+      "lat": 48.334004,
+      "lon": 10.898112,
+      "source": "most common coordinates in 3 existing meeting(s)"
+    },
+    {
+      "_id": "ZrLvG",
+      "name": "Unikum",
+      "name_key": "unikum",
+      "lat": 48.3337439,
+      "lon": 10.8993841,
+      "source": "builtin list (web/src/utils.tsx)"
+    },
+    {
+      "_id": "RLhoB",
+      "name": "Villa Jugendzentrum Stadtmitte sjr",
+      "name_key": "villa jugendzentrum stadtmitte sjr",
+      "lat": 48.377155,
+      "lon": 10.901808,
+      "source": "most common coordinates in 1 existing meeting(s)"
+    },
+    {
+      "_id": "pUsZr",
+      "name": "Waffle Brothers",
+      "name_key": "waffle brothers",
+      "lat": 48.3659002,
+      "lon": 10.8901769,
+      "source": "Nominatim: Bahnhofstraße 17, Augsburg → 17, Bahnhofstraße, Bahnhofsviertel, Bahnhofs- und Bismarckviertel, Innenstadt, Augsburg, Bayern, 86150, Deutsc"
+    },
+    {
+      "_id": "eIFnu",
+      "name": "ZAS",
+      "name_key": "zas",
+      "lat": 48.3707016,
+      "lon": 10.8897686,
+      "source": "most common coordinates in 1 existing meeting(s)"
+    },
+    {
+      "_id": "C2QY8",
+      "name": "Zentralbibliothek",
+      "name_key": "zentralbibliothek",
+      "lat": 48.334266,
+      "lon": 10.895138,
+      "source": "most common coordinates in 1 existing meeting(s)"
+    },
+    {
+      "_id": "MRRVO",
+      "name": "Zeughausstuben",
+      "name_key": "zeughausstuben",
+      "lat": 48.3662693,
+      "lon": 10.8970203,
+      "source": "Nominatim: Zeugplatz 4, Augsburg → Zeughaus, 4, Zeugplatz, Innenstadt, St. Ulrich-Dom, Innenstadt, Augsburg, Bayern, 86150, Deutschland"
+    },
+    {
+      "_id": "rG4z6",
+      "name": "Zoo Augsburg",
+      "name_key": "zoo augsburg",
+      "lat": 48.3467012,
+      "lon": 10.9158667,
+      "source": "Nominatim: Zoo Augsburg → Zoo Augsburg, Dr.-Ziegenspeck-Weg, Spickel, Spickel-Herrenbach, Augsburg, Bayern, 86161, Deutschland"
+    },
+    {
+      "_id": "lrLAe",
+      "name": "Zwischenzeit (Annastraße 16)",
+      "name_key": "zwischenzeit (annastraße 16)",
+      "lat": 48.3682366,
+      "lon": 10.8959506,
+      "source": "Nominatim: Annastraße 16, 86150 Augsburg → Tiefbauamt, 16, Annastraße, Innenstadt, St. Ulrich-Dom, Innenstadt, Augsburg, Bayern, 86150, Deutschland"
+    }
+  ]
+}

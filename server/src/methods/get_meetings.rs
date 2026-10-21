@@ -8,7 +8,9 @@ use axum::{
 use crate::{
     extractors::AuthExtractor,
     state::AppState,
-    types::{GetMeetingsQuery, GetMeetingsResponseBody, MeetingTypeQuery, UserCapabilities},
+    types::{
+        GetMeetingsQuery, GetMeetingsResponseBody, Meeting, MeetingTypeQuery, UserCapabilities,
+    },
 };
 
 /// Maximum allowed limit for pagination
@@ -205,6 +207,12 @@ pub async fn get_meetings(
     for meeting in &mut meetings {
         meeting.changed = None;
     }
+    // Lists are cached by clients and delta-synced, so members-only links are never
+    // included here, not even for members; they use /api/meeting_link/.
+    let meetings: Vec<_> = meetings
+        .into_iter()
+        .map(Meeting::without_private_link)
+        .collect();
 
     let meetings_response = GetMeetingsResponseBody {
         meetings,

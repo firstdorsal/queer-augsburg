@@ -6,7 +6,7 @@ use axum::{
 use chrono::DateTime;
 use icalendar::{Calendar, Component, Event, EventLike, EventStatus, Property};
 
-use crate::{extractors::AuthExtractor, state::AppState};
+use crate::{extractors::AuthExtractor, state::AppState, types::Meeting};
 
 #[utoipa::path(
     get,
@@ -41,13 +41,11 @@ pub async fn ical_feed(
     };
 
     for meeting in meetings {
+        // The feed is public: members-only links must not appear in it.
+        let meeting = meeting.without_private_link();
         if let Some(meeting_time) = meeting.time {
             let time_start = DateTime::from_timestamp(meeting_time / 1000, 0).unwrap();
             let time_end = time_start + chrono::Duration::hours(1);
-            let location_string = format!(
-                "{}: {},{}",
-                meeting.location.name, meeting.location.lat, meeting.location.lon
-            );
 
             let categories_string = meeting
                 .tags
@@ -57,34 +55,39 @@ pub async fn ical_feed(
                 .collect::<Vec<String>>()
                 .join(",");
 
-            calender.push(
-                Event::new()
-                    .uid(&format!("{}@queer-augsburg.de", meeting._id))
-                    .status(match meeting.cancelled {
-                        Some(true) => EventStatus::Cancelled,
-                        _ => EventStatus::Confirmed,
-                    })
-                    .append_property(
-                        Property::new("ORGANIZER", "mailto:mail@queer-augsburg.de")
-                            .add_parameter("CN", &meeting.authority),
-                    )
-                    .append_property(Property::new("CATEGORIES", categories_string))
-                    .append_property(Property::new(
-                        "GEO",
-                        format!("{};{}", meeting.location.lat, meeting.location.lon),
-                    ))
-                    .append_property(Property::new(
-                        "URL",
-                        format!("https://queer-augsburg.de/?m={}", meeting._id),
-                    ))
-                    .append_property(Property::new("REFRESH-INTERVAL", "PT1H"))
-                    .append_property(Property::new("X-PUBLISHED-TTL", "PT1H"))
-                    .summary(&meeting.title)
-                    .location(&location_string)
-                    .description(&meeting.description)
-                    .starts(time_start)
-                    .ends(time_end),
-            );
+            let mut event = Event::new();
+            event
+                .uid(&format!("{}@queer-augsburg.de", meeting._id))
+                .status(match meeting.cancelled {
+                    Some(true) => EventStatus::Cancelled,
+                    _ => EventStatus::Confirmed,
+                })
+                .append_property(
+                    Property::new("ORGANIZER", "mailto:mail@queer-augsburg.de")
+                        .add_parameter("CN", &meeting.authority),
+                )
+                .append_property(Property::new("CATEGORIES", categories_string))
+                .append_property(Property::new(
+                    "URL",
+                    format!("https://queer-augsburg.de/?m={}", meeting._id),
+                ))
+                .append_property(Property::new("REFRESH-INTERVAL", "PT1H"))
+                .append_property(Property::new("X-PUBLISHED-TTL", "PT1H"))
+                .summary(&meeting.title)
+                .description(&meeting.description)
+                .starts(time_start)
+                .ends(time_end);
+            let location_text = ical_location(&meeting);
+            if !location_text.is_empty() {
+                event.location(&location_text);
+            }
+            if let Some(location) = &meeting.location {
+                event.append_property(Property::new(
+                    "GEO",
+                    format!("{};{}", location.lat, location.lon),
+                ));
+            }
+            calender.push(event.done());
         }
     }
 
@@ -102,4 +105,77 @@ pub async fn ical_feed(
         calendar_string,
     )
         .into_response()
+}
+
+/// LOCATION text: "Name: lat,lon" for places, "Online (Platform)" for online meetings plus
+/// ": link" for public links (members-only links are removed before). Same format as
+/// `meetingVenueText` in web/src/places.ts. Empty for legacy meetings without either.
+fn ical_location(meeting: &Meeting) -> String {
+    if let Some(online) = &meeting.online {
+        let label = if online.platform.is_empty() {
+            "Online".to_string()
+        } else {
+            format!("Online ({})", online.platform)
+        };
+        return match &online.url {
+            Some(url) => format!("{label}: {url}"),
+            None => label,
+        };
+    }
+    match &meeting.location {
+        Some(location) => format!("{}: {},{}", location.name, location.lat, location.lon),
+        None => String::new(),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::types::{MeetingLocation, OnlineMeeting};
+
+    fn meeting() -> Meeting {
+        serde_json::from_value(serde_json::json!({
+            "_id": "abcde", "title": "A", "authority": "", "age_restriction": [0],
+            "time": 1_793_124_000_000_i64, "location": null,
+            "description": "", "price": [0.0], "trigger_warning": null, "attendance": null,
+            "rating": null, "accessibility": null,
+            "tags": {"freeform": [], "common": [], "queer": []}, "status": "Active",
+            "changed": null, "cancelled": false, "deleted_at": null
+        }))
+        .unwrap()
+    }
+
+    #[test]
+    fn location_text_for_places_and_online_meetings() {
+        let mut at_place = meeting();
+        at_place.location = Some(MeetingLocation {
+            name: "Café Neruda".to_string(),
+            lat: 48.37,
+            lon: 10.89,
+        });
+        assert_eq!(ical_location(&at_place), "Café Neruda: 48.37,10.89");
+
+        let mut online = meeting();
+        online.online = Some(OnlineMeeting {
+            platform: "Zoom".to_string(),
+            url: Some("https://zoom.us/j/1".to_string()),
+            members_only: true,
+            url_hidden: false,
+        });
+        // What the feed does: the members-only link is removed first.
+        assert_eq!(
+            ical_location(&online.clone().without_private_link()),
+            "Online (Zoom)"
+        );
+
+        let mut public = online;
+        if let Some(details) = &mut public.online {
+            details.members_only = false;
+            details.platform = String::new();
+        }
+        assert_eq!(
+            ical_location(&public.without_private_link()),
+            "Online: https://zoom.us/j/1"
+        );
+    }
 }

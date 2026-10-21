@@ -3,5 +3,6 @@ import type { ChangedMeeting } from "./ChangedMeeting";
 import type { MeetingLocation } from "./MeetingLocation";
 import type { MeetingStatus } from "./MeetingStatus";
 import type { MeetingTags } from "./MeetingTags";
+import type { OnlineMeeting } from "./OnlineMeeting";
 
-export interface Meeting { _id: string, title: string, authority: string, age_restriction: Array<number>, time: bigint | null, location: MeetingLocation, description: string, price: Array<number>, trigger_warning: string | null, attendance: number | null, rating: number | null, accessibility: string | null, tags: MeetingTags, status: MeetingStatus, changed: Array<ChangedMeeting> | null, cancelled: boolean | null, deleted_at: bigint | null, }
+export interface Meeting { _id: string, title: string, authority: string, age_restriction: Array<number>, time: bigint | null, location: MeetingLocation | null, place_id: string | null, online: OnlineMeeting | null, description: string, price: Array<number>, trigger_warning: string | null, attendance: number | null, rating: number | null, accessibility: string | null, tags: MeetingTags, status: MeetingStatus, changed: Array<ChangedMeeting> | null, cancelled: boolean | null, deleted_at: bigint | null, }

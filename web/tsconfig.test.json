@@ -1,0 +1,7 @@
+{
+    // Tests import server/src/meeting_validation_cases.json, which is outside the web
+    // Docker build context, so they are type-checked here instead of in `pnpm build`.
+    "extends": "./tsconfig.json",
+    "include": ["src"],
+    "exclude": []
+}

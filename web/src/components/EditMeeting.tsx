@@ -5,7 +5,6 @@ import {
     Checkbox,
     DatePicker,
     Input,
-    InputPicker,
     Message,
     Modal,
     SelectPicker,
@@ -14,11 +13,14 @@ import {
     useToaster
 } from "rsuite";
 import { Meeting } from "../apiTypes/Meeting";
+import { OnlineMeeting } from "../apiTypes/OnlineMeeting";
+import { Place } from "../apiTypes/Place";
+import { keepsHiddenLink, newOnlineMeeting, venueProblem } from "../places";
 import { G, commonTags, queerTags } from "../types";
-import { Place, fetchPlacesFromPastMeetings, withToasterHook } from "../utils";
-import LocationPicker from "./LocationPicker";
+import { withToasterHook } from "../utils";
 import Md from "./Md";
 import MeetingList from "./MeetingList";
+import PlaceField from "./PlaceField";
 
 interface EditMeetingProps {
     readonly g: G;
@@ -33,9 +35,9 @@ interface EditMeetingProps {
 
 interface EditMeetingState {
     readonly editingMeeting: Meeting;
-    readonly showLocationPicker: boolean;
-    readonly dynamicPlaces: Place[];
-    readonly placesLoading: boolean;
+    /** Online details while "online" is unticked, restored when it is ticked again. */
+    readonly lastOnline: OnlineMeeting | null;
+    readonly loadingLink: boolean;
 }
 
 class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
@@ -47,39 +49,86 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
         }
         this.state = {
             editingMeeting,
-            showLocationPicker: false,
-            dynamicPlaces: [],
-            placesLoading: true
+            lastOnline: null,
+            loadingLink: false
         };
     }
 
-    componentDidMount = async () => {
-        if (this.props.g.qaClient) {
-            try {
-                const dynamicPlaces = await fetchPlacesFromPastMeetings(this.props.g.qaClient);
-                this.setState({
-                    dynamicPlaces,
-                    placesLoading: false
-                });
-            } catch (error) {
-                console.error("Failed to fetch places:", error);
-                this.setState({
-                    placesLoading: false
-                });
-            }
-        } else {
-            this.setState({
-                placesLoading: false
-            });
+    /** Ticking "online" again restores what was typed before unticking it. */
+    setOnline = (online: boolean) => {
+        this.setState((state) => {
+            const current = state.editingMeeting.online;
+            return {
+                lastOnline: current ?? state.lastOnline,
+                editingMeeting: {
+                    ...state.editingMeeting,
+                    online: online ? (state.lastOnline ?? newOnlineMeeting()) : null
+                }
+            };
+        });
+    };
+
+    setPlace = (place: Place) => {
+        this.setState((state) =>
+            update(state, {
+                editingMeeting: {
+                    place_id: { $set: place._id },
+                    // Only for display until saved; the server copies it from the place.
+                    location: { $set: { name: place.name, lat: place.lat, lon: place.lon } }
+                }
+            })
+        );
+    };
+
+    updateOnline = (change: Partial<OnlineMeeting>) => {
+        this.setState((state) =>
+            state.editingMeeting.online == null
+                ? state
+                : update(state, { editingMeeting: { online: { $merge: change } } })
+        );
+    };
+
+    loadStoredLink = async () => {
+        if (!this.props.g.qaClient || this.state.loadingLink) return;
+        this.setState({ loadingLink: true });
+        const result = await this.props.g.qaClient.get_meeting_link(this.state.editingMeeting._id);
+        this.setState({ loadingLink: false });
+        if (!result.ok) {
+            this.showError(
+                result.status === 0
+                    ? "Link konnte nicht geladen werden: keine Antwort vom Server."
+                    : `Link konnte nicht geladen werden (Fehler ${result.status}).`
+            );
+            return;
         }
+        // From now on the field holds the real link: clearing it removes the link.
+        this.updateOnline({ url: result.url ?? "", url_hidden: false });
+    };
+
+    showError = (message: string) => {
+        this.props.toaster.push(
+            <Message showIcon type={"error"} closable>
+                {message}
+            </Message>,
+            {
+                placement: "bottomCenter",
+                duration: 8000
+            }
+        );
     };
 
     updateMeeting = async () => {
         if (!this.props.g.qaClient) return;
 
-        const updatedMeeting = await this.props.g.qaClient.update_meeting(this.state.editingMeeting);
-        if (updatedMeeting) {
-            await this.props.reloadMeetingList(updatedMeeting);
+        const problem = venueProblem(this.state.editingMeeting);
+        if (problem) {
+            this.showError(problem);
+            return;
+        }
+
+        const result = await this.props.g.qaClient.update_meeting(this.state.editingMeeting);
+        if (result.ok) {
+            await this.props.reloadMeetingList(result.meeting);
             this.props.changEditing(false);
             this.props.toaster.push(
                 <Message showIcon type={"success"} closable>
@@ -91,15 +140,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                 }
             );
         } else {
-            this.props.toaster.push(
-                <Message showIcon type={"error"} closable>
-                    Treffen konnte nicht gespeichert werden!
-                </Message>,
-                {
-                    placement: "bottomCenter",
-                    duration: 5000
-                }
-            );
+            this.showError(`Treffen konnte nicht gespeichert werden: ${result.message}`);
         }
     };
 
@@ -133,7 +174,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
 
     reset = () => {
         this.setState({
-            editingMeeting: structuredClone(this.props.meeting)
+            editingMeeting: structuredClone(this.props.meeting),
+            lastOnline: null
         });
         this.props.changEditing(false);
     };
@@ -252,114 +294,87 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         />
                         <br />
                         <br />
-                        <b>Ort (Name und Koordinaten)</b>
+                        <b>Ort</b>
                         <br />
-                        <Button
-                            onClick={() => this.setState({ showLocationPicker: true })}
-                            appearance="primary"
-                            style={{ marginBottom: "10px" }}
+                        <Checkbox
+                            checked={em.online != null}
+                            onChange={(_value, checked) => this.setOnline(checked)}
                         >
-                            Auf der Karte auswählen
-                        </Button>
-                        <br />
-                        <b>Häufig genutzte Orte</b>
-                        <br />
-                        <InputPicker
-                            data={this.state.dynamicPlaces.map((item) => ({
-                                label: item.name,
-                                value: item.name
-                            }))}
-                            onChange={(v) => {
-                                const selectedPlace = this.state.dynamicPlaces.find((item) => item.name === v);
-                                this.setState((state) => {
-                                    return update(state, {
-                                        editingMeeting: {
-                                            location: {
-                                                name: { $set: v },
-                                                lat: { $set: selectedPlace?.lat ?? 0 },
-                                                lon: { $set: selectedPlace?.lon ?? 0 }
-                                            }
-                                        }
-                                    });
-                                });
-                            }}
-                            loading={this.state.placesLoading}
-                            placeholder={this.state.placesLoading ? "Orte laden..." : "Ort auswählen"}
-                        />
-                        <br />
-                        <Input
-                            onChange={(v) => {
-                                this.setState((state) => {
-                                    return update(state, {
-                                        editingMeeting: {
-                                            location: {
-                                                name: { $set: v }
-                                            }
-                                        }
-                                    });
-                                });
-                            }}
-                            value={em.location.name}
-                            style={{ width: "50%", display: "inline" }}
-                            placeholder="Wittelsbacher Park"
-                        />
-                        <Input
-                            onChange={(v) => {
-                                v = v.replace(",", ".");
-                                console.log(v);
-
-                                this.setState((state) => {
-                                    return update(state, {
-                                        editingMeeting: {
-                                            location: {
-                                                lat: { $set: parseFloat(v) }
-                                            }
-                                        }
-                                    });
-                                });
-                            }}
-                            type="text"
-                            value={this.state.editingMeeting.location.lat}
-                            style={{ width: "25%", display: "inline" }}
-                            placeholder="48.35725"
-                        />
-                        <Input
-                            onChange={(v) => {
-                                v = v.replace(",", ".");
-                                this.setState((state) => {
-                                    return update(state, {
-                                        editingMeeting: {
-                                            location: {
-                                                lon: { $set: parseFloat(v) }
-                                            }
-                                        }
-                                    });
-                                });
-                            }}
-                            type="text"
-                            value={this.state.editingMeeting.location.lon}
-                            style={{ width: "25%", display: "inline" }}
-                            placeholder="10.89929"
-                        />
-                        <br />
-                        <LocationPicker
-                            lat={this.state.editingMeeting.location.lat}
-                            lon={this.state.editingMeeting.location.lon}
-                            show={this.state.showLocationPicker}
-                            onLocationSelect={(lat, lon) => {
-                                this.setState((state) => {
-                                    return update(state, {
-                                        editingMeeting: {
-                                            location: {
-                                                lat: { $set: lat },
-                                                lon: { $set: lon }
-                                            }
-                                        }
-                                    });
-                                });
-                            }}
-                            onClose={() => this.setState({ showLocationPicker: false })}
-                        />
+                            Online-Treffen (kein Ort)
+                        </Checkbox>
+                        {this.props.g.qaClient && (
+                            // Stays mounted while "online" is ticked so the place list is not
+                            // reloaded on every toggle.
+                            <div className={em.online != null ? "hidden" : undefined}>
+                                <PlaceField
+                                    qaClient={this.props.g.qaClient}
+                                    placeId={em.place_id}
+                                    legacyName={em.place_id ? null : (em.location?.name ?? null)}
+                                    onChange={this.setPlace}
+                                />
+                            </div>
+                        )}
+                        {em.online != null && (
+                            <div className="flex flex-col gap-2">
+                                <label htmlFor="edit-meeting-platform">Plattform</label>
+                                <Input
+                                    id="edit-meeting-platform"
+                                    value={em.online.platform}
+                                    onChange={(value: string) =>
+                                        this.updateOnline({ platform: value })
+                                    }
+                                    placeholder="z. B. Zoom"
+                                />
+                                <label htmlFor="edit-meeting-link">Link zum Teilnehmen</label>
+                                <Input
+                                    id="edit-meeting-link"
+                                    value={em.online.url ?? ""}
+                                    // Typing (also clearing) replaces the withheld link.
+                                    onChange={(value: string) =>
+                                        this.updateOnline({ url: value, url_hidden: false })
+                                    }
+                                    placeholder={
+                                        keepsHiddenLink(em.online)
+                                            ? "Gespeicherter Link bleibt erhalten"
+                                            : "https://…"
+                                    }
+                                />
+                                {keepsHiddenLink(em.online) && (
+                                    <span className="text-sm opacity-80">
+                                        Ein Link ist gespeichert.{" "}
+                                        <Button
+                                            appearance="link"
+                                            size="sm"
+                                            className="p-0 align-baseline"
+                                            onClick={this.loadStoredLink}
+                                            loading={this.state.loadingLink}
+                                        >
+                                            Link anzeigen und bearbeiten
+                                        </Button>
+                                    </span>
+                                )}
+                                <span className="text-sm opacity-80">
+                                    Den Link bitte nicht in die Beschreibung schreiben, dort ist er
+                                    für alle sichtbar.
+                                </span>
+                                <Checkbox
+                                    checked={!em.online.members_only}
+                                    disabled={keepsHiddenLink(em.online)}
+                                    onChange={(_value, checked) =>
+                                        this.updateOnline({ members_only: !checked })
+                                    }
+                                >
+                                    Link öffentlich anzeigen
+                                </Checkbox>
+                                <span className="text-sm opacity-80">
+                                    {keepsHiddenLink(em.online)
+                                        ? "Um den gespeicherten Link öffentlich zu machen, ihn zuerst anzeigen."
+                                        : em.online.members_only
+                                          ? "Der Link ist nur für angemeldete, verifizierte Mitglieder sichtbar."
+                                          : "Der Link ist für alle sichtbar, auch ohne Anmeldung."}
+                                </span>
+                            </div>
+                        )}
                         <br />
                         <br />
                         <b>Barrierefreiheit</b>
