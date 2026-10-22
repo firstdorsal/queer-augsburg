@@ -53,9 +53,9 @@
       "_id": "tW2Rq",
       "name": "AStA Uni Augsburg",
       "name_key": "asta uni augsburg",
-      "lat": 48.3323059,
-      "lon": 10.8962693,
-      "source": "Nominatim: Universitätsstraße 2, Augsburg → Campus, 2, Universitätsstraße, Universitätsviertel, Augsburg, Bayern, 86159, Deutschland"
+      "lat": 48.3339495,
+      "lon": 10.8996904,
+      "source": "AStA wiki (collab.dvb.bayern): Salomon-Idler-Straße 2, next to the Staatsarchiv; Nominatim: Salomon-Idler-Straße 2 → 2, Salomon-Idler-Straße, Universitätsviertel"
     },
     {
       "_id": "Zljjh",
@@ -240,14 +240,6 @@
       "lat": 48.3691817,
       "lon": 10.8973092,
       "source": "builtin list (web/src/utils.tsx)"
-    },
-    {
-      "_id": "3B31o",
-      "name": "Hochschule Augsburg",
-      "name_key": "hochschule augsburg",
-      "lat": 48.3554077,
-      "lon": 10.9043357,
-      "source": "Nominatim: Hochschule Augsburg → Technische Hochschule Augsburg, Friedberger Straße, Bahnhofs- und Bismarckviertel, Innenstadt, Augsburg, Bayer"
     },
     {
       "_id": "EMGx8",
@@ -576,6 +568,14 @@
       "lat": 48.3357482,
       "lon": 10.8777987,
       "source": "Nominatim: Bürgermeister-Miehle-Straße 16, 86199 Augsburg → 16, Bürgermeister-Miehle-Straße, Göggingen-Ost, Göggingen, Augsburg, Bayern, 86199, Deutschland"
+    },
+    {
+      "_id": "3B31o",
+      "name": "Technische Hochschule Augsburg",
+      "name_key": "technische hochschule augsburg",
+      "lat": 48.3559717,
+      "lon": 10.9059114,
+      "source": "Owner: the Technische Hochschule; meetings were in building C (\"Raum C1.23\"); Nominatim: An der Hochschule 1 → Gebäude C"
     },
     {
       "_id": "5J7b3",
