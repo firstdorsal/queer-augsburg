@@ -5,10 +5,10 @@ import { VariableSizeList } from "react-window";
 import { Meeting } from "../apiTypes/Meeting";
 import { QaClient } from "../api";
 import SingleMeeting from "./SingleMeeting";
-import { CSSProperties, Ref } from "preact/compat";
+import { CSSProperties, JSX, Ref, forwardRef } from "preact/compat";
 import { G } from "../types";
 import { MeetingTypeQuery } from "../apiTypes/MeetingTypeQuery";
-import { Button } from "rsuite";
+import { Button, SelectPicker } from "rsuite";
 import BulkImportMeetings from "./BulkImportMeetings";
 import EditMeeting from "./EditMeeting";
 import { defaultMeeting } from "../utils";
@@ -21,19 +21,34 @@ interface MeetingListProps {
     readonly type: MeetingTypeQuery;
     readonly g: G;
     readonly qaClient: QaClient;
-    /** Switches the page to the planned meetings (where bulk-created meetings land). */
-    readonly showPlanned: () => void;
+    /** Editors switch between active and planned meetings; bulk-created meetings switch to
+     * the planned ones, where they are reviewed. */
+    readonly onTypeChange: (type: MeetingTypeQuery) => void;
 }
+
+const MEETING_TYPES: { label: string; value: MeetingTypeQuery }[] = [
+    { label: "Aktive Treffen", value: "Active" },
+    { label: "Geplante Treffen", value: "Planned" }
+];
+
+/** The scrolled content of the list, with room after the last meeting for the editors'
+ * toolbar (`--toolbar-clearance`, see index.scss). */
+const ListContent = forwardRef<HTMLDivElement, JSX.HTMLAttributes<HTMLDivElement>>(
+    (props, ref) => <div ref={ref} {...props} className="MeetingListContent" />
+);
 interface MeetingListState {
     readonly meetings: Meeting[];
     readonly meetingsStyle: MeetingStyle[];
     readonly meetingCount: number;
     readonly newMeeting: boolean;
     readonly bulkImport: boolean;
+    /** Height of the editors' toolbar plus its distance to the bottom edge, in px. */
+    readonly toolbarClearance: number;
 }
 export default class MeetingList extends Component<MeetingListProps, MeetingListState> {
     moreLoading = false;
     listRef: Ref<InfiniteLoader> | null = createRef();
+    toolbarObserver: ResizeObserver | null = null;
 
     constructor(props: MeetingListProps) {
         super(props);
@@ -42,12 +57,38 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
             meetingCount: 0,
             newMeeting: false,
             bulkImport: false,
-            meetingsStyle: []
+            meetingsStyle: [],
+            toolbarClearance: 0
         };
     }
 
     componentDidMount = async () => {
         await this.loadData();
+    };
+
+    componentWillUnmount = () => {
+        this.toolbarObserver?.disconnect();
+    };
+
+    /** Keeps `toolbarClearance` up to date while the toolbar is shown (it grows when its
+     * buttons wrap or the text is zoomed). */
+    observeToolbar = (toolbar: HTMLDivElement | null) => {
+        this.toolbarObserver?.disconnect();
+        this.toolbarObserver = null;
+        if (!toolbar) {
+            this.setState({ toolbarClearance: 0 });
+            return;
+        }
+        const measure = () => {
+            const clearance = Math.ceil(
+                toolbar.offsetHeight + parseFloat(getComputedStyle(toolbar).bottom)
+            );
+            if (clearance !== this.state.toolbarClearance) {
+                this.setState({ toolbarClearance: clearance });
+            }
+        };
+        this.toolbarObserver = new ResizeObserver(measure);
+        this.toolbarObserver.observe(toolbar);
     };
 
     componentDidUpdate = async (prevProps: MeetingListProps) => {
@@ -67,7 +108,7 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
     /** Bulk-created meetings are planned: show that list, where they are reviewed. */
     onBulkCreated = async () => {
         if (this.props.type !== "Planned") {
-            this.props.showPlanned();
+            this.props.onTypeChange("Planned");
             return;
         }
         await this.reloadMeetingList();
@@ -202,25 +243,43 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
 
     render = () => {
         return (
-            <div className="MeetingList">
+            <div
+                className="MeetingList"
+                style={{ "--toolbar-clearance": `${this.state.toolbarClearance}px` }}
+            >
                 {this.props.g.account?.capabilities?.includes(`UpdateMeetings`) && (
-                    <div className={"NewMeeting"}>
-                        <Button
-                            appearance="primary"
-                            onClick={() => {
-                                this.setState({ newMeeting: true });
+                    <>
+                    <div className="MeetingToolbar" ref={this.observeToolbar}>
+                        <SelectPicker
+                            data={MEETING_TYPES}
+                            searchable={false}
+                            cleanable={false}
+                            value={this.props.type}
+                            onChange={type => {
+                                if (type !== null) this.props.onTypeChange(type);
                             }}
-                        >
-                            Neues Treffen
-                        </Button>
-                        <Button
-                            appearance="primary"
-                            onClick={() => {
-                                this.setState({ bulkImport: true });
-                            }}
-                        >
-                            Mehrere Treffen (JSON)
-                        </Button>
+                            // Upwards unless the toolbar is too high up for the menu.
+                            placement="autoVerticalEnd"
+                        />
+                        <div className="MeetingToolbarButtons">
+                            <Button
+                                appearance="primary"
+                                onClick={() => {
+                                    this.setState({ newMeeting: true });
+                                }}
+                            >
+                                Neues Treffen
+                            </Button>
+                            <Button
+                                appearance="primary"
+                                onClick={() => {
+                                    this.setState({ bulkImport: true });
+                                }}
+                            >
+                                Mehrere Treffen (JSON)
+                            </Button>
+                        </div>
+                    </div>
                         {this.state.bulkImport && (
                             <BulkImportMeetings
                                 g={this.props.g}
@@ -243,7 +302,7 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
                                 newMeeting={true}
                             />
                         )}
-                    </div>
+                    </>
                 )}
                 <AutoSizer>
                     {({ height, width }) => (
@@ -264,6 +323,7 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
                                         width={width}
                                         onItemsRendered={onItemsRendered}
                                         ref={ref}
+                                        innerElementType={ListContent}
                                         // without this the context menu cannot be positioned fixed
                                         // https://stackoverflow.com/questions/2637058/position-fixed-doesnt-work-when-using-webkit-transform
                                         style={{ willChange: "none" }}

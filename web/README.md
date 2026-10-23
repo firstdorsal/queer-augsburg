@@ -9,17 +9,23 @@ Jeopardy-style quiz board for events. Code-split and only loaded when accessed.
 
 State syncs across tabs via localStorage. Export/import game data as JSON.
 
-## Orte und Online-Treffen
+## Orte, Online- und Hybrid-Treffen
 
 -   Places are stored in their own collection. Editors pick a place from the dropdown in the
     meeting editor or create one there ("Neuen Ort anlegen" opens the map). The server copies
-    name and coordinates into the meeting (`location`). A meeting has exactly one venue: a
-    place, online details or "Ort wird noch bekanntgegeben" (`place_to_be_announced`, shown
-    on the card, in the iCal feed and in the overview instead of a place). The editor keeps
-    a chosen place while one of the two boxes is ticked; the server drops it on save.
-    Everything that shows a venue uses one precedence (`meetingVenue` in `src/places.ts`,
-    `Meeting::venue` on the server).
--   Online meetings ("Online-Treffen") have a platform and an optional link. A link is either
+    name and coordinates into the meeting (`location`). A meeting takes place in person, at a
+    place or at "Ort wird noch bekanntgegeben" (`place_to_be_announced`, shown on the card,
+    in the iCal feed and in the overview instead of a place; never both), online, or hybrid:
+    online and in person. The editor chooses "Vor Ort", "Hybrid (vor Ort und online)" or
+    "Nur online"; it keeps a chosen place while "Ort wird noch bekanntgegeben" is ticked (the
+    server drops it on save) and removes it for "Nur online" (it comes back when switching
+    back). Everything that shows a venue reads it the same way (`meetingVenue` in
+    `src/places.ts`, `Meeting::venue` on the server); hybrid meetings show both parts.
+    "Hybrid" is not stored: it is online details next to a place or "Ort wird noch
+    bekanntgegeben". The editor keeps the chosen format itself (`FormatState`), because a
+    hybrid meeting whose place is not chosen yet looks like an online one; the server would
+    save it as online only.
+-   Online and hybrid meetings have a platform and an optional link. A link is either
     public or, by default, members-only: then it is never part of the meeting list, the iCal
     feed or the local cache. Verified members (membership approved) and editors load it on
     demand from `GET /api/meeting_link/?m=<id>` ("Link anzeigen").
@@ -44,7 +50,9 @@ for 5 minutes.
     earliest), `truncated` if there are more. Per meeting `id`, `start` ("2026-10-27T19:00",
     Berlin), `title`, `place` (name or null), `online`, `platform`,
     `place_to_be_announced`, `cancelled`, `url` (the meeting page, from the server's
-    `uiOrigin`). No descriptions and no links to online meetings.
+    `uiOrigin`), `hybrid` (online and in person; since 2026-10 `online` can come together
+    with `place` or `place_to_be_announced`). No descriptions and no links to online
+    meetings.
 -   Types: `MeetingsOverview`/`MeetingSummary` (ts-rs); fields are only ever added. The
     prompt's field list (`OVERVIEW_FIELDS` in `src/bulkPrompt.ts`) is checked against them at
     compile time.
@@ -55,10 +63,10 @@ for 5 minutes.
 
 For members with the `UpdateMeetings` capability, the meeting list shows **"Mehrere Treffen (JSON)"** next to "Neues Treffen". Instead of filling the form once per meeting, the member
 
-1. copies a generated prompt into an AI model of their choice and describes the meetings there. The prompt contains today's date, the stored places from `GET /api/places/`, allowed tags and limits, and the stored meetings from 24 hours ago on (active and planned, at most the next 50, with start, title, place, online platform or "Ort wird noch bekanntgegeben", and status, cancelled ones marked), so the model does not create them again and asks when a described meeting looks like one of them; for published meetings beyond that it explains the public overview (above), which models that can fetch web pages use themselves. It tells the model to ask back for missing date, time or place, and to ask once, together, for the optional organiser, price, age restriction, accessibility and trigger warnings. Places and meetings are loaded fresh when the dialog opens (`GET /api/get_meetings/?from=…`, never from the offline cache); if that fails, the dialog offers "Erneut versuchen" and nothing can be pasted yet,
-2. pastes the model's answer (a JSON array; code fences and chat text around it are tolerated). A meeting has exactly one of `"place"` (a place name), `"online": {"platform", "link", "link_public"}` and `"place_to_be_announced": true`; links are members-only unless `link_public` is true. `"online": true` stands for an online meeting without details, `false` for none. A members-only link that also appears in the title or description gets a warning, because those are public,
-3. reviews the drafts: place names are matched to the stored places (same name key as the server, accents ignored when unambiguous); for an unknown name the member picks a stored place or creates one ("Neuen Ort anlegen", map), which then applies to every meeting with that name. Each draft is compared with the stored meetings from 24 hours ago on and with the other drafts: at most an hour apart at the same place (or online on the same platform; a place to be announced is no venue, so only the title rule applies), or on the same Berlin day with a similar title (same or mostly the same words, ignoring accents, numbers, short function words and the group's name). Errors block, hints (past dates, ignored fields, possible duplicates) do not; "Nicht anlegen" leaves a draft out, and stays set while the JSON is edited as long as that draft's title, start and venue do not change,
-4. creates the remaining meetings in one request (`POST /api/create_meetings/`, at most 50, each with exactly one of `place_id`, `online` and `place_to_be_announced: true`). Right before that, the dialog loads the stored meetings again; if a draft got a new duplicate hint in the meantime (e.g. another editor added a meeting), nothing is sent and the member checks again. The server validates every meeting first, copies name and coordinates from the stored place, and creates nothing if one is invalid. **Every meeting is created as "Geplant"** (the request has no status; the server sets it): the list switches to "Geplante Treffen", where an editor opens each meeting and sets it to "Aktiv" to publish it.
+1. copies a generated prompt into an AI model of their choice and describes the meetings there. The prompt contains today's date, the stored places from `GET /api/places/`, allowed tags and limits, and the stored meetings from 24 hours ago on (active and planned, at most the next 50, with start, title, place or "Ort wird noch bekanntgegeben" and/or online platform, and status, cancelled ones marked), so the model does not create them again and asks when a described meeting looks like one of them; for published meetings beyond that it explains the public overview (above), which models that can fetch web pages use themselves. It tells the model to ask back for missing date, time or place, and to ask once, together, for the optional organiser, price, age restriction, accessibility and trigger warnings. Places and meetings are loaded fresh when the dialog opens (`GET /api/get_meetings/?from=…`, never from the offline cache); if that fails, the dialog offers "Erneut versuchen" and nothing can be pasted yet,
+2. pastes the model's answer (a JSON array; code fences and chat text around it are tolerated). A meeting has `"place"` (a place name) or `"place_to_be_announced": true` (not both), `"online": {"platform", "link", "link_public"}`, or for a hybrid meeting `"online"` and one of the two; links are members-only unless `link_public` is true. `"online": true` stands for an online meeting without details, `false` for none. A members-only link that also appears in the title or description gets a warning, because those are public,
+3. reviews the drafts: place names are matched to the stored places (same name key as the server, accents ignored when unambiguous); for an unknown name the member picks a stored place or creates one ("Neuen Ort anlegen", map), which then applies to every meeting with that name. Each draft is compared with the stored meetings from 24 hours ago on and with the other drafts: at most an hour apart at the same place or online on the same platform (a hybrid meeting matches either way; a place to be announced is no place to compare), or on the same Berlin day with a similar title (same or mostly the same words, ignoring accents, numbers, short function words and the group's name). Errors block, hints (past dates, ignored fields, possible duplicates) do not; "Nicht anlegen" leaves a draft out, and stays set while the JSON is edited as long as that draft's title, start and venue do not change,
+4. creates the remaining meetings in one request (`POST /api/create_meetings/`, at most 50, each with `place_id` or `place_to_be_announced: true`, `online`, or `online` and one of the two). Right before that, the dialog loads the stored meetings again; if a draft got a new duplicate hint in the meantime (e.g. another editor added a meeting), nothing is sent and the member checks again. The server validates every meeting first, copies name and coordinates from the stored place, and creates nothing if one is invalid. **Every meeting is created as "Geplant"** (the request has no status; the server sets it): the list switches to "Geplante Treffen", where an editor opens each meeting and sets it to "Aktiv" to publish it.
 
 Code: `src/bulkImport.ts` (format, parsing, validation), `src/meetingDuplicates.ts` (duplicate check), `src/bulkPrompt.ts` (prompt), `src/berlinTime.ts`, `src/components/BulkImportMeetings.tsx` (UI), server side `server/src/meeting_validation.rs`, `server/src/place_rules.rs` and `server/src/methods/create_meetings.rs`. Client and server validation (including the online details) are mirrored and both tested against `server/src/meeting_validation_cases.json` (where the import words a rule differently because it talks about JSON fields, the case has a `client_error`); change rules on both sides and in that file together.
 

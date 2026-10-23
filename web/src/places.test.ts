@@ -9,11 +9,17 @@ import type { OnlineMeeting } from "./apiTypes/OnlineMeeting";
 import type { Place } from "./apiTypes/Place";
 import type { User } from "./apiTypes/User";
 import {
-    chooseOnline,
-    choosePlaceToBeAnnounced,
+    MEETING_FORMATS,
+    MEETING_FORMAT_LABELS,
+    MeetingFormat,
+    chooseFormat,
     comparePlaceNames,
     findPlaceByName,
+    inPersonLabel,
     indexPlaces,
+    initialFormatState,
+    isMeetingFormat,
+    joinVenueParts,
     keepsHiddenLink,
     maySeeMembersOnlyLinks,
     meetingVenue,
@@ -212,6 +218,25 @@ describe("meetingVenueText / onlineLabel", () => {
         ).toBe("Ort wird noch bekanntgegeben");
     });
 
+    it("joins both parts of hybrid meetings, as the iCal feed", () => {
+        expect(
+            meetingVenueText(
+                meeting({
+                    location: { name: "Café Neruda", lat: 48.37, lon: 10.89 },
+                    online: online({ platform: "Zoom" })
+                })
+            )
+        ).toBe("Café Neruda: 48.37,10.89 und Online (Zoom)");
+        expect(
+            meetingVenueText(
+                meeting({
+                    place_to_be_announced: true,
+                    online: online({ url: "https://zoom.us/j/1", members_only: false })
+                })
+            )
+        ).toBe("Ort wird noch bekanntgegeben und Online: https://zoom.us/j/1");
+    });
+
     it("labels the meeting card", () => {
         expect(onlineLabel(online({ platform: " Zoom " }))).toBe("Online · Zoom");
         expect(onlineLabel(online({ platform: "  " }))).toBe("Online");
@@ -220,68 +245,144 @@ describe("meetingVenueText / onlineLabel", () => {
 
 describe("meetingVenue", () => {
     const neruda = { name: "Café Neruda", lat: 48.37, lon: 10.89 };
+    const zoom = online({ platform: "Zoom" });
 
-    it("has one precedence for combinations saving refuses", () => {
-        // Same order as the server's `Meeting::venue`.
-        const zoom = online({ platform: "Zoom" });
-        expect(
-            meetingVenue(meeting({ place_to_be_announced: true, online: zoom, location: neruda }))
-        ).toEqual({ kind: "toBeAnnounced" });
+    it("reads the in-person part and the online part separately", () => {
         expect(meetingVenue(meeting({ online: zoom, location: neruda }))).toEqual({
-            kind: "online",
+            inPerson: { kind: "place", location: neruda },
             online: zoom
         });
         expect(meetingVenue(meeting({ location: neruda }))).toEqual({
-            kind: "place",
-            location: neruda
+            inPerson: { kind: "place", location: neruda },
+            online: null
         });
-        expect(meetingVenue(meeting({}))).toEqual({ kind: "unknown" });
+        expect(meetingVenue(meeting({ online: zoom }))).toEqual({
+            inPerson: { kind: "noPlace" },
+            online: zoom
+        });
+        expect(meetingVenue(meeting({}))).toEqual({ inPerson: { kind: "noPlace" }, online: null });
+    });
+
+    it("ignores a location left over next to 'to be announced'", () => {
+        // Same as the server's `Meeting::venue`.
+        expect(
+            meetingVenue(meeting({ place_to_be_announced: true, online: zoom, location: neruda }))
+        ).toEqual({ inPerson: { kind: "toBeAnnounced" }, online: zoom });
+    });
+
+    it("labels the in-person row of the card", () => {
+        const label = (overrides: Partial<Meeting>) =>
+            inPersonLabel(meetingVenue(meeting(overrides)));
+        expect(label({ location: neruda })).toBe("Café Neruda");
+        expect(label({ location: neruda, online: zoom })).toBe("Café Neruda");
+        expect(label({ place_to_be_announced: true, online: zoom })).toBe(
+            "Ort wird noch bekanntgegeben"
+        );
+        expect(label({ online: zoom })).toBeNull();
+        expect(label({})).toBe("Ort unbekannt");
+    });
+
+    it("joins only the parts that exist", () => {
+        expect(joinVenueParts(["A", null, "B"])).toBe("A und B");
+        expect(joinVenueParts([null, "B"])).toBe("B");
+        expect(joinVenueParts([null, null])).toBe("");
+    });
+
+    it("tells the format of stored meetings", () => {
+        const format = (overrides: Partial<Meeting>) =>
+            initialFormatState(meeting(overrides)).format;
+        expect(format({ location: neruda, place_id: "b" })).toBe("onSite");
+        expect(format({ place_to_be_announced: true })).toBe("onSite");
+        expect(format({})).toBe("onSite");
+        expect(format({ online: zoom })).toBe("online");
+        expect(format({ online: zoom, location: neruda, place_id: "b" })).toBe("hybrid");
+        expect(format({ online: zoom, place_to_be_announced: true })).toBe("hybrid");
+        // Saving keeps a place without its copied location, so it is hybrid too.
+        expect(format({ online: zoom, place_id: "b" })).toBe("hybrid");
+    });
+
+    it("has a label for every format and nothing else", () => {
+        expect(Object.keys(MEETING_FORMAT_LABELS).sort()).toEqual([...MEETING_FORMATS].sort());
+        expect(MEETING_FORMATS.every(isMeetingFormat)).toBe(true);
+        for (const value of ["inPerson", "", null, 1]) expect(isMeetingFormat(value)).toBe(false);
     });
 });
 
-describe("chooseOnline / choosePlaceToBeAnnounced", () => {
+describe("chooseFormat", () => {
     const atPlace = meeting({
         place_id: "b",
         location: { name: "Café Neruda", lat: 48.37, lon: 10.89 }
     });
     const typed = online({ platform: "Zoom", url: "https://zoom.us/j/1" });
-
-    it("ticks one box at a time and keeps the chosen place", () => {
-        const announced = choosePlaceToBeAnnounced(
-            { meeting: { ...atPlace, online: typed }, lastOnline: null },
-            true
-        );
-        expect(announced.meeting).toMatchObject({
-            place_to_be_announced: true,
-            online: null,
-            place_id: "b"
+    /** Starts editing `start` and switches through `formats`; returns the last step. */
+    const switchFormats = (start: Meeting, ...formats: MeetingFormat[]) =>
+        formats.reduce((step, format) => chooseFormat(step.meeting, step.state, format), {
+            meeting: start,
+            state: initialFormatState(start)
         });
-        expect(announced.lastOnline).toBe(typed);
-        expect(venueProblem(announced.meeting)).toBeNull();
 
-        const backOnline = chooseOnline(announced, true);
-        expect(backOnline.meeting).toMatchObject({ place_to_be_announced: false, online: typed });
-        expect(venueProblem(backOnline.meeting)).toBeNull();
+    it("keeps the place for hybrid meetings", () => {
+        const hybrid = switchFormats(atPlace, "hybrid");
+        expect(hybrid.state.format).toBe("hybrid");
+        expect(hybrid.meeting).toEqual({ ...atPlace, online: newOnlineMeeting() });
+        expect(venueProblem(hybrid.meeting, "hybrid")).toBeNull();
     });
 
-    it("brings back what was typed when online is ticked again", () => {
-        const unticked = chooseOnline(
-            { meeting: { ...atPlace, online: typed }, lastOnline: null },
-            false
-        );
-        expect(unticked.meeting.online).toBeNull();
-        expect(chooseOnline(unticked, true).meeting.online).toBe(typed);
-        // The first time: empty details.
-        expect(chooseOnline({ meeting: atPlace, lastOnline: null }, true).meeting.online).toEqual(
-            newOnlineMeeting()
+    it("removes the place for online-only meetings and brings it back", () => {
+        const start = { ...atPlace, online: typed };
+        const onlineOnly = switchFormats(start, "online");
+        expect(onlineOnly.meeting).toEqual({
+            ...start,
+            place_id: null,
+            location: null,
+            place_to_be_announced: false
+        });
+        expect(venueProblem(onlineOnly.meeting, "online")).toBeNull();
+
+        const back = switchFormats(start, "online", "onSite");
+        expect(back.meeting).toEqual({ ...atPlace, online: null });
+        // The online details come back too.
+        expect(switchFormats(start, "online", "onSite", "hybrid").meeting).toEqual(start);
+    });
+
+    it("brings back 'to be announced' after online only", () => {
+        const announced = { ...atPlace, place_to_be_announced: true, online: typed };
+        expect(initialFormatState(announced).format).toBe("hybrid");
+        expect(switchFormats(announced, "online").meeting.place_to_be_announced).toBe(false);
+        expect(switchFormats(announced, "online", "hybrid").meeting).toEqual(announced);
+    });
+
+    it("remembers what the format showed, also an unticked box", () => {
+        const fresh = meeting({});
+        let step = switchFormats(fresh, "onSite");
+        step = { ...step, meeting: { ...step.meeting, place_to_be_announced: true } };
+        step = chooseFormat(step.meeting, step.state, "online");
+        step = chooseFormat(step.meeting, step.state, "onSite");
+        expect(step.meeting.place_to_be_announced).toBe(true);
+        // Unticked by hand, then online and back: it stays unticked.
+        step = { ...step, meeting: { ...step.meeting, place_to_be_announced: false } };
+        step = chooseFormat(step.meeting, step.state, "online");
+        step = chooseFormat(step.meeting, step.state, "onSite");
+        expect(step.meeting.place_to_be_announced).toBe(false);
+        expect(venueProblem(step.meeting, "onSite")).toBe(
+            "Bitte einen Ort auswählen oder „Ort wird noch bekanntgegeben“ ankreuzen."
         );
     });
 
-    it("unticking to be announced keeps online unticked", () => {
-        const announced = choosePlaceToBeAnnounced({ meeting: atPlace, lastOnline: null }, true);
-        const unticked = choosePlaceToBeAnnounced(announced, false);
-        expect(unticked.meeting).toMatchObject({ place_to_be_announced: false, online: null });
-        expect(venueProblem(unticked.meeting)).toBeNull();
+    it("keeps a withheld link through format changes", () => {
+        const withheld = online({ platform: "Zoom", url_hidden: true, url: null });
+        const start = { ...atPlace, online: withheld };
+        expect(switchFormats(start, "onSite", "hybrid").meeting.online).toBe(withheld);
+        expect(switchFormats(start, "online").meeting.online).toBe(withheld);
+    });
+
+    it("starts new online details the first time", () => {
+        const fresh = switchFormats(meeting({}), "online");
+        expect(fresh.meeting.online).toEqual(newOnlineMeeting());
+        expect(switchFormats(meeting({}), "online", "hybrid").meeting).toMatchObject({
+            place_id: null,
+            place_to_be_announced: false
+        });
     });
 });
 
@@ -295,43 +396,59 @@ describe("onlineProblem", () => {
 });
 
 describe("venueProblem", () => {
-    it("requires a place unless the meeting is online", () => {
-        expect(venueProblem(meeting({}))).toBe(
-            "Bitte einen Ort auswählen, „Online-Treffen“ oder „Ort wird noch bekanntgegeben“ ankreuzen."
-        );
-        expect(venueProblem(meeting({ place_id: "a" }))).toBeNull();
-        expect(venueProblem(meeting({ online: online() }))).toBeNull();
+    const check = (overrides: Partial<Meeting>, format?: MeetingFormat) => {
+        const edited = meeting(overrides);
+        return venueProblem(edited, format ?? initialFormatState(edited).format);
+    };
+    const missing = "Bitte einen Ort auswählen oder „Ort wird noch bekanntgegeben“ ankreuzen.";
+
+    it("requires a place unless the meeting is online only", () => {
+        expect(check({})).toBe(missing);
+        expect(check({ place_id: "a" })).toBeNull();
+        expect(check({ online: online() })).toBeNull();
     });
 
-    it("accepts a place to be announced, but not together with online", () => {
-        expect(venueProblem(meeting({ place_to_be_announced: true }))).toBeNull();
-        expect(venueProblem(meeting({ place_to_be_announced: true, online: online() }))).toBe(
-            "Bitte nur eins angeben: einen Ort, Online-Angaben oder „Ort wird noch bekanntgegeben“."
-        );
+    it("requires a place for hybrid meetings, which the server cannot tell", () => {
+        expect(check({ online: online() }, "hybrid")).toBe(missing);
+        expect(check({ online: online(), place_id: "a" }, "hybrid")).toBeNull();
+        expect(check({ online: online(), place_to_be_announced: true }, "hybrid")).toBeNull();
+    });
+
+    it("accepts a place to be announced, also with online details", () => {
+        expect(check({ place_to_be_announced: true })).toBeNull();
+        expect(check({ place_to_be_announced: true, online: online() })).toBeNull();
         expect(meetingVenueText(meeting({ place_to_be_announced: true }))).toBe(
             "Ort wird noch bekanntgegeben"
         );
     });
 
-    it("rejects links that are not http(s)", () => {
-        expect(venueProblem(meeting({ online: online({ url: "zoom.us/j/1" }) }))).toBe(
+    it("rejects links that are not http(s), before a missing place", () => {
+        expect(check({ online: online({ url: "zoom.us/j/1" }) })).toBe(
             "Der Link muss mit https:// oder http:// beginnen."
         );
-        expect(venueProblem(meeting({ online: online({ url: "  " }) }))).toBeNull();
+        expect(check({ online: online({ url: "zoom.us/j/1" }) }, "hybrid")).toBe(
+            "Der Link muss mit https:// oder http:// beginnen."
+        );
+        expect(check({ online: online({ url: "  " }) })).toBeNull();
     });
 
     it("refuses to publish a withheld link the editor has not seen", () => {
         const withheld = online({ url_hidden: true, url: null, members_only: false });
         expect(keepsHiddenLink(withheld)).toBe(true);
-        expect(venueProblem(meeting({ online: withheld }))).toBe(
+        expect(check({ online: withheld })).toBe(
             "Bitte den gespeicherten Link zuerst anzeigen, bevor er öffentlich gemacht wird."
         );
-        expect(venueProblem(meeting({ online: { ...withheld, members_only: true } }))).toBeNull();
+        expect(check({ online: { ...withheld, members_only: true } })).toBeNull();
         // Loaded or replaced: an empty string means "remove", not "keep".
         expect(keepsHiddenLink({ ...withheld, url: "" })).toBe(false);
-        expect(
-            venueProblem(meeting({ online: { ...withheld, url: "https://zoom.us/j/1" } }))
-        ).toBeNull();
+        expect(check({ online: { ...withheld, url: "https://zoom.us/j/1" } })).toBeNull();
+        // Before a missing place, as on the server.
+        expect(check({ online: withheld }, "hybrid")).toBe(
+            "Bitte den gespeicherten Link zuerst anzeigen, bevor er öffentlich gemacht wird."
+        );
+        expect(check({ online: withheld, place_id: "a" }, "hybrid")).toBe(
+            "Bitte den gespeicherten Link zuerst anzeigen, bevor er öffentlich gemacht wird."
+        );
     });
 
     it("starts new meetings without a place", () => {

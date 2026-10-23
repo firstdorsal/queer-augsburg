@@ -34,7 +34,8 @@ const problemText = (status: number): string =>
             ? "Link nicht mehr verfügbar"
             : "Link konnte nicht geladen werden.";
 
-/** Shown instead of the place: "Online · Zoom" plus the link as far as the viewer may see it.
+/** "Online · Zoom" plus the link as far as the viewer may see it; below the place for hybrid
+ * meetings.
  * Render with `key={meeting._id}` so a fetched link never sticks to another meeting. */
 export default class OnlineMeetingInfo extends Component<
     OnlineMeetingInfoProps,
@@ -117,7 +118,7 @@ export default class OnlineMeetingInfo extends Component<
     render = () => {
         const linkPart = this.renderLinkPart();
         return (
-            <div className="Location flex items-center" title="Online-Treffen">
+            <div className="flex items-center" title="Online">
                 <IoGlobeOutline />
                 <span className="InfoText">
                     {onlineLabel(this.props.online)}

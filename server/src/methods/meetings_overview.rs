@@ -15,7 +15,7 @@ use url::Url;
 use crate::{
     config::SERVER_CONFIG,
     state::AppState,
-    types::{Meeting, MeetingSummary, MeetingsOverview, MeetingsOverviewQuery, Venue},
+    types::{InPerson, Meeting, MeetingSummary, MeetingsOverview, MeetingsOverviewQuery},
 };
 
 /// More meetings than this are cut off (`truncated`); the prompt and the docs of
@@ -188,18 +188,19 @@ fn summarize(meeting: Meeting, ui_origin: &Url) -> Option<MeetingSummary> {
         );
         return None;
     };
-    let (place, online, platform) = match meeting.venue() {
-        Venue::Place(location) => (Some(location.name.clone()), false, None),
-        Venue::Online(details) => {
-            let platform = details.platform.trim();
-            (
-                None,
-                true,
-                (!platform.is_empty()).then(|| platform.to_string()),
-            )
-        }
-        Venue::ToBeAnnounced | Venue::Unknown => (None, false, None),
+    let venue = meeting.venue();
+    let place = match venue.in_person {
+        InPerson::Place(location) => Some(location.name.clone()),
+        InPerson::ToBeAnnounced | InPerson::NoPlace => None,
     };
+    let place_to_be_announced = matches!(venue.in_person, InPerson::ToBeAnnounced);
+    let online = venue.online.is_some();
+    let hybrid = venue.is_hybrid();
+    let platform = venue
+        .online
+        .map(|details| details.platform.trim())
+        .filter(|platform| !platform.is_empty())
+        .map(str::to_string);
     Some(MeetingSummary {
         start: start
             .with_timezone(&Berlin)
@@ -209,7 +210,8 @@ fn summarize(meeting: Meeting, ui_origin: &Url) -> Option<MeetingSummary> {
         place,
         online,
         platform,
-        place_to_be_announced: meeting.place_to_be_announced,
+        place_to_be_announced,
+        hybrid,
         cancelled: meeting.cancelled == Some(true),
         title: meeting.title,
         id: meeting._id,
@@ -355,8 +357,27 @@ mod tests {
         let mut legacy = meeting("old", berlin(2026, 10, 29, 0, 0));
         legacy.place_id = None;
         legacy.location = None;
+        let mut hybrid = meeting("hy", berlin(2026, 10, 30, 19, 0));
+        hybrid.online = online.online.clone();
+        let mut announced_hybrid = meeting("tbahy", berlin(2026, 10, 31, 19, 0));
+        announced_hybrid.place_id = None;
+        announced_hybrid.place_to_be_announced = true;
+        announced_hybrid.online = Some(OnlineMeeting {
+            platform: String::new(),
+            ..online.online.clone().unwrap()
+        });
 
-        let result = build_overview(vec![announced, cancelled, online, legacy], &origin());
+        let result = build_overview(
+            vec![
+                announced,
+                cancelled,
+                online,
+                legacy,
+                hybrid,
+                announced_hybrid,
+            ],
+            &origin(),
+        );
 
         assert_eq!(result.time_zone, "Europe/Berlin");
         assert!(!result.truncated);
@@ -368,6 +389,7 @@ mod tests {
             online: false,
             platform: None,
             place_to_be_announced: false,
+            hybrid: false,
             cancelled: false,
             url: format!("https://queer-augsburg.de/?m={id}"),
         };
@@ -388,6 +410,18 @@ mod tests {
                     ..summary("on", "2026-10-28T19:00", None)
                 },
                 summary("old", "2026-10-29T00:00", None),
+                MeetingSummary {
+                    online: true,
+                    platform: Some("Zoom".to_string()),
+                    hybrid: true,
+                    ..summary("hy", "2026-10-30T19:00", Some("Café Neruda"))
+                },
+                MeetingSummary {
+                    online: true,
+                    place_to_be_announced: true,
+                    hybrid: true,
+                    ..summary("tbahy", "2026-10-31T19:00", None)
+                },
             ]
         );
         let json = serde_json::to_string(&result).unwrap();

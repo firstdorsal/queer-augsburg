@@ -23,9 +23,13 @@ use crate::{
 /// capability.
 ///
 /// Every meeting is validated before anything is written; if one is invalid,
-/// nothing is created. Each meeting needs exactly one venue: the `place_id` of a stored
-/// place (name and coordinates are copied from it into `location`), `online` details or
-/// `place_to_be_announced: true`. All meetings are created as `Planned`: an editor publishes each one by hand
+/// nothing is created. Each meeting takes place
+/// - in person: `place_id` of a stored place (name and coordinates are copied from it into
+///   `location`) or `place_to_be_announced: true`, not both,
+/// - online: `online` details and neither of the two, or
+/// - hybrid: `online` details and one of the two.
+///
+/// All meetings are created as `Planned`: an editor publishes each one by hand
 /// (status `Active` via `update_meeting`). `_id`, `changed`, `location`, `status`, `attendance`, `rating`, `cancelled` and
 /// `deleted_at` are set by the server; sending any of them is rejected. Members-only
 /// links are not included in the response. Error bodies carry a German `message` for

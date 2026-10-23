@@ -21,17 +21,17 @@ pub struct Meeting {
     /// Start time as UTC timestamp in milliseconds; `None` for some old imported meetings.
     #[ts(type = "number | null")]
     pub time: Option<i64>,
-    /// Copy of the place (`place_id`) for display and the iCal feed; `None` for online
-    /// meetings and places to be announced.
+    /// Copy of the place (`place_id`) for display and the iCal feed; `None` for meetings
+    /// without a place (online only, or place to be announced).
     pub location: Option<MeetingLocation>,
     /// The stored place the meeting takes place at (id from `GET /api/places/`); the
     /// server derives `location` from it on save. Meetings imported before places
     /// existed may have only a `location`.
     pub place_id: Option<String>,
-    /// Set for online meetings, which have no place.
+    /// Set for online and hybrid meetings (hybrid: also a place or `place_to_be_announced`).
     pub online: Option<OnlineMeeting>,
-    /// The place is not fixed yet ("Ort wird noch bekanntgegeben"): no place, not online.
-    /// Missing in meetings stored before it existed.
+    /// The place is not fixed yet ("Ort wird noch bekanntgegeben"), so there is no place;
+    /// the meeting may still be online too. Missing in meetings stored before it existed.
     #[serde(default)]
     pub place_to_be_announced: bool,
     pub description: String,
@@ -132,16 +132,18 @@ impl Meeting {
     }
 
     /// Where the meeting takes place. The stored fields allow combinations the save rules
-    /// refuse (`place_rules::finish_venue`); this is the one precedence every reader uses.
+    /// refuse (`place_rules::finish_venue`); this is the one reading every reader uses.
     pub fn venue(&self) -> Venue<'_> {
-        if self.place_to_be_announced {
-            Venue::ToBeAnnounced
-        } else if let Some(online) = &self.online {
-            Venue::Online(online)
+        let in_person = if self.place_to_be_announced {
+            InPerson::ToBeAnnounced
         } else if let Some(location) = &self.location {
-            Venue::Place(location)
+            InPerson::Place(location)
         } else {
-            Venue::Unknown
+            InPerson::NoPlace
+        };
+        Venue {
+            in_person,
+            online: self.online.as_ref(),
         }
     }
 
@@ -154,14 +156,28 @@ impl Meeting {
     }
 }
 
-/// See `Meeting::venue`.
-#[derive(Debug, PartialEq)]
-pub enum Venue<'a> {
-    ToBeAnnounced,
-    Online(&'a OnlineMeeting),
+/// See `Meeting::venue`. Online and in person (a place or one to be announced): a hybrid
+/// meeting. Neither: a meeting imported before places and online meetings existed.
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub struct Venue<'a> {
+    pub in_person: InPerson<'a>,
+    pub online: Option<&'a OnlineMeeting>,
+}
+
+impl Venue<'_> {
+    pub fn is_hybrid(&self) -> bool {
+        self.online.is_some() && self.in_person != InPerson::NoPlace
+    }
+}
+
+/// The in-person part of a `Venue`.
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum InPerson<'a> {
     Place(&'a MeetingLocation),
-    /// Meetings imported before places and online meetings existed may have neither.
-    Unknown,
+    /// "Ort wird noch bekanntgegeben"; a location left over from before is not shown.
+    ToBeAnnounced,
+    /// Online only, or an old meeting without a place.
+    NoPlace,
 }
 
 /// A place meetings can take place at.
@@ -448,8 +464,10 @@ pub struct NewMeeting {
     /// Start time as UTC timestamp in milliseconds.
     #[ts(type = "number")]
     pub time: i64,
-    /// A stored place (the server copies its name and coordinates). Exactly one venue: a
-    /// stored place (`place_id`), `online` details or `place_to_be_announced: true`.
+    /// A stored place (the server copies its name and coordinates). A meeting takes place
+    /// at a stored place (`place_id`) or at a place to be announced
+    /// (`place_to_be_announced: true`), not both; online (`online`); or hybrid: online and
+    /// at one of the two. This is the venue rule the other docs refer to.
     pub place_id: Option<String>,
     pub online: Option<NewOnlineMeeting>,
     /// The place is not fixed yet ("Ort wird noch bekanntgegeben").
@@ -702,8 +720,8 @@ pub struct MeetingsOverview {
 }
 
 /// One published meeting in `MeetingsOverview`: no description and no links to online
-/// meetings. Exactly one of `place`, `online` and `place_to_be_announced` is set, unless
-/// an old meeting has no venue at all.
+/// meetings. `place` and `place_to_be_announced` never come together; `online` may come with
+/// either (`hybrid`). An old meeting may have none of them.
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Serialize, Debug, PartialEq)]
@@ -712,14 +730,17 @@ pub struct MeetingSummary {
     /// Start in Berlin time, e.g. "2026-10-27T19:00".
     pub start: String,
     pub title: String,
-    /// Name of the place; null for online meetings, places to be announced and old
+    /// Name of the place; null for online-only meetings, places to be announced and old
     /// meetings without a place.
     pub place: Option<String>,
-    /// An online meeting; its link is not part of the overview.
+    /// The meeting is online (only, or hybrid); its link is not part of the overview.
     pub online: bool,
     /// Platform of an online meeting, e.g. "Zoom"; null if not online or unknown.
     pub platform: Option<String>,
     pub place_to_be_announced: bool,
+    /// Online and in person, at `place` or at a place to be announced. Added 2026-10;
+    /// before, `online` never came together with a place.
+    pub hybrid: bool,
     pub cancelled: bool,
     /// The meeting's page on the website.
     pub url: String,
@@ -766,6 +787,62 @@ mod tests {
         assert!(!meeting.place_to_be_announced);
         let saved = serde_json::to_value(&meeting).unwrap();
         assert_eq!(saved["place_to_be_announced"], serde_json::json!(false));
+    }
+
+    #[test]
+    fn venue_reads_the_in_person_and_the_online_part_separately() {
+        let location = MeetingLocation {
+            name: "Café Neruda".to_string(),
+            lat: 48.37,
+            lon: 10.89,
+        };
+        let online = OnlineMeeting {
+            platform: "Zoom".to_string(),
+            url: None,
+            members_only: true,
+            url_hidden: false,
+        };
+        let meeting = |with_location: bool, with_online: bool, to_be_announced: bool| {
+            let mut meeting = stored_test_meeting();
+            meeting.location = with_location.then(|| location.clone());
+            meeting.online = with_online.then(|| online.clone());
+            meeting.place_to_be_announced = to_be_announced;
+            meeting
+        };
+        let venue = |in_person, online| Venue { in_person, online };
+        let place = InPerson::Place(&location);
+
+        assert_eq!(meeting(true, false, false).venue(), venue(place, None));
+        assert_eq!(
+            meeting(true, true, false).venue(),
+            venue(place, Some(&online))
+        );
+        assert_eq!(
+            meeting(false, true, false).venue(),
+            venue(InPerson::NoPlace, Some(&online))
+        );
+        assert_eq!(
+            meeting(false, false, false).venue(),
+            venue(InPerson::NoPlace, None)
+        );
+        // A location left over next to "to be announced" is not shown.
+        assert_eq!(
+            meeting(true, false, true).venue(),
+            venue(InPerson::ToBeAnnounced, None)
+        );
+        assert_eq!(
+            meeting(true, true, true).venue(),
+            venue(InPerson::ToBeAnnounced, Some(&online))
+        );
+
+        let hybrid = |with_location, with_online, to_be_announced| {
+            meeting(with_location, with_online, to_be_announced)
+                .venue()
+                .is_hybrid()
+        };
+        assert!(hybrid(true, true, false) && hybrid(false, true, true));
+        assert!(!hybrid(true, false, false) && !hybrid(false, true, false));
+        assert!(!hybrid(false, false, true) && !hybrid(false, false, false));
     }
 
     #[test]

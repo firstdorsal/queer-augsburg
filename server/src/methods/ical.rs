@@ -13,7 +13,7 @@ use crate::{
     extractors::AuthExtractor,
     place_rules::PLACE_TO_BE_ANNOUNCED,
     state::AppState,
-    types::{Meeting, Venue},
+    types::{InPerson, Meeting, OnlineMeeting},
 };
 
 #[utoipa::path(
@@ -127,7 +127,7 @@ fn ical_event(meeting: &Meeting, ui_origin: &Url) -> Option<Event> {
     if !location_text.is_empty() {
         event.location(&location_text);
     }
-    if let Venue::Place(location) = meeting.venue() {
+    if let InPerson::Place(location) = meeting.venue().in_person {
         event.append_property(Property::new(
             "GEO",
             format!("{};{}", location.lat, location.lon),
@@ -136,26 +136,41 @@ fn ical_event(meeting: &Meeting, ui_origin: &Url) -> Option<Event> {
     Some(event.done())
 }
 
-/// LOCATION text: "Name: lat,lon" for places, "Online (Platform)" for online meetings plus
-/// ": link" for public links (members-only links are removed before), "Ort wird noch
-/// bekanntgegeben" for places to be announced. Same format as `meetingVenueText` in
-/// web/src/places.ts. Empty for legacy meetings without a venue.
+/// LOCATION text: "Name: lat,lon" for places, "Ort wird noch bekanntgegeben" for places to
+/// be announced, "Online (Platform)" for online meetings plus ": link" for public links
+/// (members-only links are removed before); hybrid meetings join both with
+/// `VENUE_PARTS_SEPARATOR`. Same format as `meetingVenueText` in web/src/places.ts. Empty
+/// for legacy meetings without a venue.
 fn ical_location(meeting: &Meeting) -> String {
-    match meeting.venue() {
-        Venue::ToBeAnnounced => PLACE_TO_BE_ANNOUNCED.to_string(),
-        Venue::Online(online) => {
-            let label = if online.platform.is_empty() {
-                "Online".to_string()
-            } else {
-                format!("Online ({})", online.platform)
-            };
-            match &online.url {
-                Some(url) => format!("{label}: {url}"),
-                None => label,
-            }
-        }
-        Venue::Place(location) => format!("{}: {},{}", location.name, location.lat, location.lon),
-        Venue::Unknown => String::new(),
+    let venue = meeting.venue();
+    let in_person = match venue.in_person {
+        InPerson::Place(location) => Some(format!(
+            "{}: {},{}",
+            location.name, location.lat, location.lon
+        )),
+        InPerson::ToBeAnnounced => Some(PLACE_TO_BE_ANNOUNCED.to_string()),
+        InPerson::NoPlace => None,
+    };
+    let parts: Vec<String> = in_person
+        .into_iter()
+        .chain(venue.online.map(online_location))
+        .collect();
+    parts.join(VENUE_PARTS_SEPARATOR)
+}
+
+/// Between the in-person and the online part of a hybrid meeting. Mirrored by
+/// `VENUE_PARTS_SEPARATOR` in web/src/places.ts.
+const VENUE_PARTS_SEPARATOR: &str = " und ";
+
+fn online_location(online: &OnlineMeeting) -> String {
+    let label = if online.platform.is_empty() {
+        "Online".to_string()
+    } else {
+        format!("Online ({})", online.platform)
+    };
+    match &online.url {
+        Some(url) => format!("{label}: {url}"),
+        None => label,
     }
 }
 
@@ -203,7 +218,8 @@ mod tests {
         let mut calendar = Calendar::new();
         calendar
             .push(ical_event(meeting, &Url::parse("https://queer-augsburg.de").unwrap()).unwrap());
-        calendar.done().to_string()
+        // Unfolded: long lines are folded at 75 octets.
+        calendar.done().to_string().replace("\r\n ", "")
     }
 
     #[test]
@@ -241,6 +257,50 @@ mod tests {
             ical_location(&to_be_announced),
             "Ort wird noch bekanntgegeben"
         );
+
+        assert_eq!(ical_location(&meeting()), "");
+    }
+
+    #[test]
+    fn hybrid_events_have_place_and_online_details() {
+        let mut hybrid = meeting();
+        hybrid.location = Some(neruda());
+        hybrid.online = Some(OnlineMeeting {
+            platform: "Zoom".to_string(),
+            url: Some("https://zoom.us/j/1".to_string()),
+            members_only: true,
+            url_hidden: false,
+        });
+        let text = event_text(&hybrid.clone().without_private_link());
+        assert!(
+            text.contains("LOCATION:Café Neruda: 48.37\\,10.89 und Online (Zoom)\r\n"),
+            "{text}"
+        );
+        assert!(text.contains("GEO:48.37;10.89"), "{text}");
+        assert!(!text.contains("zoom.us"), "{text}");
+
+        // Place to be announced, with the location left over from before; a public link.
+        hybrid.online.as_mut().unwrap().members_only = false;
+        hybrid.place_to_be_announced = true;
+        let text = event_text(&hybrid.clone().without_private_link());
+        assert!(
+            text.contains(
+                "LOCATION:Ort wird noch bekanntgegeben und Online (Zoom): https://zoom.us/j/1\r\n"
+            ),
+            "{text}"
+        );
+        assert!(!text.contains("GEO") && !text.contains("Neruda"), "{text}");
+
+        // Online only.
+        hybrid.place_to_be_announced = false;
+        hybrid.location = None;
+        hybrid.online.as_mut().unwrap().platform = String::new();
+        let text = event_text(&hybrid.without_private_link());
+        assert!(
+            text.contains("LOCATION:Online: https://zoom.us/j/1\r\n"),
+            "{text}"
+        );
+        assert!(!text.contains("GEO"), "{text}");
     }
 
     #[test]

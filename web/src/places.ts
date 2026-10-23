@@ -1,4 +1,5 @@
-// Where a meeting takes place: one of the stored places, online, or not fixed yet.
+// Where a meeting takes place: at one of the stored places or a place not fixed yet, online,
+// or both (hybrid).
 
 import type { Meeting } from "./apiTypes/Meeting";
 import type { MeetingLocation } from "./apiTypes/MeetingLocation";
@@ -129,7 +130,7 @@ export const maySeeMembersOnlyLinks = (user: User | null | undefined): boolean =
     !!user &&
     (user.capabilities?.includes("UpdateMeetings") === true || user.member?.status === "Approved");
 
-/** Shown on the meeting card instead of the place. */
+/** The online row of the meeting card (below the place for hybrid meetings). */
 export const onlineLabel = (online: Pick<OnlineMeeting, "platform">): string => {
     const platform = trimWhiteSpace(online.platform);
     return platform ? `Online · ${platform}` : "Online";
@@ -138,42 +139,74 @@ export const onlineLabel = (online: Pick<OnlineMeeting, "platform">): string => 
 /** Mirrors `PLACE_TO_BE_ANNOUNCED` in server/src/place_rules.rs. */
 export const PLACE_TO_BE_ANNOUNCED_TEXT = "Ort wird noch bekanntgegeben";
 
-/** Where a meeting takes place. */
-export type MeetingVenue =
-    | { readonly kind: "toBeAnnounced" }
-    | { readonly kind: "online"; readonly online: OnlineMeeting }
+/** The in-person part of a meeting's venue (server: `InPerson`). */
+export type InPerson =
     | { readonly kind: "place"; readonly location: MeetingLocation }
-    /** Meetings imported before places and online meetings existed may have neither. */
-    | { readonly kind: "unknown" };
+    /** A location left over from before is not shown. */
+    | { readonly kind: "toBeAnnounced" }
+    /** Online only, or an old meeting without a place. */
+    | { readonly kind: "noPlace" };
 
-/** The stored fields allow combinations saving refuses; this is the one precedence every
+/** Where a meeting takes place; online and in person (a place or one to be announced): a
+ * hybrid meeting. Neither: a meeting imported before places and online meetings existed. */
+export interface MeetingVenue {
+    readonly inPerson: InPerson;
+    readonly online: OnlineMeeting | null;
+}
+
+/** The stored fields allow combinations saving refuses; this is the one reading every
  * reader uses, as the server's `Meeting::venue`. */
 export const meetingVenue = (
     meeting: Pick<Meeting, "place_to_be_announced" | "online" | "location">
-): MeetingVenue => {
-    if (meeting.place_to_be_announced) return { kind: "toBeAnnounced" };
-    if (meeting.online) return { kind: "online", online: meeting.online };
-    if (meeting.location) return { kind: "place", location: meeting.location };
-    return { kind: "unknown" };
+): MeetingVenue => ({
+    inPerson: meeting.place_to_be_announced
+        ? { kind: "toBeAnnounced" }
+        : meeting.location
+          ? { kind: "place", location: meeting.location }
+          : { kind: "noPlace" },
+    online: meeting.online
+});
+
+/** Between the in-person and the online part of a hybrid meeting's text. Mirrors
+ * `VENUE_PARTS_SEPARATOR` in server/src/methods/ical.rs. */
+export const VENUE_PARTS_SEPARATOR = " und ";
+
+/** The texts of the parts that exist, joined; "" if none does. */
+export const joinVenueParts = (parts: readonly (string | null)[]): string =>
+    parts.filter((part): part is string => part !== null).join(VENUE_PARTS_SEPARATOR);
+
+/** The card's in-person row: the place name, the "to be announced" text, "Ort unbekannt"
+ * for an old meeting without any venue, or null for online-only meetings. */
+export const inPersonLabel = ({ inPerson, online }: MeetingVenue): string | null => {
+    switch (inPerson.kind) {
+        case "place":
+            return inPerson.location.name;
+        case "toBeAnnounced":
+            return PLACE_TO_BE_ANNOUNCED_TEXT;
+        case "noPlace":
+            return online ? null : "Ort unbekannt";
+    }
 };
 
 /** Calendar location, same format as the server's iCal feed (`ical_location`). */
 export const meetingVenueText = (meeting: Meeting): string => {
-    const venue = meetingVenue(meeting);
-    switch (venue.kind) {
-        case "toBeAnnounced":
-            return PLACE_TO_BE_ANNOUNCED_TEXT;
-        case "online": {
-            const platform = trimWhiteSpace(venue.online.platform);
-            const label = platform ? `Online (${platform})` : "Online";
-            const url = safeHttpUrl(venue.online.url);
-            return url ? `${label}: ${url}` : label;
-        }
-        case "place":
-            return `${venue.location.name}: ${venue.location.lat},${venue.location.lon}`;
-        case "unknown":
-            return "";
-    }
+    const { inPerson, online } = meetingVenue(meeting);
+    return joinVenueParts([
+        inPerson.kind === "place"
+            ? `${inPerson.location.name}: ${inPerson.location.lat},${inPerson.location.lon}`
+            : inPerson.kind === "toBeAnnounced"
+              ? PLACE_TO_BE_ANNOUNCED_TEXT
+              : null,
+        online && onlineCalendarText(online)
+    ]);
+};
+
+/** "Online (Zoom): link" as in the iCal feed (server: `online_location`). */
+const onlineCalendarText = (online: OnlineMeeting): string => {
+    const platform = trimWhiteSpace(online.platform);
+    const label = platform ? `Online (${platform})` : "Online";
+    const url = safeHttpUrl(online.url);
+    return url ? `${label}: ${url}` : label;
 };
 
 export const newOnlineMeeting = (): OnlineMeeting => ({
@@ -183,34 +216,79 @@ export const newOnlineMeeting = (): OnlineMeeting => ({
     url_hidden: false
 });
 
-/** The editor's venue boxes. The chosen place stays selected while "online" or "to be
- * announced" is ticked (the server drops it on save). */
-export interface VenueChoice {
-    readonly meeting: Meeting;
-    /** Online details while "online" is unticked, restored when it is ticked again. */
+export const MEETING_FORMATS = ["onSite", "hybrid", "online"] as const;
+
+/** How a meeting takes place, as chosen in the editor. Not stored: it follows from the
+ * venue fields, except that a hybrid meeting whose place is not chosen yet looks like an
+ * online one, so the editor keeps the format itself. */
+export type MeetingFormat = (typeof MEETING_FORMATS)[number];
+
+export const isMeetingFormat = (value: unknown): value is MeetingFormat =>
+    MEETING_FORMATS.some((format) => format === value);
+
+export const MEETING_FORMAT_LABELS: Readonly<Record<MeetingFormat, string>> = {
+    onSite: "Vor Ort",
+    hybrid: "Hybrid (vor Ort und online)",
+    online: "Nur online"
+};
+
+/** The format of a stored meeting. A `place_id` counts even without its copied location,
+ * because saving keeps it. */
+const meetingFormat = (meeting: Meeting): MeetingFormat => {
+    const { inPerson, online } = meetingVenue(meeting);
+    if (!online) return "onSite";
+    return inPerson.kind === "noPlace" && meeting.place_id === null ? "online" : "hybrid";
+};
+
+type InPersonFields = Pick<Meeting, "place_id" | "location" | "place_to_be_announced">;
+
+/** The editor's format next to the meeting it edits. The chosen place stays selected while
+ * "to be announced" is ticked (the server drops it on save). */
+export interface FormatState {
+    readonly format: MeetingFormat;
+    /** Online details while the meeting is on site only, restored with an online format. */
     readonly lastOnline: OnlineMeeting | null;
+    /** The place (or "to be announced") while the meeting is online only, restored with an
+     * on-site format. */
+    readonly lastInPerson: InPersonFields | null;
 }
 
-/** Ticking "online" unticks "to be announced". */
-export const chooseOnline = (
-    { meeting, lastOnline }: VenueChoice,
-    online: boolean
-): VenueChoice => ({
-    lastOnline: meeting.online ?? lastOnline,
-    meeting: {
-        ...meeting,
-        online: online ? (lastOnline ?? newOnlineMeeting()) : null,
-        place_to_be_announced: online ? false : meeting.place_to_be_announced
-    }
+export const initialFormatState = (meeting: Meeting): FormatState => ({
+    format: meetingFormat(meeting),
+    lastOnline: null,
+    lastInPerson: null
 });
 
-/** Ticking "to be announced" unticks "online". */
-export const choosePlaceToBeAnnounced = (
-    choice: VenueChoice,
-    toBeAnnounced: boolean
-): VenueChoice => {
-    const { meeting, lastOnline } = toBeAnnounced ? chooseOnline(choice, false) : choice;
-    return { lastOnline, meeting: { ...meeting, place_to_be_announced: toBeAnnounced } };
+const NO_IN_PERSON: InPersonFields = {
+    place_id: null,
+    location: null,
+    place_to_be_announced: false
+};
+
+/** Switching to "online only" removes the place; it comes back when switching back. What
+ * the current format shows is remembered as it is, also when it is empty. */
+export const chooseFormat = (
+    meeting: Meeting,
+    state: FormatState,
+    format: MeetingFormat
+): { readonly meeting: Meeting; readonly state: FormatState } => {
+    const lastOnline = state.format === "onSite" ? state.lastOnline : meeting.online;
+    const lastInPerson: InPersonFields | null =
+        state.format === "online"
+            ? state.lastInPerson
+            : {
+                  place_id: meeting.place_id,
+                  location: meeting.location,
+                  place_to_be_announced: meeting.place_to_be_announced
+              };
+    return {
+        state: { format, lastOnline, lastInPerson },
+        meeting: {
+            ...meeting,
+            ...(format === "online" ? NO_IN_PERSON : (lastInPerson ?? NO_IN_PERSON)),
+            online: format === "onSite" ? null : (lastOnline ?? newOnlineMeeting())
+        }
+    };
 };
 
 /** The meeting came with its members-only link withheld and the editor has not loaded or
@@ -250,19 +328,17 @@ export const onlineProblem = (online: Pick<OnlineMeeting, "platform" | "url">): 
     return null;
 };
 
-/** Why the meeting cannot be saved yet, or null. The server checks the same. */
-export const venueProblem = (meeting: Meeting): string | null => {
-    if (meeting.online && meeting.place_to_be_announced) {
-        return `Bitte nur eins angeben: einen Ort, Online-Angaben oder „${PLACE_TO_BE_ANNOUNCED_TEXT}“.`;
-    }
-    if (meeting.place_to_be_announced) return null;
+/** Why the meeting cannot be saved yet, or null. The server checks the same in the same
+ * order (`finish_venue`), except that it cannot tell a hybrid meeting without a place from
+ * an online one. */
+export const venueProblem = (meeting: Meeting, format: MeetingFormat): string | null => {
     if (meeting.online) {
         if (keepsHiddenLink(meeting.online) && !meeting.online.members_only) {
             return "Bitte den gespeicherten Link zuerst anzeigen, bevor er öffentlich gemacht wird.";
         }
-        return onlineProblem(meeting.online);
+        const problem = onlineProblem(meeting.online);
+        if (problem) return problem;
     }
-    return meeting.place_id
-        ? null
-        : `Bitte einen Ort auswählen, „Online-Treffen“ oder „${PLACE_TO_BE_ANNOUNCED_TEXT}“ ankreuzen.`;
+    if (format === "online" || meeting.place_to_be_announced || meeting.place_id) return null;
+    return `Bitte einen Ort auswählen oder „${PLACE_TO_BE_ANNOUNCED_TEXT}“ ankreuzen.`;
 };

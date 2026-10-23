@@ -1,5 +1,5 @@
 {
-  "_comment": "Shared validation cases for NewMeeting: run by server/src/meeting_validation.rs (prepare_meeting_batch: content rules, then the place or online details, with \"p1\" as the only stored place) and web/src/bulkImport.test.ts (validateFields; the web test resolves place_id against its own place list and uses an unknown place_id as the JSON place name). Each case applies an RFC 7396 merge patch to base, then optionally sets the string at fill.path to fill.text repeated fill.count times. error is the server's message of the first violated rule, null means valid; client_error, if present, is the bulk import's own wording for the same rule (it talks about the JSON fields). Invisible characters are written as \\u escapes.",
+  "_comment": "Shared validation cases for NewMeeting: run by server/src/meeting_validation.rs (prepare_meeting_batch: content rules, then the venue: place, online details or both, with \"p1\" as the only stored place) and web/src/bulkImport.test.ts (validateFields; the web test resolves place_id against its own place list and uses an unknown place_id as the JSON place name). Each case applies an RFC 7396 merge patch to base, then optionally sets the string at fill.path to fill.text repeated fill.count times. error is the server's message of the first violated rule, null means valid; client_error, if present, is the bulk import's own wording for the same rule (it talks about the JSON fields). Invisible characters are written as \\u escapes.",
   "base": {
     "title": "Stammtisch",
     "authority": "Paul",
@@ -481,7 +481,7 @@
       "error": "Titel fehlt."
     },
     {
-      "name": "online meeting instead of a place",
+      "name": "online-only meeting (no place)",
       "patch": {
         "place_id": null,
         "online": {
@@ -668,11 +668,11 @@
       "patch": {
         "place_id": null
       },
-      "error": "Bitte einen Ort auswählen, „Online-Treffen“ oder „Ort wird noch bekanntgegeben“ ankreuzen.",
+      "error": "Bitte einen Ort auswählen oder „Ort wird noch bekanntgegeben“ ankreuzen.",
       "client_error": "Ort fehlt."
     },
     {
-      "name": "place and online at once",
+      "name": "hybrid meeting: a place and online",
       "patch": {
         "online": {
           "platform": "Zoom",
@@ -680,8 +680,43 @@
           "members_only": true
         }
       },
-      "error": "Bitte nur eins angeben: einen Ort, Online-Angaben oder „Ort wird noch bekanntgegeben“.",
-      "client_error": "Nur eins angeben: \"place\", \"online\" oder \"place_to_be_announced\"."
+      "error": null
+    },
+    {
+      "name": "hybrid meeting at an unknown place",
+      "patch": {
+        "place_id": "gone",
+        "online": {
+          "platform": "Zoom",
+          "url": null,
+          "members_only": true
+        }
+      },
+      "error": "Der gewählte Ort existiert nicht mehr, bitte neu auswählen.",
+      "client_error": "Den Ort „gone“ gibt es noch nicht: bestehenden Ort auswählen oder neu anlegen."
+    },
+    {
+      "name": "hybrid meeting with an invalid link",
+      "patch": {
+        "online": {
+          "platform": "Zoom",
+          "url": "zoom.us/j/1",
+          "members_only": true
+        }
+      },
+      "error": "Der Link muss mit https:// oder http:// beginnen."
+    },
+    {
+      "name": "invalid link comes before an unknown place",
+      "patch": {
+        "place_id": "gone",
+        "online": {
+          "platform": "Zoom",
+          "url": "zoom.us/j/1",
+          "members_only": true
+        }
+      },
+      "error": "Der Link muss mit https:// oder http:// beginnen."
     },
     {
       "name": "unknown place",
@@ -811,11 +846,11 @@
       "patch": {
         "place_to_be_announced": true
       },
-      "error": "Bitte nur eins angeben: einen Ort, Online-Angaben oder „Ort wird noch bekanntgegeben“.",
-      "client_error": "Nur eins angeben: \"place\", \"online\" oder \"place_to_be_announced\"."
+      "error": "Bitte nur eins angeben: einen Ort oder „Ort wird noch bekanntgegeben“.",
+      "client_error": "Nur eins angeben: \"place\" oder \"place_to_be_announced\"."
     },
     {
-      "name": "place to be announced and online",
+      "name": "hybrid meeting whose place is to be announced",
       "patch": {
         "place_id": null,
         "place_to_be_announced": true,
@@ -825,8 +860,7 @@
           "members_only": true
         }
       },
-      "error": "Bitte nur eins angeben: einen Ort, Online-Angaben oder „Ort wird noch bekanntgegeben“.",
-      "client_error": "Nur eins angeben: \"place\", \"online\" oder \"place_to_be_announced\"."
+      "error": null
     },
     {
       "name": "place to be announced and an unknown place",
@@ -834,8 +868,8 @@
         "place_id": "gone",
         "place_to_be_announced": true
       },
-      "error": "Bitte nur eins angeben: einen Ort, Online-Angaben oder „Ort wird noch bekanntgegeben“.",
-      "client_error": "Nur eins angeben: \"place\", \"online\" oder \"place_to_be_announced\"."
+      "error": "Bitte nur eins angeben: einen Ort oder „Ort wird noch bekanntgegeben“.",
+      "client_error": "Nur eins angeben: \"place\" oder \"place_to_be_announced\"."
     },
     {
       "name": "place, online and place to be announced",
@@ -847,8 +881,51 @@
           "members_only": true
         }
       },
-      "error": "Bitte nur eins angeben: einen Ort, Online-Angaben oder „Ort wird noch bekanntgegeben“.",
-      "client_error": "Nur eins angeben: \"place\", \"online\" oder \"place_to_be_announced\"."
+      "error": "Bitte nur eins angeben: einen Ort oder „Ort wird noch bekanntgegeben“.",
+      "client_error": "Nur eins angeben: \"place\" oder \"place_to_be_announced\"."
+    },
+    {
+      "name": "place and place to be announced come before an invalid link",
+      "patch": {
+        "place_to_be_announced": true,
+        "online": {
+          "platform": "Zoom",
+          "url": "zoom.us/j/1",
+          "members_only": true
+        }
+      },
+      "error": "Bitte nur eins angeben: einen Ort oder „Ort wird noch bekanntgegeben“.",
+      "client_error": "Nur eins angeben: \"place\" oder \"place_to_be_announced\"."
+    },
+    {
+      "name": "hybrid meeting whose place is to be announced, with an invalid link",
+      "patch": {
+        "place_id": null,
+        "place_to_be_announced": true,
+        "online": {
+          "platform": "Zoom",
+          "url": "zoom.us/j/1",
+          "members_only": true
+        }
+      },
+      "error": "Der Link muss mit https:// oder http:// beginnen."
+    },
+    {
+      "name": "too long platform comes before an unknown place",
+      "patch": {
+        "place_id": "gone",
+        "online": {
+          "platform": "Zoom",
+          "url": null,
+          "members_only": true
+        }
+      },
+      "fill": {
+        "path": "online.platform",
+        "text": "ä",
+        "count": 51
+      },
+      "error": "Die Plattform ist zu lang (höchstens 50 Zeichen)."
     }
   ]
 }

@@ -20,7 +20,7 @@ import { CommonMeetingTag } from "../apiTypes/CommonMeetingTag";
 import { Meeting } from "../apiTypes/Meeting";
 import { MeetingLocation } from "../apiTypes/MeetingLocation";
 import { QueerMeetingTag } from "../apiTypes/QueerMeetingTag";
-import { meetingVenue, meetingVenueText, PLACE_TO_BE_ANNOUNCED_TEXT } from "../places";
+import { inPersonLabel, meetingVenue, meetingVenueText } from "../places";
 import { G } from "../types";
 import EditMeeting from "./EditMeeting";
 import Md from "./Md";
@@ -59,7 +59,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
         this.setState({ editing });
     };
 
-    // Only for meetings at a place; online meetings show OnlineMeetingInfo instead.
+    // Only for meetings at a place.
     renderLocationModal = (location: MeetingLocation) => {
         // cut the cords after six decimal places
         const lon = Number(location.lon).toFixed(6);
@@ -132,6 +132,8 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
         const isPast = m.time !== null && m.time < Date.now();
         const icalFeedUrl = this.props.g.qaClient?.icalFeedUrl();
         const venue = meetingVenue(m);
+        const { inPerson, online } = venue;
+        const inPersonText = inPersonLabel(venue);
 
         return (
             <div
@@ -139,7 +141,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                     this.props.g.meetingId === m._id ? "ShortHighlight" : ""
                 }`}
             >
-                {venue.kind === "place" && this.renderLocationModal(venue.location)}
+                {inPerson.kind === "place" && this.renderLocationModal(inPerson.location)}
 
                 <div className="Title">
                     {m.cancelled === true && (
@@ -155,34 +157,32 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                 </div>
                 <div className="Infos">
                     <div className="Left">
-                        {venue.kind === "online" ? (
+                        {inPersonText !== null && (
+                            <div
+                                // Only a place can be shown on the map.
+                                className={
+                                    inPerson.kind === "place"
+                                        ? "Location flex items-center"
+                                        : "flex items-center"
+                                }
+                                title="Ort"
+                                onClick={
+                                    inPerson.kind === "place"
+                                        ? () => this.setState({ locationModalOpen: true })
+                                        : undefined
+                                }
+                            >
+                                <IoLocation />
+                                <span className="InfoText">{inPersonText}</span>
+                            </div>
+                        )}
+                        {online && (
                             <OnlineMeetingInfo
                                 key={m._id}
                                 meeting={m}
-                                online={venue.online}
+                                online={online}
                                 g={this.props.g}
                             />
-                        ) : venue.kind === "place" ? (
-                            <div
-                                className="Location flex items-center"
-                                title="Ort"
-                                onClick={() => {
-                                    this.setState({ locationModalOpen: true });
-                                }}
-                            >
-                                <IoLocation />
-                                <span className="InfoText">{venue.location.name}</span>
-                            </div>
-                        ) : (
-                            // Nothing to show on a map.
-                            <div className="flex items-center" title="Ort">
-                                <IoLocation />
-                                <span className="InfoText">
-                                    {venue.kind === "toBeAnnounced"
-                                        ? PLACE_TO_BE_ANNOUNCED_TEXT
-                                        : "Ort unbekannt"}
-                                </span>
-                            </div>
                         )}
                         <div className="Authority flex items-center" title="Organisator">
                             <BsFillPeopleFill />

@@ -132,15 +132,36 @@ body,
     }
 }
 
-.NewMeeting {
+// The editors' list picker and buttons in one column: wrapped buttons push the picker up
+// instead of sliding under it.
+.MeetingToolbar {
     position: fixed;
     bottom: 20px;
     right: 20px;
+    // Very narrow screens or large text: buttons wrap their label instead of leaving the screen.
+    max-width: calc(100vw - 40px);
     z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.MeetingListContent {
+    // The list sets its height; the padding adds the toolbar's room below it.
+    box-sizing: content-box;
+    padding-bottom: var(--toolbar-clearance, 0px);
+}
+
+.MeetingToolbarButtons {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
     gap: 8px;
+
+    .rs-btn {
+        white-space: normal;
+    }
 }
 
 .Wir,
@@ -247,6 +268,10 @@ body,
         .InfoText {
             padding: 0px 7px;
             vertical-align: 2px;
+        }
+        // Icons keep their size when the text next to them wraps.
+        svg {
+            flex-shrink: 0;
         }
         .Left,
         .Right {

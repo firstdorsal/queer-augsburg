@@ -1,5 +1,5 @@
-//! Rules for places and for where a meeting takes place (a place, or online), and who
-//! may read the join link of an online meeting. Messages are German because they are shown
+//! Rules for places and for where a meeting takes place (at a place, online, or both), and
+//! who may read the join link of an online meeting. Messages are German because they are shown
 //! to the member who saves.
 
 use unicode_normalization::UnicodeNormalization;
@@ -133,15 +133,15 @@ pub const PLACE_TO_BE_ANNOUNCED: &str = "Ort wird noch bekanntgegeben";
 
 #[derive(Debug, PartialEq, Eq, Clone, thiserror::Error)]
 pub enum VenueError {
-    #[error("Bitte einen Ort auswählen, „Online-Treffen“ oder „{tba}“ ankreuzen.", tba = PLACE_TO_BE_ANNOUNCED)]
+    /// Neither a place, nor "to be announced", nor online details.
+    #[error("Bitte einen Ort auswählen oder „{tba}“ ankreuzen.", tba = PLACE_TO_BE_ANNOUNCED)]
     MissingPlace,
     #[error("Der gewählte Ort existiert nicht mehr, bitte neu auswählen.")]
     UnknownPlace,
-    /// Online details and "to be announced" together; for new meetings also a place with
-    /// either of them. A saved meeting may keep its place (the editor keeps it while a box
-    /// is ticked): `finish_venue` drops it.
-    #[error("Bitte nur eins angeben: einen Ort, Online-Angaben oder „{tba}“.", tba = PLACE_TO_BE_ANNOUNCED)]
-    SeveralVenues,
+    /// A new meeting with a place and "to be announced". A saved meeting may keep its place
+    /// (the editor keeps it while the box is ticked): `finish_venue` drops it.
+    #[error("Bitte nur eins angeben: einen Ort oder „{tba}“.", tba = PLACE_TO_BE_ANNOUNCED)]
+    PlaceAndToBeAnnounced,
     #[error("Bitte den gespeicherten Link zuerst anzeigen, bevor er öffentlich gemacht wird.")]
     HiddenLinkMadePublic,
     #[error(transparent)]
@@ -159,50 +159,54 @@ pub fn needs_stored_link(meeting: &Meeting) -> bool {
     meeting.online.as_ref().is_some_and(keeps_stored_link)
 }
 
-/// Decides where a meeting takes place before it is stored: online meetings and meetings
-/// whose place is to be announced lose their place, all others get name and coordinates
-/// copied from their place (coordinates sent by the client are ignored). `place` is the
-/// place `meeting.place_id` refers to; `stored_link` the link currently stored for this
-/// meeting (see `needs_stored_link`). Online plus "to be announced" is refused here, as
-/// saving goes through this function only; new meetings are checked further before
-/// (`meeting_validation::resolve_venue`).
+/// Decides where a meeting takes place before it is stored. Online details are checked
+/// and kept. In person, the meeting is at its place (name and coordinates copied from it;
+/// coordinates sent by the client are ignored), at a place to be announced (a place still
+/// chosen in the editor is dropped), or not at all, which only an online meeting may be.
+/// `place` is the place `meeting.place_id` refers to; `stored_link` the link currently
+/// stored for this meeting (see `needs_stored_link`). New meetings are checked further
+/// before (`meeting_validation::resolve_venue`).
 pub fn finish_venue(
     mut meeting: Meeting,
     place: Option<Place>,
     stored_link: Option<String>,
 ) -> Result<Meeting, VenueError> {
-    match meeting.online.take() {
-        Some(_) if meeting.place_to_be_announced => return Err(VenueError::SeveralVenues),
-        Some(online) => {
-            let keep = keeps_stored_link(&online);
-            if keep && stored_link.is_some() && !online.members_only {
-                // The editor never saw this link; publishing it needs a deliberate look.
-                return Err(VenueError::HiddenLinkMadePublic);
-            }
-            let mut online = validate_online(&online)?;
-            if keep {
-                online.url = stored_link;
-            }
-            online.url_hidden = false;
-            meeting.online = Some(online);
-            meeting.location = None;
-            meeting.place_id = None;
+    if let Some(online) = meeting.online.take() {
+        let keep = keeps_stored_link(&online);
+        if keep && stored_link.is_some() && !online.members_only {
+            // The editor never saw this link; publishing it needs a deliberate look.
+            return Err(VenueError::HiddenLinkMadePublic);
         }
-        // The editor keeps the chosen place while the box is ticked, as for online.
-        None if meeting.place_to_be_announced => {
-            meeting.location = None;
-            meeting.place_id = None;
+        let mut online = validate_online(&online)?;
+        if keep {
+            online.url = stored_link;
         }
-        None => {
-            if meeting.place_id.is_none() {
-                return Err(VenueError::MissingPlace);
-            }
-            let place = place.ok_or(VenueError::UnknownPlace)?;
-            meeting.location = Some(place.as_location());
-            meeting.place_id = Some(place._id);
-        }
+        online.url_hidden = false;
+        meeting.online = Some(online);
+    }
+    if meeting.place_to_be_announced {
+        meeting.location = None;
+        meeting.place_id = None;
+    } else if meeting.place_id.is_some() {
+        let place = place.ok_or(VenueError::UnknownPlace)?;
+        meeting.location = Some(place.as_location());
+        meeting.place_id = Some(place._id);
+    } else if meeting.online.is_some() {
+        // Online only: the location of an old meeting without a stored place goes too.
+        meeting.location = None;
+    } else {
+        return Err(VenueError::MissingPlace);
     }
     Ok(meeting)
+}
+
+/// The stored place `finish_venue` needs for `meeting`: none when its place is to be
+/// announced (a place still chosen in the editor is dropped) or it has no place.
+pub fn place_to_look_up(meeting: &Meeting) -> Option<&str> {
+    meeting
+        .place_id
+        .as_deref()
+        .filter(|_| !meeting.place_to_be_announced)
 }
 
 /// Outcome of a request for the join link of a meeting.
@@ -420,7 +424,7 @@ mod tests {
         );
         assert_eq!(
             VenueError::MissingPlace.to_string(),
-            "Bitte einen Ort auswählen, „Online-Treffen“ oder „Ort wird noch bekanntgegeben“ ankreuzen."
+            "Bitte einen Ort auswählen oder „Ort wird noch bekanntgegeben“ ankreuzen."
         );
         let mut input = meeting();
         input.place_id = Some("gone".to_string());
@@ -431,9 +435,8 @@ mod tests {
     }
 
     #[test]
-    fn online_meeting_drops_place_and_validates_link() {
+    fn online_only_meeting_drops_an_old_location_and_validates_link() {
         let mut input = meeting();
-        input.place_id = Some("p1".to_string());
         input.online = Some(online("Zoom", Some("https://zoom.us/j/1")));
         let result = finish_venue(input, None, None).unwrap();
         assert_eq!(result.location, None);
@@ -447,6 +450,36 @@ mod tests {
         input.online = Some(online("Zoom", Some("zoom.us")));
         assert_eq!(
             finish_venue(input, None, None),
+            Err(VenueError::Online(OnlineError::InvalidUrl))
+        );
+    }
+
+    #[test]
+    fn hybrid_meeting_keeps_place_and_online_details() {
+        // `meeting()` brings an old location; the stored place's copy replaces it.
+        let mut input = meeting();
+        input.place_id = Some("p1".to_string());
+        input.online = Some(online(" Zoom ", Some("https://zoom.us/j/1")));
+        let result = finish_venue(input, Some(place()), None).unwrap();
+        assert_eq!(result.place_id.as_deref(), Some("p1"));
+        assert_eq!(result.location, Some(place().as_location()));
+        let details = result.online.unwrap();
+        assert_eq!(details.platform, "Zoom");
+        assert_eq!(details.url.as_deref(), Some("https://zoom.us/j/1"));
+
+        let mut gone = meeting();
+        gone.place_id = Some("gone".to_string());
+        gone.online = Some(online("Zoom", None));
+        assert_eq!(
+            finish_venue(gone, None, None),
+            Err(VenueError::UnknownPlace)
+        );
+        // The link is checked before the place.
+        let mut both_wrong = meeting();
+        both_wrong.place_id = Some("gone".to_string());
+        both_wrong.online = Some(online("Zoom", Some("zoom.us")));
+        assert_eq!(
+            finish_venue(both_wrong, None, None),
             Err(VenueError::Online(OnlineError::InvalidUrl))
         );
     }
@@ -470,18 +503,31 @@ mod tests {
     }
 
     #[test]
-    fn place_to_be_announced_and_online_are_refused() {
+    fn hybrid_meeting_whose_place_is_to_be_announced() {
         let mut input = meeting();
+        input.place_id = Some("p1".to_string());
         input.place_to_be_announced = true;
         input.online = Some(online("Zoom", None));
+        let result = finish_venue(input, Some(place()), None).unwrap();
+        assert!(result.place_to_be_announced);
+        assert_eq!((&result.place_id, &result.location), (&None, &None));
+        assert_eq!(result.online.unwrap().platform, "Zoom");
         assert_eq!(
-            finish_venue(input, None, None),
-            Err(VenueError::SeveralVenues)
+            VenueError::PlaceAndToBeAnnounced.to_string(),
+            "Bitte nur eins angeben: einen Ort oder „Ort wird noch bekanntgegeben“."
         );
-        assert_eq!(
-            VenueError::SeveralVenues.to_string(),
-            "Bitte nur eins angeben: einen Ort, Online-Angaben oder „Ort wird noch bekanntgegeben“."
-        );
+    }
+
+    #[test]
+    fn the_place_is_looked_up_unless_it_is_to_be_announced() {
+        let mut input = meeting();
+        assert_eq!(place_to_look_up(&input), None);
+        input.place_id = Some("p1".to_string());
+        assert_eq!(place_to_look_up(&input), Some("p1"));
+        input.online = Some(online("Zoom", None));
+        assert_eq!(place_to_look_up(&input), Some("p1"), "hybrid");
+        input.place_to_be_announced = true;
+        assert_eq!(place_to_look_up(&input), None);
     }
 
     fn hidden(url: Option<&str>, members_only: bool) -> Meeting {
@@ -542,6 +588,34 @@ mod tests {
     }
 
     #[test]
+    fn withheld_link_of_hybrid_meetings_follows_the_same_rules() {
+        let at_place = |members_only| {
+            let mut input = hidden(None, members_only);
+            input.place_id = Some("p1".to_string());
+            input
+        };
+        let kept = finish_venue(at_place(true), Some(place()), Some(OLD.to_string())).unwrap();
+        assert_eq!(kept.online.unwrap().url.as_deref(), Some(OLD));
+        assert_eq!(kept.place_id.as_deref(), Some("p1"));
+        assert_eq!(kept.location, Some(place().as_location()));
+        assert_eq!(
+            finish_venue(at_place(false), Some(place()), Some(OLD.to_string())),
+            Err(VenueError::HiddenLinkMadePublic)
+        );
+
+        let mut announced = hidden(None, true);
+        announced.place_to_be_announced = true;
+        let kept = finish_venue(announced.clone(), None, Some(OLD.to_string())).unwrap();
+        assert_eq!(kept.online.unwrap().url.as_deref(), Some(OLD));
+        assert!(kept.place_to_be_announced);
+        announced.online.as_mut().unwrap().members_only = false;
+        assert_eq!(
+            finish_venue(announced, None, Some(OLD.to_string())),
+            Err(VenueError::HiddenLinkMadePublic)
+        );
+    }
+
+    #[test]
     fn without_private_link_hides_only_members_only_links() {
         let mut members = meeting();
         members.online = Some(online("Zoom", Some("https://zoom.us/j/1")));
@@ -560,6 +634,16 @@ mod tests {
         let mut no_link = meeting();
         no_link.online = Some(online("Zoom", None));
         assert!(!no_link.without_private_link().online.unwrap().url_hidden);
+
+        // Hybrid: the place stays, the link goes.
+        let mut hybrid = meeting();
+        hybrid.online = Some(online("Zoom", Some("https://zoom.us/j/1")));
+        hybrid.place_id = Some("p1".to_string());
+        let redacted = hybrid.without_private_link();
+        assert_eq!(redacted.place_id.as_deref(), Some("p1"));
+        assert_eq!(redacted.location.unwrap().name, "Alt");
+        assert_eq!(redacted.online.as_ref().unwrap().url, None);
+        assert!(redacted.online.unwrap().url_hidden);
     }
 
     #[test]
@@ -648,6 +732,8 @@ mod tests {
         let mut deleted = members_only.clone();
         deleted.deleted_at = Some(1);
         let at_place = meeting();
+        let mut hybrid = members_only.clone();
+        hybrid.place_id = Some("p1".to_string());
 
         let approved = user(Some(Approved), false);
         let editor = user(None, true);
@@ -686,6 +772,15 @@ mod tests {
         );
         assert_eq!(
             link_access(Some(&members_only), true, Some(&editor)),
+            LinkAccess::Granted(link.clone())
+        );
+        // Hybrid meetings: the same rules as for online-only ones.
+        assert_eq!(
+            link_access(Some(&hybrid), false, anonymous),
+            LinkAccess::LoginRequired
+        );
+        assert_eq!(
+            link_access(Some(&hybrid), true, Some(&approved)),
             LinkAccess::Granted(link.clone())
         );
         // Unpublished meetings exist only for editors, even with a public link.

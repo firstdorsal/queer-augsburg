@@ -108,6 +108,9 @@ The first run additionally prints `meetings modified: N (planned N)`.
 
 ### Verify
 
+Right after the migration. Since hybrid meetings (2026-10) a meeting can be online and at a
+place, so the first count is only 0 until the first hybrid meeting is saved.
+
 ```sh
 ssh root@turing 'bash -s' <<'EOF'
 docker exec qa-db sh -c 'mongosh --quiet --port 27030 -u root -p "$MONGODB_ROOT_PASSWORD" --authenticationDatabase admin queer-augsburg --eval "

@@ -1,7 +1,7 @@
 import { Component } from "preact";
 import MeetingList from "../components/MeetingList";
 import { G } from "../types";
-import { Loader, SelectPicker } from "rsuite";
+import { Loader } from "rsuite";
 
 interface TreffenProps {
     readonly g: G;
@@ -27,31 +27,17 @@ export default class Treffen extends Component<TreffenProps, TreffenState> {
         }
         return (
             <div className="Treffen">
-                {this.props.g.account?.capabilities?.includes(`UpdateMeetings`) && (
-                    <SelectPicker
-                        data={[
-                            { label: "Aktive Treffen", value: "Active" },
-                            { label: "Geplante Treffen", value: "Planned" }
-                        ]}
-                        searchable={false}
-                        cleanable={false}
-                        value={this.state.type}
-                        onChange={value => this.setState({ type: value as any })}
-                        placement="topEnd"
-                        style={{
-                            position: "fixed",
-                            right: "20px",
-                            bottom: "70px",
-                            zIndex: 1000
-                        }}
-                    />
-                )}
-
                 <MeetingList
                     g={this.props.g}
-                    type={this.state.type}
+                    // Only editors can switch to the planned meetings; after logging out the
+                    // list goes back to the active ones.
+                    type={
+                        this.props.g.account?.capabilities?.includes(`UpdateMeetings`)
+                            ? this.state.type
+                            : "Active"
+                    }
                     qaClient={this.props.g.qaClient}
-                    showPlanned={() => this.setState({ type: "Planned" })}
+                    onTypeChange={type => this.setState({ type })}
                 />
             </div>
         );

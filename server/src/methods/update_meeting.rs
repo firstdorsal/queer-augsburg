@@ -8,16 +8,17 @@ use axum::{
 use crate::{
     extractors::AuthExtractor,
     meeting_validation::{MeetingValidationError, MAX_TIME_MS, MIN_TIME_MS},
-    place_rules::{finish_venue, needs_stored_link, VenueError},
+    place_rules::{finish_venue, needs_stored_link, place_to_look_up, VenueError},
     require_capability,
     state::AppState,
     types::{Meeting, UpdateMeetingRequestBody, UserCapabilities},
 };
 
 /// Creates (unknown `_id`), updates or deletes (`delete: true`, responds with text "Ok")
-/// a meeting. On save the meeting needs a `place_id` of an existing place, `online`
-/// details or `place_to_be_announced: true`; name and coordinates are copied from the
-/// place, which is dropped for the other two. A start time must lie within 2000–2099.
+/// a meeting. On save the meeting needs a `place_id` of an existing place,
+/// `place_to_be_announced: true` or `online` details; hybrid meetings have `online` and one
+/// of the other two. Name and coordinates are copied from the place, which is dropped when
+/// the place is to be announced. A start time must lie within 2000–2099.
 /// A withheld members-only link
 /// (`url_hidden`, `url: null`) is kept, `url: ""` removes it. Members-only links are
 /// removed from the response.
@@ -29,7 +30,7 @@ use crate::{
         (status = 200, description = "Meeting saved (or text \"Ok\" after delete)", body = crate::types::Meeting),
         (status = 401, description = "Unauthorized", content_type = "text/plain"),
         (status = 403, description = "Forbidden", content_type = "text/plain"),
-        (status = 422, description = "No venue, online details together with \"to be announced\", invalid online details or start time (German text)", content_type = "text/plain"),
+        (status = 422, description = "No venue, invalid online details or start time (German text)", content_type = "text/plain"),
         (status = 500, description = "Database error (German text)", content_type = "text/plain")
     ),
     tag = "meetings"
@@ -98,12 +99,9 @@ enum SaveError {
 /// stored link is read before the write; two editors saving the same meeting at the same
 /// moment can race here, which is accepted for this low-volume, editor-only path.
 async fn prepare_venue(state: &AppState, meeting: Meeting) -> Result<Meeting, SaveError> {
-    // `finish_venue` drops the place of online meetings and places to be announced.
-    let place = match (&meeting.online, &meeting.place_id) {
-        (None, Some(place_id)) if !meeting.place_to_be_announced => {
-            state.db.get_place(place_id).await?
-        }
-        _ => None,
+    let place = match place_to_look_up(&meeting) {
+        Some(place_id) => state.db.get_place(place_id).await?,
+        None => None,
     };
     let stored_link = if needs_stored_link(&meeting) {
         state

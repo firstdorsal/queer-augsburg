@@ -7,6 +7,8 @@ import {
     Input,
     Message,
     Modal,
+    Radio,
+    RadioGroup,
     SelectPicker,
     TagInput,
     TagPicker,
@@ -16,10 +18,14 @@ import { Meeting } from "../apiTypes/Meeting";
 import { OnlineMeeting } from "../apiTypes/OnlineMeeting";
 import { Place } from "../apiTypes/Place";
 import {
+    FormatState,
+    MEETING_FORMATS,
+    MEETING_FORMAT_LABELS,
+    MeetingFormat,
     PLACE_TO_BE_ANNOUNCED_TEXT,
-    VenueChoice,
-    chooseOnline,
-    choosePlaceToBeAnnounced,
+    chooseFormat,
+    initialFormatState,
+    isMeetingFormat,
     keepsHiddenLink,
     venueProblem
 } from "../places";
@@ -42,10 +48,14 @@ interface EditMeetingProps {
 
 interface EditMeetingState {
     readonly editingMeeting: Meeting;
-    /** Online details while "online" is unticked, restored when it is ticked again. */
-    readonly lastOnline: OnlineMeeting | null;
+    readonly formatState: FormatState;
     readonly loadingLink: boolean;
 }
+
+const editorState = (editingMeeting: Meeting) => ({
+    editingMeeting,
+    formatState: initialFormatState(editingMeeting)
+});
 
 class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
     constructor(props: EditMeetingProps) {
@@ -54,17 +64,13 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
         if (props.newMeeting) {
             editingMeeting.status = props.type;
         }
-        this.state = {
-            editingMeeting,
-            lastOnline: null,
-            loadingLink: false
-        };
+        this.state = { ...editorState(editingMeeting), loadingLink: false };
     }
 
-    chooseVenue = (choose: (choice: VenueChoice) => VenueChoice) => {
-        this.setState(({ editingMeeting, lastOnline }) => {
-            const choice = choose({ meeting: editingMeeting, lastOnline });
-            return { editingMeeting: choice.meeting, lastOnline: choice.lastOnline };
+    changeFormat = (format: MeetingFormat) => {
+        this.setState(({ editingMeeting, formatState }) => {
+            const chosen = chooseFormat(editingMeeting, formatState, format);
+            return { editingMeeting: chosen.meeting, formatState: chosen.state };
         });
     };
 
@@ -120,7 +126,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
     updateMeeting = async () => {
         if (!this.props.g.qaClient) return;
 
-        const problem = venueProblem(this.state.editingMeeting);
+        const problem = venueProblem(this.state.editingMeeting, this.state.formatState.format);
         if (problem) {
             this.showError(problem);
             return;
@@ -173,15 +179,13 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
     };
 
     reset = () => {
-        this.setState({
-            editingMeeting: structuredClone(this.props.meeting),
-            lastOnline: null
-        });
+        this.setState(editorState(structuredClone(this.props.meeting)));
         this.props.changEditing(false);
     };
 
     render = () => {
         const em = this.state.editingMeeting;
+        const { format } = this.state.formatState;
         const emTime = em.time === null ? null : new Date(em.time);
         return (
             <div className="EditMeeting">
@@ -296,30 +300,44 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <br />
                         <b>Ort</b>
                         <br />
-                        <Checkbox
-                            checked={em.online != null}
-                            onChange={(_value, checked) =>
-                                this.chooseVenue((choice) => chooseOnline(choice, checked))
-                            }
+                        <RadioGroup
+                            name="meeting-format"
+                            inline
+                            // Narrow screens: whole options per line instead of squeezed labels.
+                            className="flex-wrap"
+                            value={format}
+                            onChange={(value) => {
+                                if (isMeetingFormat(value)) this.changeFormat(value);
+                            }}
                         >
-                            Online-Treffen (kein Ort)
-                        </Checkbox>
-                        <Checkbox
-                            checked={em.place_to_be_announced}
-                            onChange={(_value, checked) =>
-                                this.chooseVenue((choice) =>
-                                    choosePlaceToBeAnnounced(choice, checked)
-                                )
-                            }
-                        >
-                            {PLACE_TO_BE_ANNOUNCED_TEXT}
-                        </Checkbox>
+                            {MEETING_FORMATS.map((option) => (
+                                <Radio key={option} value={option}>
+                                    {MEETING_FORMAT_LABELS[option]}
+                                </Radio>
+                            ))}
+                        </RadioGroup>
+                        {format !== "online" && (
+                            <Checkbox
+                                checked={em.place_to_be_announced}
+                                onChange={(_value, checked) =>
+                                    this.setState((state) =>
+                                        update(state, {
+                                            editingMeeting: {
+                                                place_to_be_announced: { $set: checked }
+                                            }
+                                        })
+                                    )
+                                }
+                            >
+                                {PLACE_TO_BE_ANNOUNCED_TEXT}
+                            </Checkbox>
+                        )}
                         {this.props.g.qaClient && (
-                            // Stays mounted while "online" or "to be announced" is ticked so the
-                            // place list is not reloaded on every toggle.
+                            // Stays mounted while there is no place to choose so the place list
+                            // is not reloaded on every toggle.
                             <div
                                 className={
-                                    em.online != null || em.place_to_be_announced
+                                    format === "online" || em.place_to_be_announced
                                         ? "hidden"
                                         : undefined
                                 }
@@ -333,7 +351,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                             </div>
                         )}
                         {em.online != null && (
-                            <div className="flex flex-col gap-2">
+                            <div className="mt-3 flex flex-col gap-2">
                                 <label htmlFor="edit-meeting-platform">Plattform</label>
                                 <Input
                                     id="edit-meeting-platform"

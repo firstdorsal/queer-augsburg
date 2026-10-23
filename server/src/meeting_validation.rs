@@ -1,7 +1,7 @@
 //! Validation of meetings created in bulk. Bulk imports are typically produced by
 //! an AI model, so every author-supplied field of `NewMeeting` is checked instead of
-//! trusting the client: the content fields here, the place or online details by
-//! `place_rules` (see `prepare_meeting_batch`). All meetings pass the content checks
+//! trusting the client: the content fields here, the venue (a place or "to be announced",
+//! online details, or both) by `place_rules` (see `prepare_meeting_batch`). All meetings pass the content checks
 //! before any venue is checked, so the reported meeting is the first one with a
 //! content error, or else the first one with a venue error.
 //!
@@ -159,16 +159,11 @@ fn resolve_venue(
     meeting: NewMeeting,
     places: &HashMap<String, Place>,
 ) -> Result<Meeting, VenueError> {
-    // Before the place lookup, so a place next to online details or "to be announced" is
-    // reported as such, not as an unknown place. Saving an existing meeting may keep the
-    // place (see `VenueError::SeveralVenues`), a new one may not.
-    let venues = [
-        meeting.place_id.is_some(),
-        meeting.online.is_some(),
-        meeting.place_to_be_announced,
-    ];
-    if venues.into_iter().filter(|&set| set).count() > 1 {
-        return Err(VenueError::SeveralVenues);
+    // Before the place lookup, so a place next to "to be announced" is reported as such,
+    // not as an unknown place. Saving an existing meeting may keep the place (see
+    // `VenueError::PlaceAndToBeAnnounced`), a new one may not.
+    if meeting.place_id.is_some() && meeting.place_to_be_announced {
+        return Err(VenueError::PlaceAndToBeAnnounced);
     }
     let place = meeting
         .place_id
@@ -196,7 +191,7 @@ fn validate_new_meeting(meeting: &NewMeeting) -> Result<(), MeetingValidationErr
         return Err(TimeOutOfRange);
     }
 
-    // Place or online details are checked by `place_rules::finish_venue`.
+    // The venue is checked by `place_rules::finish_venue`.
 
     if meeting.price.is_empty() || meeting.price.len() > 2 {
         return Err(PriceLength);
@@ -499,9 +494,16 @@ mod tests {
             url: Some("http://example.org".to_string()),
             members_only: true,
         });
+        let mut hybrid = online.clone();
+        hybrid.place_id = Some("p1".to_string());
+        let mut announced_hybrid = online.clone();
+        announced_hybrid.place_to_be_announced = true;
 
-        let meetings =
-            prepare_meeting_batch(vec![base, online, to_be_announced], &stored_places()).unwrap();
+        let meetings = prepare_meeting_batch(
+            vec![base, online, to_be_announced, hybrid, announced_hybrid],
+            &stored_places(),
+        )
+        .unwrap();
 
         assert_eq!(meetings[0].place_id.as_deref(), Some("p1"));
         assert_eq!(
@@ -533,6 +535,15 @@ mod tests {
             ),
             (&None, &None, &None)
         );
+        assert_eq!(meetings[3].place_id.as_deref(), Some("p1"));
+        assert_eq!(meetings[3].location, meetings[0].location);
+        assert_eq!(meetings[3].online, meetings[1].online);
+        assert!(meetings[4].place_to_be_announced);
+        assert_eq!(
+            (&meetings[4].place_id, &meetings[4].location),
+            (&None, &None)
+        );
+        assert_eq!(meetings[4].online, meetings[1].online);
     }
 
     #[test]

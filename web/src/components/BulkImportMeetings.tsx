@@ -4,7 +4,6 @@ import { Button, Checkbox, Input, Message, Modal, useToaster } from "rsuite";
 import { CreateMeetingsResult, QaClient } from "../api";
 import { Meeting } from "../apiTypes/Meeting";
 import { NewMeeting } from "../apiTypes/NewMeeting";
-import { NewOnlineMeeting } from "../apiTypes/NewOnlineMeeting";
 import { Place } from "../apiTypes/Place";
 import { DAY_MS, formatBerlinTime } from "../berlinTime";
 import {
@@ -12,19 +11,13 @@ import {
     BulkParseResult,
     PlacePicks,
     draftVenue,
+    draftVenueText,
     includedDrafts,
     parseBulkJson,
     toNewMeeting
 } from "../bulkImport";
 import { buildBulkPrompt } from "../bulkPrompt";
-import {
-    MEMBERS_ONLY_LINK_TEXT,
-    PLACE_TO_BE_ANNOUNCED_TEXT,
-    onlineLabel,
-    placeChosenText,
-    placeNameKey,
-    withPlace
-} from "../places";
+import { placeChosenText, placeNameKey, withPlace } from "../places";
 import { G } from "../types";
 import { withToasterHook } from "../utils";
 import CreatePlaceDialog from "./CreatePlaceDialog";
@@ -78,31 +71,7 @@ const priceText = (price: readonly number[]) =>
 const ageText = (age: readonly number[]) =>
     age.length === 2 ? `${age[0]}–${age[1]} Jahre` : age[0] ? `ab ${age[0]} Jahren` : "alle";
 
-const draftVenueText = ({ fields, placeName }: BulkDraft): string => {
-    const venue = draftVenue(fields, placeName);
-    switch (venue.kind) {
-        case "toBeAnnounced":
-            return PLACE_TO_BE_ANNOUNCED_TEXT;
-        case "online":
-            return onlineText(venue.online);
-        case "place":
-            return venue.place?.name || venue.placeName || "Ort fehlt";
-        case "several":
-            // The error below says what to fix.
-            return "Mehrere Angaben zum Ort";
-    }
-};
-
 const meetingCountText = (count: number) => (count === 1 ? "1 Treffen" : `${count} Treffen`);
-
-const onlineText = (online: NewOnlineMeeting) =>
-    `${onlineLabel(online)} · ${
-        online.url === null
-            ? "noch ohne Link"
-            : online.members_only
-              ? MEMBERS_ONLY_LINK_TEXT
-              : "Link öffentlich"
-    }`;
 
 /** Whether re-checking gave a draft a hint it did not have when the member reviewed it. */
 const hasNewWarnings = (reviewed: readonly BulkDraft[], rechecked: readonly BulkDraft[]) =>
@@ -347,9 +316,11 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
     renderPlaceControls = (draft: BulkDraft, number: number) => {
         const placeKey = placeNameKey(draft.placeName);
         const place = draft.fields.place;
-        // With online details or a place to be announced, a place name is an error to fix in
-        // the JSON, not to pick.
-        if (!draft.placeName || draftVenue(draft.fields, draft.placeName).kind !== "place") {
+        // Next to "to be announced", a place name is an error to fix in the JSON, not to pick.
+        if (
+            !draft.placeName ||
+            draftVenue(draft.fields, draft.placeName).inPerson.kind !== "place"
+        ) {
             return null;
         }
         if (place !== null && this.state.changingPlace !== placeKey) {
@@ -436,7 +407,9 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                     <div className="text-sm opacity-80">
                         {fields.time === null ? "Zeit fehlt" : formatBerlinTime(fields.time)}
                         {" · "}
-                        <span className="break-words">{draftVenueText(draft)}</span>
+                        <span className="break-words">
+                            {draftVenueText(draft.fields, draft.placeName)}
+                        </span>
                     </div>
                     <div className="break-words text-sm opacity-80">{details.join(" · ")}</div>
                     {fields.description && (

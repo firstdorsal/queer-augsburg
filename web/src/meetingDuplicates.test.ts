@@ -120,6 +120,38 @@ describe("similarMeetings", () => {
         ).toBe(false);
     });
 
+    it("matches hybrid meetings by their place and by their platform", () => {
+        const hybrid = at("2026-10-27T19:00:00+01:00", {
+            title: "Vortrag",
+            onlinePlatform: "Zoom"
+        });
+        const later = "2026-10-27T19:30:00+01:00";
+        // Same place, in person only.
+        expect(similarMeetings(hybrid, at(later, { title: "Party" }))).toBe(true);
+        // Same platform, online only.
+        const onlineOnly = { title: "Party", placeId: null, placeName: null };
+        expect(similarMeetings(hybrid, at(later, { ...onlineOnly, onlinePlatform: "Zoom" }))).toBe(
+            true
+        );
+        expect(similarMeetings(hybrid, at(later, { ...onlineOnly, onlinePlatform: "Jitsi" }))).toBe(
+            false
+        );
+        // Two hybrid meetings at other places on the same platform share the platform.
+        expect(
+            similarMeetings(
+                hybrid,
+                at(later, { title: "Party", placeId: "p2", onlinePlatform: "zoom" })
+            )
+        ).toBe(true);
+        // Another place and another platform.
+        expect(
+            similarMeetings(
+                hybrid,
+                at(later, { title: "Party", placeId: "p2", onlinePlatform: "Jitsi" })
+            )
+        ).toBe(false);
+    });
+
     it("compares place names when one side has no stored place", () => {
         const byName = at("2026-10-27T19:00:00+01:00", {
             title: "A",
@@ -169,6 +201,19 @@ describe("stored meetings", () => {
             placeId: null,
             placeName: null,
             onlinePlatform: null
+        });
+        // Without its copied location a place is not read (as on the card): no place to compare.
+        const [withoutLocation] = comparableMeetings([stored({ online: zoom, location: null })]);
+        expect(candidateOfMeeting(withoutLocation)).toMatchObject({
+            placeId: null,
+            placeName: null,
+            onlinePlatform: "Zoom"
+        });
+        const [hybrid] = comparableMeetings([stored({ online: zoom })]);
+        expect(candidateOfMeeting(hybrid)).toMatchObject({
+            placeId: "p1",
+            placeName: "Café Neruda",
+            onlinePlatform: "Zoom"
         });
     });
 

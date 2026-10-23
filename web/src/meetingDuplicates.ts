@@ -13,9 +13,10 @@ export interface MeetingCandidate {
     readonly time: number;
     /** The stored place, if known. */
     readonly placeId: string | null;
-    /** The place name (stored meetings from before places only have this); null online. */
+    /** The place name (stored meetings from before places only have this); null without a
+     * place. */
     readonly placeName: string | null;
-    /** The platform of an online meeting ("" if unknown); null if it is not online. */
+    /** The platform of an online or hybrid meeting ("" if unknown); null if it is not online. */
     readonly onlinePlatform: string | null;
 }
 
@@ -28,15 +29,15 @@ export const comparableMeetings = (meetings: readonly Meeting[]): TimedMeeting[]
     );
 
 export const candidateOfMeeting = (meeting: TimedMeeting): MeetingCandidate => {
-    const venue = meetingVenue(meeting);
-    // Online meetings and places to be announced have no place to compare.
-    const hasPlace = venue.kind === "place" || venue.kind === "unknown";
+    const { inPerson, online } = meetingVenue(meeting);
+    // A place to be announced is no place to compare.
+    const place = inPerson.kind === "place" ? inPerson : null;
     return {
         title: meeting.title,
         time: meeting.time,
-        placeId: hasPlace ? (meeting.place_id ?? null) : null,
-        placeName: venue.kind === "place" ? venue.location.name : null,
-        onlinePlatform: venue.kind === "online" ? venue.online.platform : null
+        placeId: place && meeting.place_id,
+        placeName: place && place.location.name,
+        onlinePlatform: online?.platform ?? null
     };
 };
 
@@ -121,15 +122,8 @@ export const similarTitles = (a: string, b: string): boolean => {
     );
 };
 
-/** Same stored place (or place name), or both online on the same platform; an unknown
- * platform could be any. */
-const sameVenue = (a: MeetingCandidate, b: MeetingCandidate): boolean => {
-    if (a.onlinePlatform !== null || b.onlinePlatform !== null) {
-        if (a.onlinePlatform === null || b.onlinePlatform === null) return false;
-        const left = trimWhiteSpace(a.onlinePlatform).toLowerCase();
-        const right = trimWhiteSpace(b.onlinePlatform).toLowerCase();
-        return left === "" || right === "" || left === right;
-    }
+/** Same stored place (or place name). */
+const samePlace = (a: MeetingCandidate, b: MeetingCandidate): boolean => {
     if (a.placeId !== null && b.placeId !== null) return a.placeId === b.placeId;
     return (
         a.placeName !== null &&
@@ -137,6 +131,19 @@ const sameVenue = (a: MeetingCandidate, b: MeetingCandidate): boolean => {
         placeNameKey(a.placeName) === placeNameKey(b.placeName)
     );
 };
+
+/** Both online on the same platform; an unknown platform could be any. */
+const samePlatform = (a: MeetingCandidate, b: MeetingCandidate): boolean => {
+    if (a.onlinePlatform === null || b.onlinePlatform === null) return false;
+    const left = trimWhiteSpace(a.onlinePlatform).toLowerCase();
+    const right = trimWhiteSpace(b.onlinePlatform).toLowerCase();
+    return left === "" || right === "" || left === right;
+};
+
+/** A hybrid meeting shares its venue with meetings at its place and with those on its
+ * platform. */
+const sameVenue = (a: MeetingCandidate, b: MeetingCandidate): boolean =>
+    samePlace(a, b) || samePlatform(a, b);
 
 /** At the same venue within an hour, or on the same Berlin day with a similar title. */
 export const similarMeetings = (a: MeetingCandidate, b: MeetingCandidate): boolean => {

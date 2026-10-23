@@ -8,6 +8,7 @@ import {
     BulkParseContext,
     DraftFields,
     MAX_MEETINGS_PER_BATCH,
+    draftVenueText,
     includedDrafts,
     parseBerlinStart,
     parseBulkJson,
@@ -418,17 +419,28 @@ describe("parseBulkJson", () => {
         ]);
     });
 
-    it("refuses a place and online details at once", () => {
-        const both = 'Nur eins angeben: "place", "online" oder "place_to_be_announced".';
-        for (const fields of [
-            { online: { platform: "Zoom" } },
-            { online: true },
-            { online: {}, place: "Unbekannter Ort" }
-        ]) {
-            const [draft] = parseOk(entry(fields));
-            expect(draft.errors, JSON.stringify(fields)).toEqual([both]);
-            expect(toNewMeeting(draft)).toBeNull();
+    it("reads hybrid meetings: a place and online details", () => {
+        const atPlace = toNewMeeting(parseOk(entry({}))[0]);
+        expect(atPlace?.place_id).toBe("p1");
+        for (const online of [{ platform: "Zoom" }, true]) {
+            const [draft] = parseOk(entry({ online }));
+            expect(draft.errors, JSON.stringify(online)).toEqual([]);
+            expect(toNewMeeting(draft)).toEqual({
+                ...atPlace,
+                online: { platform: online === true ? "" : "Zoom", url: null, members_only: true }
+            });
         }
+        const [unknown] = parseOk(entry({ online: {}, place: "Unbekannter Ort" }));
+        expect(unknown.errors).toEqual([
+            "Den Ort „Unbekannter Ort“ gibt es noch nicht: bestehenden Ort auswählen oder neu anlegen."
+        ]);
+        expect(toNewMeeting(unknown)).toBeNull();
+        // A wrong type of "online" does not hide an unknown place.
+        const [both] = parseOk(entry({ online: "Zoom", place: "Unbekannter Ort" }));
+        expect(both.errors).toEqual([
+            '"online" muss ein Objekt sein, z. B. {"platform": "Zoom"}.',
+            "Den Ort „Unbekannter Ort“ gibt es noch nicht: bestehenden Ort auswählen oder neu anlegen."
+        ]);
     });
 
     it("reads a place that is to be announced", () => {
@@ -441,11 +453,16 @@ describe("parseBulkJson", () => {
             online: null,
             place_to_be_announced: true
         });
-        const several = 'Nur eins angeben: "place", "online" oder "place_to_be_announced".';
-        expect(parse({ place_to_be_announced: true, place: "Café Neruda" }).errors).toEqual([
-            several
-        ]);
-        expect(parse({ place_to_be_announced: true, online: {} }).errors).toEqual([several]);
+        const both = 'Nur eins angeben: "place" oder "place_to_be_announced".';
+        expect(parse({ place_to_be_announced: true, place: "Café Neruda" }).errors).toEqual([both]);
+        // Hybrid, with the place still to be announced.
+        const hybrid = parse({ place_to_be_announced: true, online: {} });
+        expect(hybrid.errors).toEqual([]);
+        expect(toNewMeeting(hybrid)).toMatchObject({
+            place_id: null,
+            online: { platform: "" },
+            place_to_be_announced: true
+        });
         // Only real booleans; a wrong type is not also reported as a missing place.
         for (const value of ["ja", "true", 1, 0, [], {}]) {
             expect(parse({ place_to_be_announced: value }).errors, JSON.stringify(value)).toEqual([
@@ -552,6 +569,52 @@ describe("parseBulkJson", () => {
         ]);
     });
 
+    it("lets a wrong venue type hide only the messages that follow from it", () => {
+        const errors = (fields: Record<string, unknown>) =>
+            parseOk(JSON.stringify([{ title: "A", start: "2026-10-27T19:00", ...fields }]))[0]
+                .errors;
+        const notAnObject = '"online" muss ein Objekt sein, z. B. {"platform": "Zoom"}.';
+        const notABoolean = '"place_to_be_announced" muss true oder false sein.';
+        expect(errors({ online: "Zoom", place: "Café Neruda" })).toEqual([notAnObject]);
+        expect(errors({ online: "Zoom", place_to_be_announced: true })).toEqual([notAnObject]);
+        expect(errors({ online: "Zoom" })).toEqual([notAnObject]);
+        expect(errors({ place: 5, online: {} })).toEqual(['"place" muss ein Text sein.']);
+        expect(errors({ place_to_be_announced: "ja", online: {} })).toEqual([notABoolean]);
+        expect(errors({ place: "  ", online: {} })).toEqual([]);
+        expect(errors({ online: { link: "zoom.us" }, place_to_be_announced: true })).toEqual([
+            "Der Link muss mit https:// oder http:// beginnen."
+        ]);
+    });
+
+    it("describes where a draft takes place", () => {
+        const text = (fields: Record<string, unknown>) => {
+            const [draft] = parseOk(entry(fields));
+            return draftVenueText(draft.fields, draft.placeName);
+        };
+        expect(text({})).toBe("Café Neruda");
+        expect(text({ online: { platform: "Zoom" } })).toBe(
+            "Café Neruda und Online · Zoom · noch ohne Link"
+        );
+        expect(text({ place: "Neu", online: { link: "https://zoom.us/j/1" } })).toBe(
+            "Neu und Online · Link nur für verifizierte Mitglieder"
+        );
+        // Online only says so, so a forgotten place of a hybrid meeting shows.
+        expect(text({ place: undefined, online: { platform: "Zoom", link_public: true } })).toBe(
+            "Nur online · Zoom · noch ohne Link"
+        );
+        expect(
+            text({
+                place: undefined,
+                online: { link: "https://zoom.us/j/1", link_public: true }
+            })
+        ).toBe("Nur online · Link öffentlich");
+        expect(text({ place: undefined, place_to_be_announced: true, online: {} })).toBe(
+            "Ort wird noch bekanntgegeben und Online · noch ohne Link"
+        );
+        expect(text({ place_to_be_announced: true })).toBe("Mehrere Angaben zum Ort");
+        expect(text({ place: undefined })).toBe("Ort fehlt");
+    });
+
     it("rejects out-of-range ages and null prices", () => {
         const ageError = '"age_restriction" muss eine Liste ganzer Zahlen (0–255) sein.';
         expect(parseOk(entry({ age_restriction: [256] }))[0].errors).toEqual([ageError]);
@@ -647,6 +710,23 @@ describe("parseBulkJson", () => {
             ])
         ).toEqual([[], []]);
         expect(warnings([at(announced), at({ place: "Ort A" })])).toEqual([[], similar]);
+        // Hybrid drafts.
+        const hybrid = { place: "Ort A", online: { platform: "Zoom" } };
+        expect(warnings([at(hybrid), at(hybrid)])).toEqual([[], duplicate]);
+        expect(warnings([at(hybrid), at({ place: "Ort A" })])).toEqual([[], similar]);
+        const other = (fields: Record<string, unknown>) => at({ title: "Brunch", ...fields });
+        // Same place, or same platform: the same slot even with another title.
+        expect(warnings([at(hybrid), other({ place: "Ort A" })])).toEqual([[], similar]);
+        expect(warnings([at(hybrid), other({ online: { platform: "Zoom" } })])).toEqual([
+            [],
+            similar
+        ]);
+        expect(
+            warnings([at({ ...announced, online: { platform: "Zoom" } }), other({ online: {} })])
+        ).toEqual([[], similar]);
+        expect(
+            warnings([at(hybrid), other({ place: "Ort B", online: { platform: "Jitsi" } })])
+        ).toEqual([[], []]);
     });
 
     it("sends exactly the fields of NewMeeting", () => {
@@ -725,6 +805,23 @@ describe("duplicates of stored meetings", () => {
         expect(warnings(online(""), [onZoom])).toEqual([hint("Lesekreis")]);
         expect(warnings(online("Jitsi"), [onZoom])).toEqual([]);
         expect(warnings({ title: "Bücher" }, [onZoom])).toEqual([]);
+    });
+
+    it("compares hybrid meetings by their place and by their platform", () => {
+        const onZoom = stored({ title: "Lesekreis", place_id: null, location: null, online: zoom });
+        const hybridDraft = { title: "Bücher", online: { platform: "Zoom" } };
+        expect(warnings(hybridDraft, [onZoom])).toEqual([hint("Lesekreis")]);
+        // A stored hybrid meeting at the same place, on another platform.
+        const storedHybrid = stored({ title: "Lesekreis", online: { ...zoom, platform: "Jitsi" } });
+        expect(warnings({ title: "Bücher" }, [storedHybrid])).toEqual([hint("Lesekreis")]);
+        // Another place and another platform.
+        const elsewhere = stored({
+            title: "Lesekreis",
+            place_id: "p2",
+            location: { name: "Kulturpark West", lat: 48.36, lon: 10.87 },
+            online: { ...zoom, platform: "Jitsi" }
+        });
+        expect(warnings(hybridDraft, [elsewhere])).toEqual([]);
     });
 
     it("compares an unknown JSON place by its name", () => {
@@ -847,6 +944,20 @@ describe("draft ids and leaving drafts out", () => {
         // Changing a draft changes its id.
         const edited = parseOk(json(["A", "B2", "C"]));
         expect(edited[1].id).not.toBe(before[1].id);
+    });
+
+    it("gives hybrid drafts their own ids", () => {
+        const id = (fields: Record<string, unknown>) => parseOk(entry(fields))[0].id;
+        const atPlace = id({});
+        const hybrid = id({ online: { platform: "Zoom" } });
+        expect(hybrid).not.toBe(atPlace);
+        expect(id({ online: { platform: "Jitsi" } })).not.toBe(hybrid);
+        expect(id({ online: { platform: "Zoom", link: "https://zoom.us/j/1" } })).not.toBe(hybrid);
+        expect(id({ place: undefined, place_to_be_announced: true, online: {} })).not.toBe(
+            id({ place: undefined, place_to_be_announced: true })
+        );
+        // A place named like a venue kind is still a place.
+        expect(id({ place: "noPlace", online: {} })).not.toBe(id({ place: undefined, online: {} }));
     });
 
     it("tells identical drafts apart", () => {

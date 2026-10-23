@@ -20,9 +20,12 @@ import {
     similarMeetings
 } from "./meetingDuplicates";
 import {
+    MEMBERS_ONLY_LINK_TEXT,
+    PLACE_TO_BE_ANNOUNCED_TEXT,
     PlaceIndex,
     indexPlaces,
     isWhiteSpace,
+    joinVenueParts,
     onlineProblem,
     placeNameKey,
     trimWhiteSpace
@@ -30,8 +33,8 @@ import {
 import { commonTags, queerTags } from "./types";
 
 // Limits, rule order and messages mirror server/src/meeting_validation.rs (content) and
-// server/src/place_rules.rs (the venue: place, online details or "to be announced", via
-// `onlineProblem` in places.ts).
+// server/src/place_rules.rs (the venue: a place or "to be announced", online details, or
+// both; online details via `onlineProblem` in places.ts).
 // Both test suites run server/src/meeting_validation_cases.json, so drift between the two
 // fails the tests.
 export const MAX_MEETINGS_PER_BATCH = 50;
@@ -64,8 +67,9 @@ export const IMPORT_FIELDS: ReadonlySet<string> = new Set([
 
 export const ONLINE_FIELDS: ReadonlySet<string> = new Set(["platform", "link", "link_public"]);
 
-/** A `NewMeeting` whose start and place may still be unknown. Valid drafts have exactly one
- * of a `place`, `online` details and `place_to_be_announced` (see `draftVenue`). */
+/** A `NewMeeting` whose start and place may still be unknown. Valid drafts have a `place` or
+ * `place_to_be_announced` (not both), `online` details, or online details and one of the two
+ * (see `draftVenue`). */
 export type DraftFields = Omit<NewMeeting, "time" | "place_id"> & {
     time: number | null;
     place: Place | null;
@@ -155,9 +159,10 @@ export const parseBerlinStart = (value: string): StartParseResult => {
 // ---------------------------------------------------------------------------------------
 // Validation (mirror of server/src/meeting_validation.rs)
 
-/** Fields whose "missing" message is suppressed when the JSON value had the wrong type
- * ("place" also stands for "online" and "place_to_be_announced"). */
-type InputField = "title" | "time" | "place";
+/** A JSON value of the wrong type suppresses the messages that would follow from it:
+ * "placeFields" (a wrong "place" or "place_to_be_announced") the messages about the place,
+ * "anyVenueField" (also a wrong "online") the message that no venue was given. */
+type InputField = "title" | "time" | "placeFields" | "anyVenueField";
 
 interface ValidationProblem {
     readonly field: InputField | null;
@@ -251,55 +256,105 @@ export const validateFields = (fields: DraftFields, placeName: string): Validati
         add(null, "Tags dürfen nicht doppelt vorkommen.");
     }
 
-    const venue = draftVenue(fields, placeName);
-    if (venue.kind === "several") {
-        add("place", 'Nur eins angeben: "place", "online" oder "place_to_be_announced".');
-    } else if (venue.kind === "online") add("place", onlineProblem(venue.online));
-    else if (venue.kind === "place" && venue.place === null) {
-        add(
-            "place",
-            isBlank(placeName)
-                ? "Ort fehlt."
-                : `Den Ort „${placeName}“ gibt es noch nicht: bestehenden Ort auswählen oder neu anlegen.`
-        );
+    // The server's order: a place next to "to be announced", the online details, the place.
+    const { inPerson, online } = draftVenue(fields, placeName);
+    if (inPerson.kind === "placeAndToBeAnnounced") {
+        add("placeFields", 'Nur eins angeben: "place" oder "place_to_be_announced".');
+    }
+    if (online) add(null, onlineProblem(online));
+    if (inPerson.kind === "place" && inPerson.place === null) {
+        if (isBlank(placeName)) add("anyVenueField", "Ort fehlt.");
+        else {
+            add(
+                "placeFields",
+                `Den Ort „${placeName}“ gibt es noch nicht: bestehenden Ort auswählen oder neu anlegen.`
+            );
+        }
     }
 
     return problems;
 };
 
-export type DraftVenue =
-    | { readonly kind: "toBeAnnounced" }
-    | { readonly kind: "online"; readonly online: NewOnlineMeeting }
+/** The in-person part of a draft's venue. */
+export type DraftInPerson =
     /** `place` is null while the name is unknown or missing. */
     | { readonly kind: "place"; readonly place: Place | null; readonly placeName: string }
-    /** More than one: an error (meeting_validation.rs `resolve_venue`). */
-    | { readonly kind: "several" };
+    | { readonly kind: "toBeAnnounced" }
+    /** Online only. */
+    | { readonly kind: "noPlace" }
+    /** An error (meeting_validation.rs `resolve_venue`). */
+    | { readonly kind: "placeAndToBeAnnounced" };
+
+/** Online details and the in-person part: both for a hybrid meeting. */
+export interface DraftVenue {
+    readonly inPerson: DraftInPerson;
+    readonly online: NewOnlineMeeting | null;
+}
 
 /** A draft without any venue counts as a place still missing. */
-export const draftVenue = (fields: DraftFields, placeName: string): DraftVenue => {
-    const named = [
-        fields.place !== null || !isBlank(placeName),
-        fields.online !== null,
-        fields.place_to_be_announced
-    ].filter(Boolean).length;
-    if (named > 1) return { kind: "several" };
+export const draftVenue = (fields: DraftFields, placeName: string): DraftVenue => ({
+    inPerson: draftInPerson(fields, placeName),
+    online: fields.online
+});
+
+const draftInPerson = (fields: DraftFields, placeName: string): DraftInPerson => {
+    const hasPlaceName = fields.place !== null || !isBlank(placeName);
+    if (hasPlaceName && fields.place_to_be_announced) return { kind: "placeAndToBeAnnounced" };
     if (fields.place_to_be_announced) return { kind: "toBeAnnounced" };
-    if (fields.online !== null) return { kind: "online", online: fields.online };
+    if (!hasPlaceName && fields.online !== null) return { kind: "noPlace" };
     return { kind: "place", place: fields.place, placeName };
+};
+
+/** Where the draft takes place, for the review list. */
+export const draftVenueText = (fields: DraftFields, placeName: string): string => {
+    const { inPerson, online } = draftVenue(fields, placeName);
+    return joinVenueParts([
+        draftInPersonText(inPerson),
+        online && draftOnlineText(online, inPerson.kind === "noPlace")
+    ]);
+};
+
+const draftInPersonText = (inPerson: DraftInPerson): string | null => {
+    switch (inPerson.kind) {
+        case "place":
+            return inPerson.place?.name || inPerson.placeName || "Ort fehlt";
+        case "toBeAnnounced":
+            return PLACE_TO_BE_ANNOUNCED_TEXT;
+        case "noPlace":
+            return null;
+        case "placeAndToBeAnnounced":
+            // The error below the draft says what to fix.
+            return "Mehrere Angaben zum Ort";
+    }
+};
+
+/** "Nur online" makes a forgotten place of a hybrid meeting visible. */
+const draftOnlineText = (online: NewOnlineMeeting, onlineOnly: boolean): string => {
+    const label = onlineOnly ? "Nur online" : "Online";
+    const platform = trimWhiteSpace(online.platform);
+    const link =
+        online.url === null
+            ? "noch ohne Link"
+            : online.members_only
+              ? MEMBERS_ONLY_LINK_TEXT
+              : "Link öffentlich";
+    return [label, ...(platform ? [platform] : []), link].join(" · ");
 };
 
 /** The meeting ready to send, or null while the draft has errors. */
 export const toNewMeeting = (draft: BulkDraft): NewMeeting | null => {
     const { time, place: _place, ...fields } = draft.fields;
     if (draft.errors.length > 0 || time === null) return null;
-    const venue = draftVenue(draft.fields, draft.placeName);
-    switch (venue.kind) {
-        case "several":
+    const { inPerson } = draftVenue(draft.fields, draft.placeName);
+    switch (inPerson.kind) {
+        case "placeAndToBeAnnounced":
             return null;
         case "place":
-            return venue.place === null ? null : { ...fields, time, place_id: venue.place._id };
+            return inPerson.place === null
+                ? null
+                : { ...fields, time, place_id: inPerson.place._id };
         case "toBeAnnounced":
-        case "online":
+        case "noPlace":
             return { ...fields, time, place_id: null };
     }
 };
@@ -498,8 +553,9 @@ const convertEntry = (
     const online = readOnline(entry, errors, warnings);
     const toBeAnnounced = readBoolean(entry, "place_to_be_announced", errors);
     const placeName = typeof place === "string" ? place.trim() : "";
+    if (place === INVALID || toBeAnnounced === INVALID) invalidInputs.add("placeFields");
     if (place === INVALID || online === INVALID || toBeAnnounced === INVALID) {
-        invalidInputs.add("place");
+        invalidInputs.add("anyVenueField");
     }
     if (online !== INVALID && online !== undefined) fields.online = online;
     fields.place_to_be_announced = toBeAnnounced === true;
@@ -675,17 +731,14 @@ export const parseBulkJson = (text: string, context: BulkParseContext): BulkPars
     return { ok: true, drafts };
 };
 
-const venueKey = (venue: DraftVenue): string => {
-    switch (venue.kind) {
-        case "toBeAnnounced":
-        case "several":
-            return venue.kind;
-        case "online":
-            return `online|${venue.online.platform}|${venue.online.url ?? ""}`;
-        case "place":
-            return venue.place?._id ?? placeNameKey(venue.placeName);
-    }
-};
+const venueKey = ({ inPerson, online }: DraftVenue): string =>
+    JSON.stringify([
+        inPerson.kind,
+        inPerson.kind === "place"
+            ? (inPerson.place?._id ?? placeNameKey(inPerson.placeName))
+            : null,
+        online && [online.platform, online.url]
+    ]);
 
 /** Title, start and venue: equal keys are the same meeting. */
 const draftKey = ({ fields, placeName }: ParsedEntry): string =>
@@ -693,15 +746,15 @@ const draftKey = ({ fields, placeName }: ParsedEntry): string =>
 
 const draftCandidate = ({ fields, placeName }: ParsedEntry): MeetingCandidate | null => {
     if (fields.time === null) return null;
-    const venue = draftVenue(fields, placeName);
-    // A place to be announced is no venue to compare: only the title rule applies.
-    const place = venue.kind === "place" ? venue : null;
+    const { inPerson, online } = draftVenue(fields, placeName);
+    // A place to be announced is no place to compare.
+    const place = inPerson.kind === "place" ? inPerson : null;
     return {
         title: fields.title,
         time: fields.time,
         placeId: place?.place?._id ?? null,
         placeName: place ? (place.place?.name ?? (place.placeName || null)) : null,
-        onlinePlatform: venue.kind === "online" ? venue.online.platform : null
+        onlinePlatform: online?.platform ?? null
     };
 };
 
