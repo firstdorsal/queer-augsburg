@@ -15,8 +15,9 @@ use crate::{
     },
 };
 
-/// All places meetings can be assigned to, sorted by name. Requires `UpdateMeetings`;
-/// public pages never need it because meetings carry a copy of their place.
+/// All places meetings can be assigned to, sorted by name key (code point order).
+/// Requires `UpdateMeetings`; public pages never need it because meetings carry a copy
+/// of their place.
 #[utoipa::path(
     get,
     path = "/api/places/",

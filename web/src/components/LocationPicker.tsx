@@ -1,12 +1,11 @@
 import { Component, ComponentChildren } from "preact";
-import { Button, Input, InputGroup, Modal } from "rsuite";
 import { FaSearch } from "react-icons/fa";
+import { Button, Input, InputGroup, Modal } from "rsuite";
 
 interface LocationPickerProps {
     lat?: number;
     lon?: number;
     onLocationSelect: (lat: number, lon: number) => void;
-    show: boolean;
     onClose: () => void;
     /** Pre-fills the search field, e.g. with a place name that is not known yet. */
     initialSearchQuery?: string;
@@ -55,21 +54,13 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
         };
     }
 
+    // Mounted only while the dialog is open (see CreatePlaceDialog).
     componentDidMount() {
-        if (this.props.show) {
-            this.loadLeaflet();
-        }
+        this.loadLeaflet();
     }
 
     componentDidUpdate(prevProps: LocationPickerProps) {
-        if (this.props.show && !prevProps.show) {
-            this.loadLeaflet();
-        } else if (!this.props.show && prevProps.show) {
-            this.destroyMap();
-        }
-
         if (
-            this.props.show &&
             this.state.mapInstance &&
             (this.props.lat !== prevProps.lat || this.props.lon !== prevProps.lon)
         ) {
@@ -276,12 +267,12 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
     };
 
     render() {
-        const { show, onClose, title, children, footer } = this.props;
+        const { onClose, title, children, footer } = this.props;
         const { leafletLoaded, cssLoaded, searchQuery, searchResults, isSearching } = this.state;
         const isLoading = !leafletLoaded || !cssLoaded;
 
         return (
-            <Modal open={show} size="lg" onClose={onClose}>
+            <Modal open size="lg" onClose={onClose}>
                 <Modal.Header>
                     <Modal.Title>{title ?? "Ort auswählen"}</Modal.Title>
                 </Modal.Header>
@@ -327,10 +318,12 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
                                             color: "var(--rs-text-primary)"
                                         }}
                                         onMouseEnter={(e) => {
-                                            (e.target as HTMLElement).style.backgroundColor = "var(--rs-state-hover)";
+                                            (e.target as HTMLElement).style.backgroundColor =
+                                                "var(--rs-state-hover)";
                                         }}
                                         onMouseLeave={(e) => {
-                                            (e.target as HTMLElement).style.backgroundColor = "transparent";
+                                            (e.target as HTMLElement).style.backgroundColor =
+                                                "transparent";
                                         }}
                                     >
                                         {result.label}

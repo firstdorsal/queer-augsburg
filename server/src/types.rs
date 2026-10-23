@@ -16,8 +16,9 @@ pub struct Meeting {
     pub time: Option<i64>,
     /// Copy of the place (`place_id`) for display and the iCal feed; `None` for online meetings.
     pub location: Option<MeetingLocation>,
-    /// The place the meeting takes place at; set by the server on save. Meetings
-    /// imported before places existed may have only a `location`.
+    /// The stored place the meeting takes place at (id from `GET /api/places/`); the
+    /// server derives `location` from it on save. Meetings imported before places
+    /// existed may have only a `location`.
     pub place_id: Option<String>,
     /// Set for online meetings, which have no place.
     pub online: Option<OnlineMeeting>,
@@ -75,6 +76,32 @@ pub struct OnlineMeeting {
     /// `url: null` keeps the stored link; `url: ""` removes it.
     #[serde(default)]
     pub url_hidden: bool,
+}
+
+/// Online details of a meeting created in bulk: only what the author may set (the
+/// hidden-link handshake of `OnlineMeeting` belongs to editing existing meetings).
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct NewOnlineMeeting {
+    /// E.g. "Zoom"; may be empty.
+    pub platform: String,
+    /// Link to join, if known.
+    pub url: Option<String>,
+    /// The link is only shown to verified members (and editors), never publicly.
+    pub members_only: bool,
+}
+
+impl From<NewOnlineMeeting> for OnlineMeeting {
+    fn from(online: NewOnlineMeeting) -> Self {
+        OnlineMeeting {
+            platform: online.platform,
+            url: online.url,
+            members_only: online.members_only,
+            url_hidden: false,
+        }
+    }
 }
 
 impl Meeting {
@@ -158,7 +185,7 @@ pub struct MeetingTags {
 
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
-#[derive(Deserialize, Debug, Serialize, PartialEq, Clone, Copy)]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum CommonMeetingTag {
     Kultur,
     Party,
@@ -185,7 +212,7 @@ impl fmt::Display for CommonMeetingTag {
 
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
-#[derive(Deserialize, Debug, Serialize, PartialEq, Clone, Copy)]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum QueerMeetingTag {
     Everyone,
     Queer,
@@ -357,6 +384,102 @@ pub struct UpdateMeetingRequestBody {
     pub delete: Option<bool>,
 }
 
+/// The author-supplied content of a new meeting. Server-owned fields (`_id`,
+/// `changed`, `deleted_at`, `attendance`, `rating`, `cancelled`, `location`) are
+/// deliberately absent, and sending them is rejected, so a client cannot set them.
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct NewMeeting {
+    pub title: String,
+    pub authority: String,
+    pub age_restriction: Vec<u8>,
+    /// Start time as UTC timestamp in milliseconds.
+    // Exported as `number` because the JSON value is a plain number, not a bigint.
+    #[ts(type = "number")]
+    pub time: i64,
+    /// A stored place (the server copies its name and coordinates). Exactly one of
+    /// `place_id` and `online` must be set.
+    pub place_id: Option<String>,
+    pub online: Option<NewOnlineMeeting>,
+    pub description: String,
+    pub price: Vec<f32>,
+    pub trigger_warning: Option<String>,
+    pub accessibility: Option<String>,
+    pub tags: MeetingTags,
+    pub status: MeetingStatus,
+}
+
+impl NewMeeting {
+    /// The meeting to store, before `place_rules::finish_venue` resolves its place and the
+    /// database assigns `_id` and `changed`.
+    pub fn into_meeting(self) -> Meeting {
+        Meeting {
+            _id: String::new(),
+            title: self.title,
+            authority: self.authority,
+            age_restriction: self.age_restriction,
+            time: Some(self.time),
+            location: None,
+            place_id: self.place_id,
+            online: self.online.map(OnlineMeeting::from),
+            description: self.description,
+            price: self.price,
+            trigger_warning: self.trigger_warning,
+            attendance: None,
+            rating: None,
+            accessibility: self.accessibility,
+            tags: self.tags,
+            status: self.status,
+            changed: None,
+            cancelled: Some(false),
+            deleted_at: None,
+        }
+    }
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct CreateMeetingsRequestBody {
+    pub meetings: Vec<NewMeeting>,
+}
+
+/// The created meetings with their server-assigned `_id`, in request order.
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+pub struct CreateMeetingsResponseBody {
+    pub meetings: Vec<Meeting>,
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Eq, Clone, Copy)]
+pub enum CreateMeetingsErrorCode {
+    /// The body is not valid JSON or does not match `CreateMeetingsRequestBody`. Nothing was created.
+    InvalidBody,
+    /// At least one meeting failed validation (see `index`). Nothing was created.
+    InvalidMeeting,
+    /// The insert failed and was rolled back. Nothing was created.
+    Internal,
+    /// The insert failed and rolling it back failed too: some meetings may exist.
+    PartiallyCreated,
+}
+
+/// Error body of `POST /api/create_meetings/`. `message` is German and meant for the member.
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
+pub struct CreateMeetingsErrorBody {
+    pub code: CreateMeetingsErrorCode,
+    /// Zero-based index of the offending meeting for `InvalidMeeting`.
+    pub index: Option<u32>,
+    pub message: String,
+}
+
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
@@ -366,7 +489,6 @@ pub struct GetMeetingsResponseBody {
     /// Timestamp (ms) of the most recent meeting update across all meetings of this type
     pub last_updated: Option<i64>,
 }
-
 
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
@@ -508,4 +630,79 @@ pub struct GetUsersQuery {
     pub sb: Option<String>,
     /// Sort order ("asc" or "desc")
     pub so: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn into_meeting_sets_server_owned_fields() {
+        let new_meeting = NewMeeting {
+            title: "Stammtisch".to_string(),
+            authority: "Paul".to_string(),
+            age_restriction: vec![18],
+            time: 1_793_124_000_000,
+            place_id: Some("p1".to_string()),
+            online: None,
+            description: "Beschreibung".to_string(),
+            price: vec![5.0],
+            trigger_warning: Some("Laut".to_string()),
+            accessibility: None,
+            tags: MeetingTags {
+                freeform: vec!["Tanz".to_string()],
+                common: vec![CommonMeetingTag::Meet],
+                queer: vec![QueerMeetingTag::Everyone],
+            },
+            status: MeetingStatus::Planned,
+        };
+
+        let meeting = new_meeting.clone().into_meeting();
+
+        assert_eq!(meeting._id, "");
+        assert_eq!(meeting.changed, None);
+        assert_eq!(meeting.time, Some(new_meeting.time));
+        assert_eq!(meeting.attendance, None);
+        assert_eq!(meeting.rating, None);
+        assert_eq!(meeting.cancelled, Some(false));
+        assert_eq!(meeting.deleted_at, None);
+        assert_eq!(meeting.title, new_meeting.title);
+        assert_eq!(
+            meeting.location, None,
+            "the server copies it from the place"
+        );
+        assert_eq!(meeting.place_id.as_deref(), Some("p1"));
+        assert_eq!(meeting.tags, new_meeting.tags);
+        assert_eq!(meeting.status, MeetingStatus::Planned);
+    }
+
+    #[test]
+    fn new_meeting_rejects_server_owned_fields() {
+        let json = r#"{"title":"A","authority":"","age_restriction":[0],"time":1793124000000,
+            "place_id":"p1","online":null,"description":"","price":[0],
+            "trigger_warning":null,"accessibility":null,
+            "tags":{"freeform":[],"common":[],"queer":[]},"status":"Active","rating":5}"#;
+        let err = serde_json::from_str::<NewMeeting>(json).unwrap_err();
+        assert!(err.to_string().contains("unknown field `rating`"), "{err}");
+        // Coordinates never come from the client.
+        let with_location = json.replace(r#","rating":5"#, "").replace(
+            r#""place_id":"p1""#,
+            r#""location":{"name":"X","lat":1,"lon":1}"#,
+        );
+        let err = serde_json::from_str::<NewMeeting>(&with_location).unwrap_err();
+        assert!(
+            err.to_string().contains("unknown field `location`"),
+            "{err}"
+        );
+        // The hidden-link handshake is for editing stored meetings only.
+        let with_hidden_link = json.replace(r#","rating":5"#, "").replace(
+            r#""online":null"#,
+            r#""online":{"platform":"Zoom","url":null,"members_only":true,"url_hidden":true}"#,
+        );
+        let err = serde_json::from_str::<NewMeeting>(&with_hidden_link).unwrap_err();
+        assert!(
+            err.to_string().contains("unknown field `url_hidden`"),
+            "{err}"
+        );
+    }
 }

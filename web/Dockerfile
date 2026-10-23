@@ -1,10 +1,12 @@
 # 0. build stage
-FROM node:21-alpine as build-stage
+FROM node:24-alpine AS build-stage
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
-RUN yarn global add pnpm@9.1.3
-RUN pnpm add sharp @img/sharp-linuxmusl-x64
-RUN pnpm install
+# corepack installs exactly the pnpm version (and hash) pinned in package.json's packageManager.
+RUN corepack enable pnpm
+# sharp and its musl binary are regular dependencies; the frozen lockfile makes the image
+# use exactly the reviewed dependency versions.
+RUN pnpm install --frozen-lockfile
 COPY . .
 RUN pnpm build
 

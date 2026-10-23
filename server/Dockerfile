@@ -3,14 +3,14 @@ FROM clux/muslrust:stable AS build
 # build deps
 USER root
 RUN apt-get update && apt-get install upx -y
-RUN cargo install cargo-build-deps
+RUN cargo install cargo-build-deps --version 0.2.0 --locked
 
 COPY Cargo.toml Cargo.lock ./
 RUN cargo build-deps --release
 RUN rm -f target/x86_64-unknown-linux-musl/release/deps/qa-server*
 # build
 COPY --chown=root:root src src
-RUN cargo build --release --bin main
+RUN cargo build --release --locked --bin main
 RUN strip target/x86_64-unknown-linux-musl/release/main
 RUN upx --best --lzma target/x86_64-unknown-linux-musl/release/main
 RUN useradd -u 50001 -N qa-server

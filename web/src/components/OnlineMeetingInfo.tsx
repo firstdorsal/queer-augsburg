@@ -3,7 +3,12 @@ import { IoGlobeOutline } from "react-icons/io5";
 import { Button } from "rsuite";
 import { Meeting } from "../apiTypes/Meeting";
 import { OnlineMeeting } from "../apiTypes/OnlineMeeting";
-import { maySeeMembersOnlyLinks, onlineLabel, safeHttpUrl } from "../places";
+import {
+    MEMBERS_ONLY_LINK_TEXT,
+    maySeeMembersOnlyLinks,
+    onlineLabel,
+    safeHttpUrl
+} from "../places";
 import { G } from "../types";
 
 interface OnlineMeetingInfoProps {
@@ -24,7 +29,7 @@ const problemText = (status: number): string =>
     status === 401
         ? "Bitte anmelden, um den Link zu sehen."
         : status === 403
-          ? "Link nur für verifizierte Mitglieder"
+          ? "Nur verifizierte Mitglieder dürfen diesen Link sehen."
           : status === 404
             ? "Link nicht mehr verfügbar"
             : "Link konnte nicht geladen werden.";
@@ -91,7 +96,7 @@ export default class OnlineMeetingInfo extends Component<
         if (!online.url_hidden) return null;
         if (this.state.fetchedUrl) return this.renderLink(this.state.fetchedUrl);
         if (!maySeeMembersOnlyLinks(g.account)) {
-            return <span className="opacity-80">Link nur für verifizierte Mitglieder</span>;
+            return <span className="opacity-80">{MEMBERS_ONLY_LINK_TEXT}</span>;
         }
         return (
             <>

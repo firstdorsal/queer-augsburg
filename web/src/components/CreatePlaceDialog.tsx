@@ -63,7 +63,6 @@ export default class CreatePlaceDialog extends Component<
 
         return (
             <LocationPicker
-                show={true}
                 title="Neuen Ort anlegen"
                 initialSearchQuery={initialName ? `${initialName}, Augsburg` : ""}
                 lat={position?.lat}

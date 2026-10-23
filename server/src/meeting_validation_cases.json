@@ -1,0 +1,809 @@
+{
+  "_comment": "Shared validation cases for NewMeeting: run by server/src/meeting_validation.rs (prepare_meeting_batch: content rules, then the place or online details, with \"p1\" as the only stored place) and web/src/bulkImport.test.ts (validateFields; the web test resolves place_id against its own place list and uses an unknown place_id as the JSON place name). Each case applies an RFC 7396 merge patch to base, then optionally sets the string at fill.path to fill.text repeated fill.count times. error is the server's message of the first violated rule, null means valid; client_error, if present, is the bulk import's own wording for the same rule (it talks about the JSON fields). Invisible characters are written as \\u escapes.",
+  "base": {
+    "title": "Stammtisch",
+    "authority": "Paul",
+    "age_restriction": [
+      0
+    ],
+    "time": 1793124000000,
+    "description": "Gemütlicher Abend",
+    "price": [
+      0
+    ],
+    "trigger_warning": null,
+    "accessibility": null,
+    "tags": {
+      "freeform": [],
+      "common": [
+        "Meet"
+      ],
+      "queer": [
+        "Everyone"
+      ]
+    },
+    "status": "Active",
+    "place_id": "p1",
+    "online": null
+  },
+  "cases": [
+    {
+      "name": "valid base",
+      "patch": {},
+      "error": null
+    },
+    {
+      "name": "planned status is fine",
+      "patch": {
+        "status": "Planned"
+      },
+      "error": null
+    },
+    {
+      "name": "blank title",
+      "patch": {
+        "title": "   "
+      },
+      "error": "Titel fehlt."
+    },
+    {
+      "name": "zero-width-only title",
+      "patch": {
+        "title": "\u200b\u200d\ufeff"
+      },
+      "error": "Titel fehlt."
+    },
+    {
+      "name": "title at max length (code points)",
+      "patch": {},
+      "error": null,
+      "fill": {
+        "path": "title",
+        "text": "ä",
+        "count": 200
+      }
+    },
+    {
+      "name": "title above max length",
+      "patch": {},
+      "error": "Titel ist zu lang (höchstens 200 Zeichen).",
+      "fill": {
+        "path": "title",
+        "text": "ä",
+        "count": 201
+      }
+    },
+    {
+      "name": "astral characters count once",
+      "patch": {},
+      "error": null,
+      "fill": {
+        "path": "title",
+        "text": "🌈",
+        "count": 200
+      }
+    },
+    {
+      "name": "newline in title",
+      "patch": {
+        "title": "A\nB"
+      },
+      "error": "Titel enthält unzulässige Steuerzeichen."
+    },
+    {
+      "name": "tab in title",
+      "patch": {
+        "title": "A\tB"
+      },
+      "error": "Titel enthält unzulässige Steuerzeichen."
+    },
+    {
+      "name": "bidi override in title",
+      "patch": {
+        "title": "\u202eabc"
+      },
+      "error": "Titel enthält unzulässige Steuerzeichen."
+    },
+    {
+      "name": "empty authority is fine",
+      "patch": {
+        "authority": ""
+      },
+      "error": null
+    },
+    {
+      "name": "authority with quote is fine",
+      "patch": {
+        "authority": "Paul \"P\" H."
+      },
+      "error": null
+    },
+    {
+      "name": "authority above max length",
+      "patch": {},
+      "error": "Ansprechpersonen ist zu lang (höchstens 200 Zeichen).",
+      "fill": {
+        "path": "authority",
+        "text": "x",
+        "count": 201
+      }
+    },
+    {
+      "name": "carriage return in authority",
+      "patch": {
+        "authority": "Paul\r"
+      },
+      "error": "Ansprechpersonen enthält unzulässige Steuerzeichen."
+    },
+    {
+      "name": "description keeps line breaks and tabs",
+      "patch": {
+        "description": "Zeile 1\r\nZeile 2\n\tEingerückt"
+      },
+      "error": null
+    },
+    {
+      "name": "bell character in description",
+      "patch": {
+        "description": "Hallo\u0007"
+      },
+      "error": "Beschreibung enthält unzulässige Steuerzeichen."
+    },
+    {
+      "name": "bidi isolate in description",
+      "patch": {
+        "description": "a\u2066b"
+      },
+      "error": "Beschreibung enthält unzulässige Steuerzeichen."
+    },
+    {
+      "name": "description at max length",
+      "patch": {},
+      "error": null,
+      "fill": {
+        "path": "description",
+        "text": "x",
+        "count": 20000
+      }
+    },
+    {
+      "name": "description above max length",
+      "patch": {},
+      "error": "Beschreibung ist zu lang (höchstens 20000 Zeichen).",
+      "fill": {
+        "path": "description",
+        "text": "x",
+        "count": 20001
+      }
+    },
+    {
+      "name": "time at lower bound",
+      "patch": {
+        "time": 946684800000
+      },
+      "error": null
+    },
+    {
+      "name": "time below lower bound",
+      "patch": {
+        "time": 946684799999
+      },
+      "error": "Zeit liegt außerhalb des gültigen Bereichs."
+    },
+    {
+      "name": "time just below upper bound",
+      "patch": {
+        "time": 4102444799999
+      },
+      "error": null
+    },
+    {
+      "name": "time at upper bound",
+      "patch": {
+        "time": 4102444800000
+      },
+      "error": "Zeit liegt außerhalb des gültigen Bereichs."
+    },
+    {
+      "name": "empty price",
+      "patch": {
+        "price": []
+      },
+      "error": "Preis muss aus einem oder zwei Werten bestehen."
+    },
+    {
+      "name": "three prices",
+      "patch": {
+        "price": [
+          1,
+          2,
+          3
+        ]
+      },
+      "error": "Preis muss aus einem oder zwei Werten bestehen."
+    },
+    {
+      "name": "negative price",
+      "patch": {
+        "price": [
+          -1
+        ]
+      },
+      "error": "Preis ist ungültig."
+    },
+    {
+      "name": "price at maximum",
+      "patch": {
+        "price": [
+          10000
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "price above maximum",
+      "patch": {
+        "price": [
+          10000.5
+        ]
+      },
+      "error": "Preis ist ungültig."
+    },
+    {
+      "name": "price range reversed",
+      "patch": {
+        "price": [
+          10,
+          5
+        ]
+      },
+      "error": "Preis: \"von\" ist größer als \"bis\"."
+    },
+    {
+      "name": "price range",
+      "patch": {
+        "price": [
+          5,
+          10
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "equal price range",
+      "patch": {
+        "price": [
+          0,
+          0
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "age range reversed",
+      "patch": {
+        "age_restriction": [
+          18,
+          16
+        ]
+      },
+      "error": "Altersbeschränkung: \"von\" ist größer als \"bis\"."
+    },
+    {
+      "name": "three ages",
+      "patch": {
+        "age_restriction": [
+          1,
+          2,
+          3
+        ]
+      },
+      "error": "Altersbeschränkung darf höchstens zwei Werte haben."
+    },
+    {
+      "name": "no age restriction",
+      "patch": {
+        "age_restriction": []
+      },
+      "error": null
+    },
+    {
+      "name": "age 255",
+      "patch": {
+        "age_restriction": [
+          255
+        ]
+      },
+      "error": null
+    },
+    {
+      "name": "trigger warning above max length",
+      "patch": {},
+      "error": "Triggerwarnung ist zu lang (höchstens 2000 Zeichen).",
+      "fill": {
+        "path": "trigger_warning",
+        "text": "x",
+        "count": 2001
+      }
+    },
+    {
+      "name": "newline in trigger warning",
+      "patch": {
+        "trigger_warning": "a\nb"
+      },
+      "error": "Triggerwarnung enthält unzulässige Steuerzeichen."
+    },
+    {
+      "name": "newline in accessibility",
+      "patch": {
+        "accessibility": "a\nb"
+      },
+      "error": "Barrierefreiheit enthält unzulässige Steuerzeichen."
+    },
+    {
+      "name": "accessibility text",
+      "patch": {
+        "accessibility": "Rollstuhlgerecht"
+      },
+      "error": null
+    },
+    {
+      "name": "20 freeform tags",
+      "patch": {
+        "tags": {
+          "freeform": [
+            "t0",
+            "t1",
+            "t2",
+            "t3",
+            "t4",
+            "t5",
+            "t6",
+            "t7",
+            "t8",
+            "t9",
+            "t10",
+            "t11",
+            "t12",
+            "t13",
+            "t14",
+            "t15",
+            "t16",
+            "t17",
+            "t18",
+            "t19"
+          ]
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "21 freeform tags",
+      "patch": {
+        "tags": {
+          "freeform": [
+            "t0",
+            "t1",
+            "t2",
+            "t3",
+            "t4",
+            "t5",
+            "t6",
+            "t7",
+            "t8",
+            "t9",
+            "t10",
+            "t11",
+            "t12",
+            "t13",
+            "t14",
+            "t15",
+            "t16",
+            "t17",
+            "t18",
+            "t19",
+            "t20"
+          ]
+        }
+      },
+      "error": "Höchstens 20 eigene Tags erlaubt."
+    },
+    {
+      "name": "empty freeform tag",
+      "patch": {
+        "tags": {
+          "freeform": [
+            " "
+          ]
+        }
+      },
+      "error": "Eigener Tag fehlt."
+    },
+    {
+      "name": "freeform tag at max length",
+      "patch": {
+        "tags": {
+          "freeform": [
+            "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          ]
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "freeform tag above max length",
+      "patch": {
+        "tags": {
+          "freeform": [
+            "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+          ]
+        }
+      },
+      "error": "Eigener Tag ist zu lang (höchstens 50 Zeichen)."
+    },
+    {
+      "name": "duplicate freeform tags",
+      "patch": {
+        "tags": {
+          "freeform": [
+            "a",
+            "a"
+          ]
+        }
+      },
+      "error": "Tags dürfen nicht doppelt vorkommen."
+    },
+    {
+      "name": "duplicate common tags",
+      "patch": {
+        "tags": {
+          "common": [
+            "Party",
+            "Party"
+          ]
+        }
+      },
+      "error": "Tags dürfen nicht doppelt vorkommen."
+    },
+    {
+      "name": "duplicate queer tags",
+      "patch": {
+        "tags": {
+          "queer": [
+            "Gay",
+            "Gay"
+          ]
+        }
+      },
+      "error": "Tags dürfen nicht doppelt vorkommen."
+    },
+    {
+      "name": "first violated rule is reported",
+      "patch": {
+        "title": "",
+        "price": [
+          -1
+        ]
+      },
+      "error": "Titel fehlt."
+    },
+    {
+      "name": "online meeting instead of a place",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "Zoom",
+          "url": null,
+          "members_only": true
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "online meeting with a link",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "Zoom",
+          "url": "https://zoom.us/j/123?pwd=abc",
+          "members_only": true
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "online meeting with a public link and no platform",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "",
+          "url": "http://meet.jit.si/qa",
+          "members_only": false
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "online link without scheme",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "Zoom",
+          "url": "zoom.us/j/1",
+          "members_only": true
+        }
+      },
+      "error": "Der Link muss mit https:// oder http:// beginnen."
+    },
+    {
+      "name": "javascript link",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "Zoom",
+          "url": "javascript:alert(1)",
+          "members_only": true
+        }
+      },
+      "error": "Der Link muss mit https:// oder http:// beginnen."
+    },
+    {
+      "name": "link with user info",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "Zoom",
+          "url": "https://zoom.us@evil.example/j/1",
+          "members_only": true
+        }
+      },
+      "error": "Der Link muss mit https:// oder http:// beginnen."
+    },
+    {
+      "name": "blank link counts as no link",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "Zoom",
+          "url": "   ",
+          "members_only": true
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "link above max length",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "Zoom",
+          "url": null,
+          "members_only": true
+        }
+      },
+      "fill": {
+        "path": "online.url",
+        "text": "x",
+        "count": 2001
+      },
+      "error": "Der Link ist zu lang (höchstens 2000 Zeichen)."
+    },
+    {
+      "name": "platform at max length",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "Zoom",
+          "url": null,
+          "members_only": true
+        }
+      },
+      "fill": {
+        "path": "online.platform",
+        "text": "ä",
+        "count": 50
+      },
+      "error": null
+    },
+    {
+      "name": "platform above max length",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "Zoom",
+          "url": null,
+          "members_only": true
+        }
+      },
+      "fill": {
+        "path": "online.platform",
+        "text": "ä",
+        "count": 51
+      },
+      "error": "Die Plattform ist zu lang (höchstens 50 Zeichen)."
+    },
+    {
+      "name": "platform surrounded by spaces and line separators is trimmed",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "\u2028 Zoom \u00a0",
+          "url": null,
+          "members_only": true
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "zero-width character in platform",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "Zo\u200bom",
+          "url": null,
+          "members_only": true
+        }
+      },
+      "error": "Die Plattform enthält unzulässige Steuerzeichen."
+    },
+    {
+      "name": "byte order mark at the end of the platform",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "Zoom\ufeff",
+          "url": null,
+          "members_only": true
+        }
+      },
+      "error": "Die Plattform enthält unzulässige Steuerzeichen."
+    },
+    {
+      "name": "line separator in platform",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "Zo\u2028om",
+          "url": null,
+          "members_only": true
+        }
+      },
+      "error": "Die Plattform enthält unzulässige Steuerzeichen."
+    },
+    {
+      "name": "neither place nor online",
+      "patch": {
+        "place_id": null
+      },
+      "error": "Bitte einen Ort auswählen oder „Online-Treffen“ ankreuzen.",
+      "client_error": "Ort fehlt."
+    },
+    {
+      "name": "place and online at once",
+      "patch": {
+        "online": {
+          "platform": "Zoom",
+          "url": null,
+          "members_only": true
+        }
+      },
+      "error": "Bitte entweder einen Ort oder Online-Angaben angeben, nicht beides.",
+      "client_error": "Entweder \"place\" oder \"online\" angeben, nicht beides."
+    },
+    {
+      "name": "unknown place",
+      "patch": {
+        "place_id": "gone"
+      },
+      "error": "Der gewählte Ort existiert nicht mehr, bitte neu auswählen.",
+      "client_error": "Den Ort „gone“ gibt es noch nicht: bestehenden Ort auswählen oder neu anlegen."
+    },
+    {
+      "name": "content errors come before a missing place",
+      "patch": {
+        "place_id": null,
+        "price": [
+          -1
+        ]
+      },
+      "error": "Preis ist ungültig."
+    },
+    {
+      "name": "title error comes before a missing place",
+      "patch": {
+        "place_id": null,
+        "title": ""
+      },
+      "error": "Titel fehlt."
+    },
+    {
+      "name": "link at max length",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "Zoom",
+          "url": "https://zoom.us/j/11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+          "members_only": true
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "byte order mark at the start of the platform",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "\ufeffZoom",
+          "url": null,
+          "members_only": true
+        }
+      },
+      "error": "Die Plattform enthält unzulässige Steuerzeichen."
+    },
+    {
+      "name": "next line character around the platform is trimmed",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "\u0085Zoom\u0085",
+          "url": null,
+          "members_only": true
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "platform of astral characters at max length",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "Zoom",
+          "url": null,
+          "members_only": true
+        }
+      },
+      "fill": {
+        "path": "online.platform",
+        "text": "🌈",
+        "count": 50
+      },
+      "error": null
+    },
+    {
+      "name": "tab inside a link is removed by the URL parser",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "Zoom",
+          "url": "https://zoom.us/j/1\t23",
+          "members_only": true
+        }
+      },
+      "error": null
+    },
+    {
+      "name": "link without host",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "Zoom",
+          "url": "https://:80/",
+          "members_only": true
+        }
+      },
+      "error": "Der Link muss mit https:// oder http:// beginnen."
+    },
+    {
+      "name": "link to an IPv6 host",
+      "patch": {
+        "place_id": null,
+        "online": {
+          "platform": "Zoom",
+          "url": "http://[::1]/",
+          "members_only": true
+        }
+      },
+      "error": null
+    }
+  ]
+}

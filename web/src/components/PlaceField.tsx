@@ -1,10 +1,11 @@
 import { Component } from "preact";
-import { Button, Message, SelectPicker, useToaster } from "rsuite";
+import { Message, useToaster } from "rsuite";
 import { QaClient } from "../api";
 import { Place } from "../apiTypes/Place";
-import { findPlaceByName, placeNameKey } from "../places";
+import { findPlaceByName, placeChosenText, withPlace } from "../places";
 import { withToasterHook } from "../utils";
 import CreatePlaceDialog from "./CreatePlaceDialog";
+import PlaceSelect, { PlacesLoadError } from "./PlaceSelect";
 
 interface PlaceFieldProps {
     readonly qaClient: QaClient;
@@ -19,11 +20,9 @@ interface PlaceFieldProps {
 interface PlaceFieldState {
     readonly places: Place[] | null;
     readonly loadError: boolean;
-    readonly search: string;
-    readonly creating: boolean;
+    /** Suggested name while the "Neuen Ort anlegen" dialog is open. */
+    readonly creatingName: string | null;
 }
-
-const byName = (a: Place, b: Place) => placeNameKey(a.name).localeCompare(placeNameKey(b.name));
 
 /** Choose one of the stored places, or create a new one (only then the map opens). */
 class PlaceField extends Component<PlaceFieldProps, PlaceFieldState> {
@@ -31,7 +30,7 @@ class PlaceField extends Component<PlaceFieldProps, PlaceFieldState> {
 
     constructor(props: PlaceFieldProps) {
         super(props);
-        this.state = { places: null, loadError: false, search: "", creating: false };
+        this.state = { places: null, loadError: false, creatingName: null };
     }
 
     componentDidMount = () => {
@@ -61,87 +60,48 @@ class PlaceField extends Component<PlaceFieldProps, PlaceFieldState> {
         }
     };
 
-    select = (place: Place) => {
-        this.setState({ search: "" });
-        this.props.onChange(place);
-    };
-
     placeDone = (place: Place, existed: boolean) => {
         this.setState((state) => ({
-            creating: false,
-            places:
-                state.places && !state.places.some((known) => known._id === place._id)
-                    ? [...state.places, place].sort(byName)
-                    : state.places
+            creatingName: null,
+            places: state.places && withPlace(state.places, place)
         }));
-        this.select(place);
+        this.props.onChange(place);
         this.props.toaster.push(
             <Message showIcon type={existed ? "info" : "success"} closable>
-                {existed
-                    ? `Bestehenden Ort „${place.name}“ ausgewählt.`
-                    : `Ort „${place.name}“ angelegt.`}
+                {placeChosenText(place, existed)}
             </Message>,
             { placement: "bottomCenter", duration: 4000 }
         );
     };
 
     render = () => {
-        const { places, loadError, creating, search } = this.state;
+        const { places, loadError, creatingName } = this.state;
         const { placeId, legacyName } = this.props;
-        if (loadError) {
-            return (
-                <Message showIcon type="error">
-                    Die Orte konnten nicht geladen werden.{" "}
-                    <Button appearance="link" size="sm" className="p-0" onClick={this.loadPlaces}>
-                        Erneut versuchen
-                    </Button>
-                </Message>
-            );
-        }
+        if (loadError) return <PlacesLoadError onRetry={this.loadPlaces} />;
 
         return (
             <div>
-                <SelectPicker
-                    block
-                    data={(places ?? []).map((place) => ({ label: place.name, value: place._id }))}
-                    value={placeId}
-                    loading={places === null}
-                    placeholder="Ort auswählen"
-                    aria-label="Ort"
-                    cleanable={false}
-                    locale={{
-                        searchPlaceholder: "Ort suchen",
-                        noResultsText: "Kein Ort gefunden, unten neu anlegen"
-                    }}
-                    onSearch={(value: string) => this.setState({ search: value })}
-                    onChange={(selectedId: string | null) => {
-                        const place = places?.find((candidate) => candidate._id === selectedId);
-                        if (place) this.select(place);
-                    }}
-                    renderExtraFooter={() => (
-                        <div className="border-t border-[var(--rs-border-primary)] p-2">
-                            <Button
-                                block
-                                size="sm"
-                                onClick={() => this.setState({ creating: true })}
-                            >
-                                Neuen Ort anlegen
-                            </Button>
-                        </div>
-                    )}
+                <PlaceSelect
+                    places={places}
+                    placeId={placeId}
+                    label="Ort"
+                    onSelect={this.props.onChange}
+                    onCreate={(search) =>
+                        this.setState({ creatingName: search || legacyName || "" })
+                    }
                 />
                 {!placeId && legacyName && places !== null && (
                     <p className="mb-0 mt-1 text-sm opacity-80">
                         Bisheriger Ort: „{legacyName}“ – bitte einen Ort auswählen oder neu anlegen.
                     </p>
                 )}
-                {creating && places !== null && (
+                {creatingName !== null && places !== null && (
                     <CreatePlaceDialog
                         qaClient={this.props.qaClient}
                         places={places}
-                        initialName={search || legacyName || ""}
+                        initialName={creatingName}
                         onDone={this.placeDone}
-                        onClose={() => this.setState({ creating: false, search: "" })}
+                        onClose={() => this.setState({ creatingName: null })}
                     />
                 )}
             </div>

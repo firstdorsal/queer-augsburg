@@ -1133,7 +1133,7 @@
     },
     "3faU1": {
       "unknown": "Text nennt keinen Ort, nur Anmeldung",
-      "evidence": "Teilnahme nach Anmeldung unter mail@queer.augsburg.de"
+      "evidence": "Teilnahme nach Anmeldung unter [E-Mail-Adresse]"
     },
     "uZ4WS": {
       "place": "YhOBi",
@@ -1776,7 +1776,7 @@
     },
     "dmLKB": {
       "unknown": "Text nennt keinen Ort, nur Anmeldeadresse",
-      "evidence": "Anmeldung unter: queer@stadtraumev.de"
+      "evidence": "Anmeldung unter: [E-Mail-Adresse]"
     },
     "5nCW4": {
       "online": "Zoom",
@@ -1840,7 +1840,7 @@
     },
     "b2S9p": {
       "online": "Discord",
-      "evidence": "Wo: http://discord.gg/sWkeFBb"
+      "evidence": "Wo: [Discord-Einladungslink]"
     },
     "ZQYoB": {
       "online": "Jitsi",
@@ -1888,7 +1888,7 @@
     },
     "eMJDl": {
       "online": "Discord",
-      "evidence": "Wo: http://discord.gg/sWkeFBb"
+      "evidence": "Wo: [Discord-Einladungslink]"
     },
     "bwu2a": {
       "unknown": "Neujahrsgruß ohne Ortsangabe",

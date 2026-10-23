@@ -22,33 +22,59 @@ description; `report.json` lists them so they can be removed or moved into the l
 
 ## Order on turing
 
+0. **Restore point before the deploy:** tag the running images and back up the meetings
+   (below; `places` does not exist yet, and `mongodump` writes no archive for a missing
+   collection). After the deploy, editors save meetings under the new rules (online
+   meetings without `location`), which the old server cannot read, so only this backup
+   plus these images is a complete way back.
 1. **Deploy the server** with the places feature (it creates the `places` collection and
    its unique index on startup; the script refuses to run without the index).
-2. **Deploy the web app.** It reads old and new meetings. Old cached web apps cannot show
-   online meetings without a location, so give the service worker a day to update clients.
-3. **Back up, dry-run, apply** (below).
+2. **Deploy the web app.** It reads old and new meetings. Until the migration, old meetings
+   have no `place_id`, so editors have to pick a place when they save one (the editor
+   pre-selects the matching place).
+3. **Dry-run and apply** (below) once the new web app is live: open tabs of the old app
+   cannot show online meetings without a location and show an error until they are
+   reloaded; the service worker (`autoUpdate`) reloads them on the next visit.
 
 Root's login shell on turing is fish: run every block through `bash -s` as shown. The
 qa-db container listens on 27030 (the repo default in `deployment/config.yml` is 27018);
 the root password is the container's `MONGODB_ROOT_PASSWORD`, so keep the single quotes.
 
+### 0. Restore point
+
 ```sh
-# copy the migration directory from a checkout of this branch to turing
+ssh root@turing 'bash -s' <<'EOF'
+set -euo pipefail
+docker tag "$(docker inspect --format '{{.Image}}' qa-server)" firstdorsal/queer-augsburg-server:pre-places
+docker tag "$(docker inspect --format '{{.Image}}' qa-web)" firstdorsal/queer-augsburg-web:pre-places
+docker exec qa-db sh -c 'mongodump --quiet --port 27030 -u root -p "$MONGODB_ROOT_PASSWORD" --authenticationDatabase admin --db queer-augsburg --collection meetings --gzip --archive=/tmp/meetings-before-places-deploy.gz'
+docker cp qa-db:/tmp/meetings-before-places-deploy.gz /mnt/beta/backup/
+docker exec qa-db rm /tmp/meetings-before-places-deploy.gz
+chmod 600 /mnt/beta/backup/meetings-before-places-deploy.gz
+ls -l /mnt/beta/backup/meetings-before-places-deploy.gz   # must not be empty
+EOF
+```
+
+### 3. Migration
+
+Copy the directory of the deployed commit fresh (a leftover copy would be nested inside,
+not replaced), take a second backup right before the migration, and dry-run:
+
+```sh
+ssh root@turing 'rm -rf /tmp/places-migration'
 scp -r server/migrations/2026-10-21-places root@turing:/tmp/places-migration
+sha256sum server/migrations/2026-10-21-places/*.js server/migrations/2026-10-21-places/*.json
 
 ssh root@turing 'bash -s' <<'EOF'
 set -euo pipefail
-# 1. backup of meetings and places (places may not exist yet; that is fine)
-docker exec qa-db sh -c 'mongodump --quiet --port 27030 -u root -p "$MONGODB_ROOT_PASSWORD" --authenticationDatabase admin --db queer-augsburg --collection meetings --gzip --archive=/tmp/meetings-before-places.gz'
-docker exec qa-db sh -c 'mongodump --quiet --port 27030 -u root -p "$MONGODB_ROOT_PASSWORD" --authenticationDatabase admin --db queer-augsburg --collection places --gzip --archive=/tmp/places-before-places.gz'
-docker cp qa-db:/tmp/meetings-before-places.gz /mnt/beta/backup/
-docker cp qa-db:/tmp/places-before-places.gz /mnt/beta/backup/
-chmod 600 /mnt/beta/backup/*-before-places.gz
-ls -l /mnt/beta/backup/*-before-places.gz   # both must exist and not be empty
-docker exec qa-db rm /tmp/meetings-before-places.gz /tmp/places-before-places.gz
-
-# 2. dry run
+sha256sum /tmp/places-migration/*.js /tmp/places-migration/*.json   # must match the above
+docker exec qa-db rm -rf /tmp/places-migration
 docker cp /tmp/places-migration qa-db:/tmp/places-migration
+docker exec qa-db sh -c 'mongodump --quiet --port 27030 -u root -p "$MONGODB_ROOT_PASSWORD" --authenticationDatabase admin --db queer-augsburg --collection meetings --gzip --archive=/tmp/meetings-before-places.gz'
+docker cp qa-db:/tmp/meetings-before-places.gz /mnt/beta/backup/
+docker exec qa-db rm /tmp/meetings-before-places.gz
+chmod 600 /mnt/beta/backup/meetings-before-places.gz
+ls -l /mnt/beta/backup/meetings-before-places.gz
 docker exec qa-db sh -c 'mongosh --quiet --port 27030 -u root -p "$MONGODB_ROOT_PASSWORD" --authenticationDatabase admin queer-augsburg --eval "var MIGRATION_DIR=\"/tmp/places-migration\"; var APPLY=false" --file /tmp/places-migration/migrate.js'
 EOF
 ```
@@ -64,10 +90,21 @@ meetings without a known place (unchanged): 20
 online meetings whose text contains a link: 17
 ```
 
-(numbers from the public list of 2026-10-21; planned meetings add to them). Then apply with
-the same mongosh command and `APPLY=true`. It additionally prints
-`meetings modified: N (planned N)`. Run it once more: `places to insert`, `assign to a place`
-and `mark online` must be 0; the unresolved meetings are listed again by design.
+(numbers from the public list of 2026-10-21; planned meetings and meetings saved since the
+deploy change them). Then apply, and run the same command once more: `places to insert`,
+`assign to a place` and `mark online` must then be 0; the unresolved meetings are listed
+again by design.
+
+```sh
+ssh root@turing 'bash -s' <<'EOF'
+set -euo pipefail
+for run in 1 2; do
+    docker exec qa-db sh -c 'mongosh --quiet --port 27030 -u root -p "$MONGODB_ROOT_PASSWORD" --authenticationDatabase admin queer-augsburg --eval "var MIGRATION_DIR=\"/tmp/places-migration\"; var APPLY=true" --file /tmp/places-migration/migrate.js'
+done
+EOF
+```
+
+The first run additionally prints `meetings modified: N (planned N)`.
 
 ### Verify
 
@@ -81,6 +118,7 @@ print(\"meetings without place and not online: \" + db.meetings.countDocuments({
 "'
 docker cp qa-db:/tmp/places-migration/report.json /tmp/places-report.json
 docker exec qa-db rm -rf /tmp/places-migration
+rm -rf /tmp/places-migration
 EOF
 ```
 
@@ -89,7 +127,8 @@ its name with the map links, and the editor's place dropdown lists the places.
 
 ### Rollback
 
-Restoring the backup reverts every meeting edit made since the backup was taken.
+**Only the migration** (server and web stay): restore the backup taken right before it.
+This reverts every meeting edit made since that backup.
 
 ```sh
 ssh root@turing 'bash -s' <<'EOF'
@@ -100,5 +139,21 @@ docker exec qa-db sh -c 'mongosh --quiet --port 27030 -u root -p "$MONGODB_ROOT_
 EOF
 ```
 
-A server rollback to a version before the places feature additionally needs this restore:
-older servers cannot read meetings without a location.
+**The whole feature** (back to the server and web from before the deploy): older servers
+cannot read meetings without a location, so restore the meetings of step 0 (this reverts
+every meeting edit since the deploy) and start the tagged images. The `places` collection
+can stay: the old server never reads it, and a later redeploy finds the places again. The
+compose file uses `:latest`, so retag before recreating:
+
+```sh
+ssh root@turing 'bash -s' <<'EOF'
+set -euo pipefail
+docker cp /mnt/beta/backup/meetings-before-places-deploy.gz qa-db:/tmp/meetings-before-places-deploy.gz
+docker exec qa-db sh -c 'mongorestore --quiet --port 27030 -u root -p "$MONGODB_ROOT_PASSWORD" --authenticationDatabase admin --nsInclude=queer-augsburg.meetings --drop --gzip --archive=/tmp/meetings-before-places-deploy.gz'
+docker exec qa-db rm /tmp/meetings-before-places-deploy.gz
+docker tag firstdorsal/queer-augsburg-server:pre-places firstdorsal/queer-augsburg-server:latest
+docker tag firstdorsal/queer-augsburg-web:pre-places firstdorsal/queer-augsburg-web:latest
+cd /mnt/alpha/manifest/server/public/queer-augsburg/deployment/results
+docker compose -p results up -d --no-deps qa-server qa-web
+EOF
+```

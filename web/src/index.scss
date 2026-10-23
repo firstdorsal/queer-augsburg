@@ -34,6 +34,21 @@ $maxWidth: 1200px;
     }
 }
 
+// Status colors with WCAG AA contrast on the rsuite modal surface (measured 2026-10-21:
+// dark #292d33, light #fff). rsuite's own --rs-state-error is only 3.9:1 (dark) and
+// 3.7:1 (light) for text. Text needs 4.5:1, icons 3:1.
+.rs-theme-dark {
+    --color-error-text: var(--rs-red-300); // 5.76:1
+    --color-warning-text: var(--rs-orange-300); // 8.20:1
+    --color-success-icon: var(--rs-green-500); // 5.18:1
+}
+
+.rs-theme-light {
+    --color-error-text: var(--rs-red-700); // 5.02:1
+    --color-warning-text: var(--rs-orange-900); // 5.59:1
+    --color-success-icon: var(--rs-green-700); // 3.39:1
+}
+
 em {
     font-variation-settings: "slnt" -10;
 }
@@ -122,6 +137,10 @@ body,
     bottom: 20px;
     right: 20px;
     z-index: 10;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
 }
 
 .Wir,

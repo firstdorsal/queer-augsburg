@@ -3,6 +3,7 @@ pub mod db;
 pub mod extractors;
 pub mod interossea;
 pub mod macros;
+pub mod meeting_validation;
 pub mod place_rules;
 pub mod state;
 pub mod types;
@@ -11,6 +12,7 @@ pub mod utils;
 pub mod methods {
     pub mod admin_create_member;
     pub mod confirm_send_email;
+    pub mod create_meetings;
     pub mod create_own_user;
     pub mod get_meeting_link;
     pub mod get_meetings;

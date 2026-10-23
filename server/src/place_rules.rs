@@ -8,8 +8,8 @@ use url::Url;
 use crate::types::{Meeting, MeetingStatus, OnlineMeeting, Place, User};
 
 const MAX_PLACE_NAME_LEN: usize = 200;
-const MAX_PLATFORM_LEN: usize = 50;
-const MAX_URL_LEN: usize = 2_000;
+pub const MAX_PLATFORM_LEN: usize = 50;
+pub const MAX_URL_LEN: usize = 2_000;
 
 #[derive(Debug, PartialEq, Eq, Clone, thiserror::Error)]
 pub enum PlaceError {
@@ -133,6 +133,9 @@ pub enum VenueError {
     MissingPlace,
     #[error("Der gewählte Ort existiert nicht mehr, bitte neu auswählen.")]
     UnknownPlace,
+    /// Only for new meetings: the editor keeps the place while "online" is ticked.
+    #[error("Bitte entweder einen Ort oder Online-Angaben angeben, nicht beides.")]
+    PlaceAndOnline,
     #[error("Bitte den gespeicherten Link zuerst anzeigen, bevor er öffentlich gemacht wird.")]
     HiddenLinkMadePublic,
     #[error(transparent)]

@@ -1,5 +1,6 @@
 import { useToaster } from "rsuite";
 import { Meeting } from "./apiTypes/Meeting";
+import { defaultMeetingContent } from "./meetingDefaults";
 
 export const withToasterHook = (Component: any) => {
     return (props: any) => {
@@ -18,22 +19,16 @@ export const getUtcTimeStampNow = () => {
 };
 
 export const defaultMeeting: Meeting = {
+    ...defaultMeetingContent(),
     _id: "",
     title: "",
-    description: "",
     time: getUtcTimeStampNow() as unknown as bigint,
     attendance: null,
-    authority: "",
-    age_restriction: [0],
     location: null,
     place_id: null,
     online: null,
-    price: [0],
-    trigger_warning: null,
     rating: null,
-    tags: { freeform: [], common: [], queer: ["Everyone"] },
     status: "Active",
-    accessibility: null,
     cancelled: false,
     changed: null,
     deleted_at: null
@@ -46,4 +41,3 @@ export const prefersDarkMode = () => {
         return false;
     }
 };
-

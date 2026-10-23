@@ -1,16 +1,20 @@
 import { InterosseaClient } from "@firstdorsal/interossea-client";
 import { ConfirmSendEmailResponseBody } from "./apiTypes/ConfirmSendEmailResponseBody";
+import type { CreateMeetingsErrorBody } from "./apiTypes/CreateMeetingsErrorBody";
+import type { CreateMeetingsRequestBody } from "./apiTypes/CreateMeetingsRequestBody";
+import type { CreateMeetingsResponseBody } from "./apiTypes/CreateMeetingsResponseBody";
 import type { CreatePlaceRequestBody } from "./apiTypes/CreatePlaceRequestBody";
 import type { CreatePlaceResponseBody } from "./apiTypes/CreatePlaceResponseBody";
-import type { GetPlacesResponseBody } from "./apiTypes/GetPlacesResponseBody";
-import type { MeetingLinkResponseBody } from "./apiTypes/MeetingLinkResponseBody";
-import type { Place } from "./apiTypes/Place";
 import { EmailAttachment } from "./apiTypes/EmailAttachment";
 import { GetMeetingsResponseBody } from "./apiTypes/GetMeetingsResponseBody";
+import type { GetPlacesResponseBody } from "./apiTypes/GetPlacesResponseBody";
 import { GetUsersResponseBody } from "./apiTypes/GetUsersResponseBody";
 import { Meeting } from "./apiTypes/Meeting";
+import type { MeetingLinkResponseBody } from "./apiTypes/MeetingLinkResponseBody";
 import { MeetingTypeQuery } from "./apiTypes/MeetingTypeQuery";
 import { MembershipStatus } from "./apiTypes/MembershipStatus";
+import type { NewMeeting } from "./apiTypes/NewMeeting";
+import type { Place } from "./apiTypes/Place";
 import { SendEmailPreviewResponseBody } from "./apiTypes/SendEmailPreviewResponseBody";
 import { SubmittedMember } from "./apiTypes/SubmittedMember";
 import { User } from "./apiTypes/User";
@@ -32,6 +36,18 @@ function isPwaInstalled(): boolean {
         document.referrer.includes("android-app://")
     );
 }
+
+export type CreateMeetingsResult =
+    | { readonly ok: true; readonly meetings: Meeting[] }
+    | {
+          readonly ok: false;
+          /** rejected/failed: nothing was created. unknown: some meetings may exist. */
+          readonly kind: "rejected" | "failed" | "unknown";
+          /** Zero-based index of the offending meeting, if the server named one. */
+          readonly index: number | null;
+          /** German text for the member. */
+          readonly message: string;
+      };
 
 export class QaClient {
     interosseaClient: InterosseaClient;
@@ -221,7 +237,7 @@ export class QaClient {
                     const startIdx = from_index;
                     const endIdx = limit === null ? undefined : from_index + limit;
                     const paginatedMeetings = cached.meetings
-                        .filter(m => !m.deleted_at)
+                        .filter((m) => !m.deleted_at)
                         .slice(startIdx, endIdx);
 
                     console.warn("Using cached meetings (offline):", error);
@@ -252,9 +268,10 @@ export class QaClient {
 
                 if (deltaResponse.meetings.length > 0) {
                     // Merge updates into cache
-                    const serverLastUpdated = deltaResponse.last_updated !== null
-                        ? Number(deltaResponse.last_updated)
-                        : null;
+                    const serverLastUpdated =
+                        deltaResponse.last_updated !== null
+                            ? Number(deltaResponse.last_updated)
+                            : null;
                     updatedCache = this.mergeDeltaUpdates(
                         cached,
                         deltaResponse.meetings,
@@ -270,9 +287,10 @@ export class QaClient {
                 } else if (deltaResponse.selected_total_count !== cached.total_count) {
                     // Count mismatch but no updates - something's wrong, do full refresh
                     const fullResponse = await this.fetchMeetings(meeting_type);
-                    const fullLastUpdated = fullResponse.last_updated !== null
-                        ? Number(fullResponse.last_updated)
-                        : null;
+                    const fullLastUpdated =
+                        fullResponse.last_updated !== null
+                            ? Number(fullResponse.last_updated)
+                            : null;
                     this.setCachedMeetings(
                         meeting_type,
                         fullResponse.meetings,
@@ -293,7 +311,7 @@ export class QaClient {
                 const startIdx = from_index;
                 const endIdx = limit === null ? undefined : from_index + limit;
                 const paginatedMeetings = updatedCache.meetings
-                    .filter(m => !m.deleted_at)
+                    .filter((m) => !m.deleted_at)
                     .slice(startIdx, endIdx);
 
                 return {
@@ -304,9 +322,8 @@ export class QaClient {
             } else {
                 // No cache or no last_updated - fetch all meetings
                 const response = await this.fetchMeetings(meeting_type);
-                const responseLastUpdated = response.last_updated !== null
-                    ? Number(response.last_updated)
-                    : null;
+                const responseLastUpdated =
+                    response.last_updated !== null ? Number(response.last_updated) : null;
                 this.setCachedMeetings(
                     meeting_type,
                     response.meetings,
@@ -318,7 +335,7 @@ export class QaClient {
                 const startIdx = from_index;
                 const endIdx = limit === null ? undefined : from_index + limit;
                 const paginatedMeetings = response.meetings
-                    .filter(m => !m.deleted_at)
+                    .filter((m) => !m.deleted_at)
                     .slice(startIdx, endIdx);
 
                 return {
@@ -333,7 +350,7 @@ export class QaClient {
                 const startIdx = from_index;
                 const endIdx = limit === null ? undefined : from_index + limit;
                 const paginatedMeetings = cached.meetings
-                    .filter(m => !m.deleted_at)
+                    .filter((m) => !m.deleted_at)
                     .slice(startIdx, endIdx);
 
                 console.warn("Using cached meetings (offline/error):", error);
@@ -446,6 +463,78 @@ export class QaClient {
             console.error(`POST ${url} failed:`, error);
             return { ok: false, message: "Keine oder ungültige Antwort vom Server." };
         }
+    };
+
+    /**
+     * Creates meetings in one batch. `rejected` and `failed` guarantee that nothing was
+     * created; after `unknown` some meetings may exist, so the list must be checked.
+     */
+    create_meetings = async (meetings: NewMeeting[]): Promise<CreateMeetingsResult> => {
+        const body: CreateMeetingsRequestBody = { meetings };
+        let res: Response;
+        try {
+            res = await fetch(`${this.qaEndpoint}/api/create_meetings/`, {
+                method: "POST",
+                credentials: "include",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(body)
+            });
+        } catch (error) {
+            console.error("create_meetings request failed:", error);
+            return {
+                ok: false,
+                kind: "unknown",
+                index: null,
+                message:
+                    "Keine Antwort vom Server. Es ist unklar, ob die Treffen angelegt wurden, bitte die Liste prüfen."
+            };
+        }
+        // Any write may have happened from here on, so the cache must go even on errors.
+        this.invalidateMeetingsCache();
+
+        if (res.ok) {
+            try {
+                const created: CreateMeetingsResponseBody = await res.json();
+                return { ok: true, meetings: created.meetings };
+            } catch (error) {
+                console.error("create_meetings returned an unreadable body:", error);
+                return {
+                    ok: false,
+                    kind: "unknown",
+                    index: null,
+                    message: "Unerwartete Antwort vom Server, bitte die Liste prüfen."
+                };
+            }
+        }
+
+        if (res.status === 401 || res.status === 403 || res.status === 404) {
+            return {
+                ok: false,
+                kind: "rejected",
+                index: null,
+                message: "Keine Berechtigung, Treffen anzulegen. Bitte neu anmelden."
+            };
+        }
+        const errorBody = await res
+            .json()
+            .then((value: CreateMeetingsErrorBody) => value)
+            .catch(() => null);
+        if (errorBody === null) {
+            // E.g. a proxy error page: the request may or may not have reached the server.
+            return {
+                ok: false,
+                kind: "unknown",
+                index: null,
+                message: `Serverfehler (HTTP ${res.status}). Es ist unklar, ob die Treffen angelegt wurden, bitte die Liste prüfen.`
+            };
+        }
+        const kind =
+            errorBody.code === "PartiallyCreated"
+                ? "unknown"
+                : errorBody.code === "Internal"
+                  ? "failed"
+                  : "rejected";
+        return { ok: false, kind, index: errorBody.index, message: errorBody.message };
     };
 
     delete_meeting = async (meeting: Meeting) => {
