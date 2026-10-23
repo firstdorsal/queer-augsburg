@@ -11,7 +11,7 @@ export const withToasterHook = (Component: any) => {
 };
 
 export const getUtcTimeStampNow = () => {
-    // get the next day at 19:00 in utc seconds
+    // Tomorrow at 19:00 local time, as a UTC timestamp in milliseconds.
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     tomorrow.setHours(19, 0, 0, 0);
@@ -22,7 +22,7 @@ export const defaultMeeting: Meeting = {
     ...defaultMeetingContent(),
     _id: "",
     title: "",
-    time: getUtcTimeStampNow() as unknown as bigint,
+    time: getUtcTimeStampNow(),
     attendance: null,
     location: null,
     place_id: null,

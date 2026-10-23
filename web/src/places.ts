@@ -46,9 +46,11 @@ export const placeNameKey = (name: string): string =>
         .join(" ")
         .toLowerCase();
 
-/** Additionally ignores accents and ß/ss, because AI models often drop or change them. */
-const foldPlaceName = (name: string): string =>
-    placeNameKey(name).normalize("NFD").replace(/\p{M}/gu, "").replace(/ß/g, "ss");
+/** Without accents and with ss for ß, because AI models often drop or change them. */
+export const foldAccents = (text: string): string =>
+    text.normalize("NFKD").replace(/\p{M}/gu, "").replace(/ß/g, "ss");
+
+const foldPlaceName = (name: string): string => foldAccents(placeNameKey(name));
 
 /** The stored place with the same name (ignoring case, spacing and apostrophe style). */
 export const findPlaceByName = (places: readonly Place[], name: string): Place | null => {

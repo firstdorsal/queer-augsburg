@@ -5,16 +5,21 @@
 // one in the dialog.
 
 import type { CommonMeetingTag } from "./apiTypes/CommonMeetingTag";
-import type { MeetingStatus } from "./apiTypes/MeetingStatus";
+import type { Meeting } from "./apiTypes/Meeting";
 import type { NewMeeting } from "./apiTypes/NewMeeting";
 import type { NewOnlineMeeting } from "./apiTypes/NewOnlineMeeting";
 import type { Place } from "./apiTypes/Place";
 import type { QueerMeetingTag } from "./apiTypes/QueerMeetingTag";
+import { DAY_MS, HOUR_MS, berlinOffsetMs, pad } from "./berlinTime";
 import { defaultMeetingContent } from "./meetingDefaults";
 import {
-    MAX_PLACE_NAME_LEN,
-    MAX_PLATFORM_LEN,
-    MAX_URL_LEN,
+    MeetingCandidate,
+    comparableMeetings,
+    duplicateWarning,
+    possibleDuplicates,
+    similarMeetings
+} from "./meetingDuplicates";
+import {
     PlaceIndex,
     indexPlaces,
     isWhiteSpace,
@@ -29,19 +34,15 @@ import { commonTags, queerTags } from "./types";
 // Both test suites run server/src/meeting_validation_cases.json, so drift between the two
 // fails the tests.
 export const MAX_MEETINGS_PER_BATCH = 50;
-const MAX_TITLE_LEN = 200;
+export const MAX_TITLE_LEN = 200;
 const MAX_AUTHORITY_LEN = 200;
-const MAX_DESCRIPTION_LEN = 20_000;
+export const MAX_DESCRIPTION_LEN = 20_000;
 const MAX_NOTE_LEN = 2_000;
-const MAX_FREEFORM_TAGS = 20;
-const MAX_FREEFORM_TAG_LEN = 50;
+export const MAX_FREEFORM_TAGS = 20;
+export const MAX_FREEFORM_TAG_LEN = 50;
 const MAX_PRICE = 10_000;
 const MIN_TIME_MS = Date.UTC(2000, 0, 1);
 const MAX_TIME_MS = Date.UTC(2100, 0, 1);
-
-export const TIME_ZONE = "Europe/Berlin";
-const HOUR_MS = 3_600_000;
-const DAY_MS = 24 * HOUR_MS;
 
 export const IMPORT_FIELDS: ReadonlySet<string> = new Set([
     "title",
@@ -69,6 +70,9 @@ export type DraftFields = Omit<NewMeeting, "time" | "place_id"> & {
 };
 
 export interface BulkDraft {
+    /** Stays the same while the JSON is edited, as long as title, start and place or online
+     * details do not change; the member's "Nicht anlegen" is keyed by it. */
+    readonly id: string;
     readonly fields: DraftFields;
     /** The place name as written in the JSON ("" if there is none), also the key for the
      * member's place pick. */
@@ -89,69 +93,15 @@ export type PlacePicks = Readonly<Record<string, string>>;
 export interface BulkParseContext {
     readonly places: readonly Place[];
     readonly picks: PlacePicks;
-    readonly status: MeetingStatus;
+    /** Stored meetings (active and planned) the drafts are checked against. */
+    readonly existing: readonly Meeting[];
     /** Reference time for the past/future warnings. */
     readonly now: number;
 }
 
-// ---------------------------------------------------------------------------------------
-// Europe/Berlin wall-clock time, independent of the browser's time zone
-
-const berlinParts = new Intl.DateTimeFormat("en-US", {
-    timeZone: TIME_ZONE,
-    hourCycle: "h23",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit"
-});
-
-interface WallClock {
-    readonly year: number;
-    readonly month: number;
-    readonly day: number;
-    readonly hour: number;
-    readonly minute: number;
-    readonly second: number;
-}
-
-const berlinWallClock = (utcMs: number): WallClock => {
-    const parts = berlinParts.formatToParts(new Date(utcMs));
-    const part = (type: Intl.DateTimeFormatPartTypes) => {
-        const value = parts.find((candidate) => candidate.type === type)?.value;
-        if (value === undefined) throw new Error(`Intl.DateTimeFormat returned no ${type}`);
-        return Number(value);
-    };
-    return {
-        year: part("year"),
-        month: part("month"),
-        day: part("day"),
-        hour: part("hour"),
-        minute: part("minute"),
-        second: part("second")
-    };
-};
-
-const berlinOffsetMs = (utcMs: number): number => {
-    const wall = berlinWallClock(utcMs);
-    const wallAsUtc = Date.UTC(
-        wall.year,
-        wall.month - 1,
-        wall.day,
-        wall.hour,
-        wall.minute,
-        wall.second
-    );
-    return wallAsUtc - Math.floor(utcMs / 1000) * 1000;
-};
-
 // Europe/Berlin is always UTC+1 (CET) or UTC+2 (CEST). Checking both candidates finds
 // times that do not exist (spring gap) or exist twice (autumn overlap).
 const BERLIN_OFFSETS_MS = [HOUR_MS, 2 * HOUR_MS];
-
-const pad = (value: number) => String(value).padStart(2, "0");
 
 export type StartParseResult =
     | { readonly ok: true; readonly time: number }
@@ -389,13 +339,12 @@ const mapTags = <T extends string>(
         return [];
     });
 
-const emptyFields = (status: MeetingStatus): DraftFields => ({
+const emptyFields = (): DraftFields => ({
     ...defaultMeetingContent(),
     title: "",
     time: null,
     place: null,
-    online: null,
-    status
+    online: null
 });
 
 /** The member's pick for this name, else the stored place of that name. A pick whose place
@@ -456,8 +405,14 @@ const linkInPublicText = (fields: DraftFields): boolean => {
     );
 };
 
-const convertEntry = (entry: unknown, context: BulkParseContext, places: PlaceIndex): BulkDraft => {
-    const fields = emptyFields(context.status);
+type ParsedEntry = Omit<BulkDraft, "id">;
+
+const convertEntry = (
+    entry: unknown,
+    context: BulkParseContext,
+    places: PlaceIndex
+): ParsedEntry => {
+    const fields = emptyFields();
     if (!isRecord(entry)) {
         return { fields, placeName: "", errors: ["Eintrag ist kein JSON-Objekt."], warnings: [] };
     }
@@ -640,113 +595,64 @@ export const parseBulkJson = (text: string, context: BulkParseContext): BulkPars
     }
 
     const places = indexPlaces(context.places);
-    const drafts = entries.map((entry) => convertEntry(entry, context, places));
-    const firstIndexByKey = new Map<string, number>();
-    return {
-        ok: true,
-        drafts: drafts.map((draft, index) => {
-            const online = draft.fields.online;
-            const venue =
-                online !== null
-                    ? `online|${online.platform}|${online.url ?? ""}`
-                    : (draft.fields.place?._id ?? placeNameKey(draft.placeName));
-            const key = `${draft.fields.title.toLowerCase()}|${draft.fields.time}|${venue}`;
-            const first = firstIndexByKey.get(key);
-            if (first === undefined) {
-                firstIndexByKey.set(key, index);
-                return draft;
-            }
-            return {
-                ...draft,
-                warnings: [...draft.warnings, `Gleiches Treffen wie Treffen ${first + 1}.`]
-            };
-        })
-    };
+    const stored = comparableMeetings(context.existing);
+    const parsed = entries.map((entry) => convertEntry(entry, context, places));
+    const occurrences = new Map<string, number>();
+    const drafts: BulkDraft[] = [];
+    for (const [index, draft] of parsed.entries()) {
+        const key = draftKey(draft);
+        const occurrence = occurrences.get(key) ?? 0;
+        occurrences.set(key, occurrence + 1);
+        const candidate = draftCandidate(draft);
+        const earlier =
+            candidate === null
+                ? -1
+                : parsed.findIndex((other, otherIndex) => {
+                      const otherCandidate = otherIndex < index ? draftCandidate(other) : null;
+                      return otherCandidate !== null && similarMeetings(candidate, otherCandidate);
+                  });
+        const warnings = [
+            ...draft.warnings,
+            ...(earlier === -1
+                ? []
+                : [
+                      draftKey(parsed[earlier]) === key
+                          ? `Gleiches Treffen wie Treffen ${earlier + 1}.`
+                          : `Ähnlich wie Treffen ${earlier + 1}.`
+                  ]),
+            ...(candidate === null ? [] : possibleDuplicates(candidate, stored)).map(
+                duplicateWarning
+            )
+        ];
+        drafts.push({ ...draft, id: `${key}#${occurrence}`, warnings });
+    }
+    return { ok: true, drafts };
 };
 
-// ---------------------------------------------------------------------------------------
-// The prompt a member copies into their own AI model
-
-const promptDateFormat = new Intl.DateTimeFormat("de-DE", {
-    timeZone: TIME_ZONE,
-    weekday: "long",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric"
-});
-
-/** Place names are written by members, so they are flattened to one line and quoted to
- * keep them from acting as instructions inside the prompt. */
-const promptPlaceNames = (places: readonly Place[]): string[] => {
-    const seen = new Set<string>();
-    return places.flatMap((place) => {
-        const name = [...place.name.replace(/[\p{Cc}\p{Cf}\s]+/gu, " ").trim()]
-            .slice(0, MAX_PLACE_NAME_LEN)
-            .join("");
-        const key = placeNameKey(name);
-        if (!name || seen.has(key)) return [];
-        seen.add(key);
-        return [name];
-    });
+/** Title, start and place or online details: equal keys are the same meeting. */
+const draftKey = ({ fields, placeName }: ParsedEntry): string => {
+    const online = fields.online;
+    const venue =
+        online !== null
+            ? `online|${online.platform}|${online.url ?? ""}`
+            : (fields.place?._id ?? placeNameKey(placeName));
+    return `${fields.title.toLowerCase()}|${fields.time}|${venue}`;
 };
 
-export const buildBulkPrompt = (now: Date, places: readonly Place[]): string => {
-    const wall = berlinWallClock(now.getTime());
-    const exampleStart = `${wall.year}-${pad(wall.month)}-${pad(wall.day)}T19:00`;
-    const placeNames = promptPlaceNames(places);
-    const placeSection = placeNames.length
-        ? `Verwende wenn möglich exakt einen dieser bekannten Orte:\n${placeNames
-              .map((name) => `  - ${JSON.stringify(name)}`)
-              .join(
-                  "\n"
-              )}\n  Ist der Ort neu, schreib nur seinen Namen; ich lege ihn beim Prüfen auf der Website an.`
-        : "Schreib den Namen des Ortes; ich lege ihn beim Prüfen auf der Website an.";
-    const example = [
-        {
-            title: "Stammtisch",
-            start: exampleStart,
-            place: placeNames[0] ?? "Name des Ortes",
-            description: "Gemütliches Kennenlernen bei Getränken.",
-            common_tags: ["Meet"],
-            queer_tags: ["Everyone"]
-        },
-        {
-            title: "Online-Stammtisch",
-            start: exampleStart.replace("T19:00", "T20:00"),
-            online: { platform: "Zoom", link: "https://zoom.us/j/123456789", link_public: false },
-            common_tags: ["Meet"]
-        }
-    ];
+const draftCandidate = ({ fields, placeName }: ParsedEntry): MeetingCandidate | null =>
+    fields.time === null
+        ? null
+        : {
+              title: fields.title,
+              time: fields.time,
+              placeId: fields.place?._id ?? null,
+              placeName:
+                  fields.online !== null ? null : (fields.place?.name ?? (placeName || null)),
+              onlinePlatform: fields.online?.platform ?? null
+          };
 
-    return `Du hilfst mir, Termine für die Website von Queer Augsburg als JSON vorzubereiten.
-
-Heute ist ${promptDateFormat.format(now)}. Alle Uhrzeiten sind deutsche Ortszeit (Europe/Berlin).
-
-So gehst du vor:
-1. Ich beschreibe dir gleich einen oder mehrere Termine (als Text, Stichpunkte oder diktiert).
-2. Prüfe für jeden Termin, ob Titel, Datum, Uhrzeit und Ort (oder ob es online stattfindet) klar sind. Fehlt etwas oder ist etwas mehrdeutig, frag mich zuerst nach. Rate nichts und erfinde nichts.
-3. Wiederkehrende Termine (z. B. "die nächsten drei Dienstage") schreibst du als einzelne Einträge mit konkretem Datum aus und nennst mir die berechneten Daten zur Kontrolle.
-4. Erst wenn alles geklärt ist, antwortest du mit genau einem JSON-Codeblock im folgenden Format, ohne Kommentare im JSON.
-
-Format: ein JSON-Array mit einem Objekt pro Termin, höchstens ${MAX_MEETINGS_PER_BATCH} Termine pro Antwort (bei mehr bitte auf mehrere Antworten aufteilen). Erlaubte Felder (keine anderen):
-- "title" (Pflicht): kurzer Titel, höchstens ${MAX_TITLE_LEN} Zeichen
-- "start" (Pflicht): Beginn als Datum, Buchstabe T, Uhrzeit im 24-Stunden-Format, ohne Zeitzone, z. B. "${exampleStart}"
-- "place" (Pflicht, außer bei Online-Treffen): Name des Ortes. ${placeSection} Gib keine Adresse und keine Koordinaten an.
-- "online" (nur bei Online-Treffen, dann ohne "place"): {"platform": "Zoom", "link": "https://…", "link_public": false}. "platform" höchstens ${MAX_PLATFORM_LEN} Zeichen, "link" beginnt mit https:// oder http:// und hat höchstens ${MAX_URL_LEN} Zeichen; beide weglassen, wenn du sie nicht kennst. Der Link ist nur für angemeldete, verifizierte Mitglieder sichtbar; "link_public": true nur, wenn ich ausdrücklich sage, dass er öffentlich sein soll. Schreib den Link nie in die Beschreibung.
-- "description": Beschreibung, Markdown erlaubt, höchstens ${MAX_DESCRIPTION_LEN} Zeichen
-- "authority": Ansprechperson(en) bzw. Verantwortliche
-- "common_tags": Art der Veranstaltung, nur aus: ${commonTags.join(", ")}
-- "queer_tags": für welche Gruppen, nur aus: ${queerTags.join(", ")} (Standard: ["Everyone"])
-- "freeform_tags": eigene Tags als Liste von Texten, höchstens ${MAX_FREEFORM_TAGS} mit je höchstens ${MAX_FREEFORM_TAG_LEN} Zeichen
-- "price": ungefährer Preis in Euro als [von] oder [von, bis], Zahlen ab 0 (Standard: [0])
-- "age_restriction": Altersgrenze als [ab] oder [ab, bis], ganze Zahlen (Standard: [0])
-- "accessibility": Hinweise zur Barrierefreiheit als einzeiliger Text
-- "trigger_warning": Triggerwarnungen als einzeiliger Text
-
-Jeder Tag darf pro Termin nur einmal vorkommen. Lass optionale Felder weg, wenn du sie nicht kennst.
-
-Beispiel:
-\`\`\`json
-${JSON.stringify(example, null, 2)}
-\`\`\``;
-};
+/** The drafts to create: all except those the member left out ("Nicht anlegen"). */
+export const includedDrafts = (
+    drafts: readonly BulkDraft[],
+    leftOut: ReadonlySet<string>
+): BulkDraft[] => drafts.filter((draft) => !leftOut.has(draft.id));

@@ -1,20 +1,21 @@
 import { Component } from "preact";
-import { BsCheckCircle, BsExclamationTriangle } from "react-icons/bs";
-import { Button, Input, Message, Modal, useToaster } from "rsuite";
-import { CreateMeetingsResult } from "../api";
-import { MeetingStatus } from "../apiTypes/MeetingStatus";
+import { BsCheckCircle, BsDashCircle, BsExclamationTriangle } from "react-icons/bs";
+import { Button, Checkbox, Input, Message, Modal, useToaster } from "rsuite";
+import { CreateMeetingsResult, QaClient } from "../api";
+import { Meeting } from "../apiTypes/Meeting";
 import { NewMeeting } from "../apiTypes/NewMeeting";
 import { NewOnlineMeeting } from "../apiTypes/NewOnlineMeeting";
 import { Place } from "../apiTypes/Place";
+import { DAY_MS, formatBerlinTime } from "../berlinTime";
 import {
     BulkDraft,
     BulkParseResult,
     PlacePicks,
-    TIME_ZONE,
-    buildBulkPrompt,
+    includedDrafts,
     parseBulkJson,
     toNewMeeting
 } from "../bulkImport";
+import { buildBulkPrompt } from "../bulkPrompt";
 import {
     MEMBERS_ONLY_LINK_TEXT,
     onlineLabel,
@@ -25,13 +26,13 @@ import {
 import { G } from "../types";
 import { withToasterHook } from "../utils";
 import CreatePlaceDialog from "./CreatePlaceDialog";
-import PlaceSelect, { PlacesLoadError } from "./PlaceSelect";
+import LoadError from "./LoadError";
+import PlaceSelect from "./PlaceSelect";
 
 interface BulkImportMeetingsProps {
     readonly g: G;
-    readonly status: MeetingStatus;
     readonly onClose: () => void;
-    /** Reloads the meeting list after meetings were (possibly) created. */
+    /** Shows the (planned) meetings after some were (possibly) created. */
     readonly onCreated: () => Promise<void>;
     /** Injected by withToasterHook. */
     readonly toaster: ReturnType<typeof useToaster>;
@@ -39,13 +40,19 @@ interface BulkImportMeetingsProps {
 
 interface ParseInputs {
     readonly places: Place[];
+    /** Stored meetings from yesterday on, active and planned, for the duplicate check and
+     * the prompt. Loaded fresh, never from the offline cache. */
+    readonly existing: Meeting[];
     readonly jsonText: string;
     readonly picks: PlacePicks;
 }
 
 interface BulkImportMeetingsState extends ParseInputs {
-    readonly placesLoading: boolean;
-    readonly placesError: boolean;
+    /** Places and existing meetings are loading. */
+    readonly loading: boolean;
+    readonly loadError: boolean;
+    /** Ids of the drafts the member chose not to create ("Nicht anlegen"). */
+    readonly leftOut: ReadonlySet<string>;
     /** Derived from the ParseInputs; null while the text field is empty. */
     readonly parsed: BulkParseResult | null;
     /** Name key of the JSON place whose place controls are open although it is resolved. */
@@ -55,21 +62,11 @@ interface BulkImportMeetingsState extends ParseInputs {
     readonly creatingPlace: { readonly forName: string; readonly suggestedName: string } | null;
     readonly creating: boolean;
     readonly failure: Extract<CreateMeetingsResult, { ok: false }> | null;
+    /** Why creating stopped before anything was sent. */
+    readonly notice: string | null;
     /** Shown when the clipboard API is unavailable so the prompt can be copied by hand. */
     readonly promptFallback: string | null;
 }
-
-const STATUS_LABELS: Record<MeetingStatus, string> = { Active: "Aktiv", Planned: "Geplant" };
-
-const timeFormat = new Intl.DateTimeFormat("de-DE", {
-    timeZone: TIME_ZONE,
-    weekday: "short",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit"
-});
 
 const priceText = (price: readonly number[]) =>
     price.length === 2 && price[0] !== price[1]
@@ -90,6 +87,13 @@ const onlineText = (online: NewOnlineMeeting) =>
               : "Link öffentlich"
     }`;
 
+/** Whether re-checking gave a draft a hint it did not have when the member reviewed it. */
+const hasNewWarnings = (reviewed: readonly BulkDraft[], rechecked: readonly BulkDraft[]) =>
+    rechecked.some((draft) => {
+        const before = reviewed.find((candidate) => candidate.id === draft.id);
+        return !before || draft.warnings.some((warning) => !before.warnings.includes(warning));
+    });
+
 class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMeetingsState> {
     private unmounted = false;
     /** Synchronous guard: state updates are async, so a fast double click could pass `creating`. */
@@ -99,8 +103,10 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
         super(props);
         this.state = {
             places: [],
-            placesLoading: true,
-            placesError: false,
+            existing: [],
+            loading: true,
+            loadError: false,
+            leftOut: new Set(),
             jsonText: "",
             picks: {},
             parsed: null,
@@ -108,33 +114,46 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
             creatingPlace: null,
             creating: false,
             failure: null,
+            notice: null,
             promptFallback: null
         };
     }
 
     componentDidMount = () => {
-        this.loadPlaces();
+        this.load();
     };
 
-    loadPlaces = async () => {
+    /** Meetings from yesterday on: the prompt lists them, the drafts are compared with
+     * them (older drafts get the "in der Vergangenheit" hint anyway). */
+    fetchExisting = async (qaClient: QaClient): Promise<Meeting[]> => {
+        const from = Date.now() - DAY_MS;
+        const [active, planned] = await Promise.all([
+            qaClient.get_upcoming_meetings("Active", from),
+            qaClient.get_upcoming_meetings("Planned", from)
+        ]);
+        return [...active, ...planned];
+    };
+
+    load = async () => {
         const qaClient = this.props.g.qaClient;
         if (!qaClient) {
             console.error("Bulk import without an API client");
-            this.setState({ placesLoading: false, placesError: true });
+            this.setState({ loading: false, loadError: true });
             return;
         }
-        this.setState({ placesLoading: true, placesError: false });
-        let places: Place[];
+        this.setState({ loading: true, loadError: false });
         try {
-            places = await qaClient.get_places();
+            const [places, existing] = await Promise.all([
+                qaClient.get_places(),
+                this.fetchExisting(qaClient)
+            ]);
+            if (this.unmounted) return;
+            this.setState({ loading: false });
+            this.updateInputs({ places, existing });
         } catch (error) {
-            console.error("Loading places failed:", error);
-            if (!this.unmounted) this.setState({ placesLoading: false, placesError: true });
-            return;
+            console.error("Loading places and meetings failed:", error);
+            if (!this.unmounted) this.setState({ loading: false, loadError: true });
         }
-        if (this.unmounted) return;
-        this.setState({ placesLoading: false });
-        this.updateInputs({ places });
     };
 
     componentWillUnmount = () => {
@@ -152,11 +171,11 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                 ? parseBulkJson(next.jsonText, {
                       places: next.places,
                       picks: next.picks,
-                      status: this.props.status,
+                      existing: next.existing,
                       now: Date.now()
                   })
                 : null;
-            return { ...change, parsed, failure: null };
+            return { ...change, parsed, failure: null, notice: null };
         });
     };
 
@@ -185,8 +204,24 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
         if (!this.state.creating) this.props.onClose();
     };
 
-    copyPrompt = async () => {
-        const prompt = buildBulkPrompt(new Date(), this.state.places);
+    setLeftOut = (draftId: string, leaveOut: boolean) => {
+        this.setState((state) => {
+            const leftOut = new Set(state.leftOut);
+            if (leaveOut) leftOut.add(draftId);
+            else leftOut.delete(draftId);
+            return { leftOut, failure: null };
+        });
+    };
+
+    drafts = (): BulkDraft[] => (this.state.parsed?.ok ? this.state.parsed.drafts : []);
+
+    copyPrompt = async (qaClient: QaClient) => {
+        const prompt = buildBulkPrompt({
+            now: new Date(),
+            places: this.state.places,
+            existing: this.state.existing,
+            calendarUrl: qaClient.icalFeedUrl()
+        });
         try {
             await navigator.clipboard.writeText(prompt);
             this.setState({ promptFallback: null });
@@ -204,22 +239,45 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
 
     create = async () => {
         const qaClient = this.props.g.qaClient;
-        const drafts = this.state.parsed?.ok ? this.state.parsed.drafts : [];
-        const meetings = drafts.map(toNewMeeting);
-        if (
-            !qaClient ||
-            this.createInFlight ||
-            meetings.length === 0 ||
-            meetings.some((meeting) => meeting === null)
-        ) {
+        const checked = includedDrafts(this.drafts(), this.state.leftOut);
+        const meetings = checked.map(toNewMeeting);
+        if (!qaClient || this.createInFlight || meetings.length === 0) return;
+        const ready = meetings.filter((meeting): meeting is NewMeeting => meeting !== null);
+        if (ready.length !== meetings.length) return;
+        this.createInFlight = true;
+        this.setState({ creating: true, failure: null, notice: null });
+
+        // Another editor may have added meetings since the dialog was opened: check again.
+        const existing = await this.refreshExisting(qaClient);
+        if (existing === null) {
+            this.stopCreating(
+                "Die bestehenden Termine konnten nicht geladen werden, deshalb wurde nichts angelegt. Bitte erneut versuchen."
+            );
             return;
         }
-        this.createInFlight = true;
-        this.setState({ creating: true, failure: null });
+        const recheck = parseBulkJson(this.state.jsonText, {
+            places: this.state.places,
+            picks: this.state.picks,
+            existing,
+            now: Date.now()
+        });
+        if (
+            !recheck.ok ||
+            hasNewWarnings(checked, includedDrafts(recheck.drafts, this.state.leftOut))
+        ) {
+            this.stopCreating(
+                "Inzwischen gibt es neue Termine, die passen könnten. Es wurde nichts angelegt: bitte die Hinweise prüfen und dann erneut anlegen."
+            );
+            return;
+        }
 
-        const result = await qaClient.create_meetings(meetings as NewMeeting[]);
+        const result = await qaClient.create_meetings(ready);
         if (!result.ok) {
-            if (result.kind === "unknown") await this.reloadAfterCreate();
+            if (result.kind === "unknown") {
+                // Some may exist now: show them in the hints and the list.
+                await this.refreshExisting(qaClient);
+                await this.reloadAfterCreate();
+            }
             this.createInFlight = false;
             if (!this.unmounted) this.setState({ creating: false, failure: result });
             return;
@@ -227,14 +285,32 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
 
         this.props.toaster.push(
             <Message showIcon type="success" closable>
-                {meetingCountText(result.meetings.length)} angelegt!
+                {meetingCountText(result.meetings.length)} als „Geplant“ angelegt: bitte unter
+                „Geplante Treffen“ prüfen und einzeln auf „Aktiv“ stellen.
             </Message>,
-            { placement: "bottomCenter", duration: 5000 }
+            { placement: "bottomCenter", duration: 8000 }
         );
         await this.reloadAfterCreate();
         this.createInFlight = false;
         // Reset first: close() refuses to close while creating.
         this.setState({ creating: false }, this.props.onClose);
+    };
+
+    /** Loads the stored meetings again and re-checks the drafts; null if that failed. */
+    refreshExisting = async (qaClient: QaClient): Promise<Meeting[] | null> => {
+        try {
+            const existing = await this.fetchExisting(qaClient);
+            if (!this.unmounted) this.updateInputs({ existing });
+            return existing;
+        } catch (error) {
+            console.error("Reloading the stored meetings failed:", error);
+            return null;
+        }
+    };
+
+    stopCreating = (notice: string) => {
+        this.createInFlight = false;
+        if (!this.unmounted) this.setState({ creating: false, notice });
     };
 
     reloadAfterCreate = async () => {
@@ -291,6 +367,8 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
     renderDraft = (draft: BulkDraft, index: number) => {
         const fields = draft.fields;
         const number = index + 1;
+        const leftOut = this.state.leftOut.has(draft.id);
+        const dimmed = leftOut ? "opacity-60" : "";
         const tags = [...fields.tags.common, ...fields.tags.queer, ...fields.tags.freeform];
         const details = [
             fields.authority && `Ansprechperson: ${fields.authority}`,
@@ -303,11 +381,15 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
 
         return (
             <li
-                key={index}
+                key={draft.id}
                 className="border-b border-[var(--background-color-2)] py-3 last:border-b-0"
             >
-                <div className="flex items-baseline gap-2">
-                    {draft.errors.length === 0 ? (
+                <div className={`flex items-baseline gap-2 ${dimmed}`}>
+                    {leftOut ? (
+                        <span className="shrink-0" role="img" aria-label="Wird nicht angelegt">
+                            <BsDashCircle />
+                        </span>
+                    ) : draft.errors.length === 0 ? (
                         <span
                             className="shrink-0 text-[var(--color-success-icon)]"
                             role="img"
@@ -327,11 +409,12 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                     <span className="min-w-0 break-words">
                         <span className="text-sm opacity-80">Treffen {number}: </span>
                         <b>{fields.title || "(ohne Titel)"}</b>
+                        {leftOut && <span className="text-sm"> (wird nicht angelegt)</span>}
                     </span>
                 </div>
-                <div className="pl-6">
+                <div className={`pl-6 ${dimmed}`}>
                     <div className="text-sm opacity-80">
-                        {fields.time === null ? "Zeit fehlt" : timeFormat.format(fields.time)}
+                        {fields.time === null ? "Zeit fehlt" : formatBerlinTime(fields.time)}
                         {" · "}
                         <span className="break-words">
                             {fields.online !== null
@@ -363,17 +446,33 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                             ))}
                         </ul>
                     )}
-                    {this.renderPlaceControls(draft, number)}
+                </div>
+                {/* Outside the dimmed block, so the controls stay readable. */}
+                <div className="pl-6">
+                    {!leftOut && this.renderPlaceControls(draft, number)}
+                    <div>
+                        {/* -ml-2.5 aligns rsuite's padded checkbox with the text above. */}
+                        <Checkbox
+                            className="-ml-2.5"
+                            checked={leftOut}
+                            onChange={(_value, checked) => this.setLeftOut(draft.id, checked)}
+                        >
+                            Nicht anlegen
+                        </Checkbox>
+                    </div>
                 </div>
             </li>
         );
     };
 
     render = () => {
-        const { parsed, creating, failure, creatingPlace, jsonText } = this.state;
-        const drafts = parsed?.ok ? parsed.drafts : [];
-        const readyCount = drafts.filter((draft) => draft.errors.length === 0).length;
-        const ready = drafts.length > 0 && readyCount === drafts.length;
+        const { parsed, creating, failure, notice, creatingPlace, jsonText } = this.state;
+        const qaClient = this.props.g.qaClient;
+        const drafts = this.drafts();
+        const included = includedDrafts(drafts, this.state.leftOut);
+        const readyCount = included.filter((draft) => draft.errors.length === 0).length;
+        const ready = included.length > 0 && readyCount === included.length;
+        const leftOutCount = drafts.length - included.length;
         // Unsaved pasted JSON must not be lost to a stray backdrop click or Esc.
         const keepOpen = creating || jsonText.trim() !== "";
 
@@ -390,21 +489,26 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                     </Modal.Header>
                     <Modal.Body>
                         <p className="mb-2 text-sm opacity-80">
-                            Die Treffen werden mit dem Status „{STATUS_LABELS[this.props.status]}“
-                            angelegt.
+                            Die Treffen werden als „Geplant“ angelegt und sind erst öffentlich, wenn
+                            du sie unter „Geplante Treffen“ einzeln auf „Aktiv“ stellst.
                         </p>
                         <p className="mb-2">
                             <b>1.</b> Kopiere den Prompt und füge ihn zusammen mit deiner
                             Beschreibung der Termine in ein KI-Modell deiner Wahl ein. Die KI fragt
-                            nach, wenn etwas fehlt, und antwortet am Ende mit JSON.
+                            nach, wenn etwas fehlt, und antwortet am Ende mit JSON. Damit sie
+                            doppelte Termine erkennt, enthält der Prompt Titel, Zeit und Ort der
+                            nächsten Termine, auch der geplanten.
                         </p>
-                        {this.state.placesError ? (
-                            <PlacesLoadError onRetry={this.loadPlaces} />
+                        {this.state.loadError || !qaClient ? (
+                            <LoadError
+                                message="Die Orte und Treffen konnten nicht geladen werden."
+                                onRetry={this.load}
+                            />
                         ) : (
                             <Button
                                 appearance="primary"
-                                onClick={this.copyPrompt}
-                                loading={this.state.placesLoading}
+                                onClick={() => this.copyPrompt(qaClient)}
+                                loading={this.state.loading}
                             >
                                 Prompt kopieren
                             </Button>
@@ -432,9 +536,7 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                             rows={8}
                             value={jsonText}
                             onChange={(value: string) => this.updateInputs({ jsonText: value })}
-                            disabled={
-                                this.state.placesLoading || this.state.placesError || creating
-                            }
+                            disabled={this.state.loading || this.state.loadError || creating}
                             placeholder='[{ "title": "Stammtisch", "start": "2026-10-27T19:00", "place": "…" }]'
                             aria-label="JSON mit Treffen"
                         />
@@ -447,12 +549,18 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                             <>
                                 <p className="mb-0 mt-5" aria-live="polite">
                                     <b>3.</b> Prüfen: {readyCount} von{" "}
-                                    {meetingCountText(drafts.length)} bereit
+                                    {meetingCountText(included.length)} bereit
+                                    {leftOutCount > 0 && `, ${leftOutCount} nicht angelegt`}
                                 </p>
                                 <ul className="m-0 list-none p-0">
                                     {drafts.map(this.renderDraft)}
                                 </ul>
                             </>
+                        )}
+                        {notice !== null && (
+                            <Message showIcon type="warning" className="mt-3">
+                                {notice}
+                            </Message>
                         )}
                         {failure !== null && (
                             <Message
@@ -465,9 +573,9 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                                     : `Es wurde nichts angelegt: ${failure.message}`}
                             </Message>
                         )}
-                        {creatingPlace !== null && this.props.g.qaClient && (
+                        {creatingPlace !== null && qaClient && (
                             <CreatePlaceDialog
-                                qaClient={this.props.g.qaClient}
+                                qaClient={qaClient}
                                 places={this.state.places}
                                 initialName={creatingPlace.suggestedName}
                                 onDone={(place, existed) =>
@@ -484,8 +592,8 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                             disabled={!ready}
                             loading={creating}
                         >
-                            {drafts.length > 0
-                                ? `${meetingCountText(drafts.length)} anlegen`
+                            {included.length > 0
+                                ? `${meetingCountText(included.length)} anlegen`
                                 : "Treffen anlegen"}
                         </Button>
                         <Button onClick={this.close} appearance="subtle" disabled={creating}>

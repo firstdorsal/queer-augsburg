@@ -14,6 +14,7 @@ test-server:
     rules:
         - changes:
             - server/**/*
+            - web/src/apiTypes/**/*
             - .gitlab-ci.yml
     script:
         - cd server

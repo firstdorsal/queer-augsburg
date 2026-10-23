@@ -27,7 +27,8 @@ const MAX_INDEX: i64 = 1_000_000;
         ("t" = String, Query, description = "Meeting type: 'Active' or 'Planned'"),
         ("l" = Option<i64>, Query, description = "Limit number of results (max 1000)"),
         ("i" = Option<i64>, Query, description = "From index (pagination offset)"),
-        ("since" = Option<i64>, Query, description = "Only return meetings updated/deleted since this timestamp (ms). Used for delta sync.")
+        ("since" = Option<i64>, Query, description = "Only return meetings updated/deleted since this timestamp (ms). Used for delta sync."),
+        ("from" = Option<i64>, Query, description = "Only return meetings starting at or after this timestamp (ms); the total count then counts only those. Not combinable with `since`.")
     ),
     responses(
         (status = 200, description = "List of meetings", body = GetMeetingsResponseBody),
@@ -61,16 +62,21 @@ pub async fn get_meetings(
     };
 
     // Validate since parameter (delta sync available to all users)
-    let since = match query.since {
-        Some(s) if s < 0 => {
-            return (StatusCode::BAD_REQUEST, "Timestamp cannot be negative").into_response();
-        }
-        Some(s) if s > MAX_TIMESTAMP => {
-            return (StatusCode::BAD_REQUEST, "Timestamp too far in future").into_response();
-        }
-        Some(s) => Some(s),
-        None => None,
+    let since = match check_timestamp(query.since) {
+        Ok(since) => since,
+        Err(message) => return (StatusCode::BAD_REQUEST, message).into_response(),
     };
+    let starting_from = match check_timestamp(query.from) {
+        Ok(from) => from,
+        Err(message) => return (StatusCode::BAD_REQUEST, message).into_response(),
+    };
+    if since.is_some() && starting_from.is_some() {
+        return (
+            StatusCode::BAD_REQUEST,
+            "'from' cannot be combined with 'since'",
+        )
+            .into_response();
+    }
 
     let meeting_type: MeetingTypeQuery = match query.t.as_str() {
         "Planned" => MeetingTypeQuery::Planned,
@@ -111,7 +117,7 @@ pub async fn get_meetings(
 
     let (meetings, selected_total_count) = match state
         .db
-        .get_meetings(meeting_type, since, include_deleted)
+        .get_meetings(meeting_type, since, include_deleted, starting_from)
         .await
     {
         Ok(result) => result,
@@ -221,4 +227,30 @@ pub async fn get_meetings(
     };
 
     Json(meetings_response).into_response()
+}
+
+/// A timestamp query parameter (ms) within a sane range.
+fn check_timestamp(value: Option<i64>) -> Result<Option<i64>, &'static str> {
+    match value {
+        Some(t) if t < 0 => Err("Timestamp cannot be negative"),
+        Some(t) if t > MAX_TIMESTAMP => Err("Timestamp too far in future"),
+        other => Ok(other),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn timestamps_are_checked() {
+        assert_eq!(check_timestamp(None), Ok(None));
+        assert_eq!(check_timestamp(Some(0)), Ok(Some(0)));
+        assert_eq!(
+            check_timestamp(Some(MAX_TIMESTAMP)),
+            Ok(Some(MAX_TIMESTAMP))
+        );
+        assert!(check_timestamp(Some(-1)).is_err());
+        assert!(check_timestamp(Some(MAX_TIMESTAMP + 1)).is_err());
+    }
 }

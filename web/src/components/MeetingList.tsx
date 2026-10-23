@@ -21,6 +21,8 @@ interface MeetingListProps {
     readonly type: MeetingTypeQuery;
     readonly g: G;
     readonly qaClient: QaClient;
+    /** Switches the page to the planned meetings (where bulk-created meetings land). */
+    readonly showPlanned: () => void;
 }
 interface MeetingListState {
     readonly meetings: Meeting[];
@@ -53,8 +55,22 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
             prevProps.g.meetingId !== this.props.g.meetingId ||
             prevProps.type !== this.props.type
         ) {
-            await this.loadData();
+            try {
+                await this.loadData();
+            } catch (error) {
+                // The list keeps its previous content; nothing else can be done here.
+                console.error("Loading the meeting list failed:", error);
+            }
         }
+    };
+
+    /** Bulk-created meetings are planned: show that list, where they are reviewed. */
+    onBulkCreated = async () => {
+        if (this.props.type !== "Planned") {
+            this.props.showPlanned();
+            return;
+        }
+        await this.reloadMeetingList();
     };
 
     loadData = async () => {
@@ -208,11 +224,10 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
                         {this.state.bulkImport && (
                             <BulkImportMeetings
                                 g={this.props.g}
-                                status={this.props.type}
                                 onClose={() => {
                                     this.setState({ bulkImport: false });
                                 }}
-                                onCreated={() => this.reloadMeetingList()}
+                                onCreated={this.onBulkCreated}
                             />
                         )}
                         {this.state.newMeeting && (

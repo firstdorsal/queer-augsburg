@@ -31,7 +31,7 @@ pub async fn ical_feed(
 
     let meetings = match state
         .db
-        .get_meetings(crate::types::MeetingTypeQuery::Active, None, false)
+        .get_meetings(crate::types::MeetingTypeQuery::Active, None, false, None)
         .await
     {
         Ok((meetings, _)) => meetings,

@@ -5,6 +5,10 @@ use serde_valid::Validate;
 use ts_rs::TS;
 use utoipa::ToSchema;
 
+// Timestamps are `i64` milliseconds. ts-rs exports `i64` as `bigint`, but serde writes a
+// plain JSON number and `JSON.parse` returns a `number`, so every such field carries
+// `#[ts(type = "number")]` (or `"number | null"`).
+
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
@@ -13,6 +17,8 @@ pub struct Meeting {
     pub title: String,
     pub authority: String,
     pub age_restriction: Vec<u8>,
+    /// Start time as UTC timestamp in milliseconds; `None` for some old imported meetings.
+    #[ts(type = "number | null")]
     pub time: Option<i64>,
     /// Copy of the place (`place_id`) for display and the iCal feed; `None` for online meetings.
     pub location: Option<MeetingLocation>,
@@ -33,6 +39,7 @@ pub struct Meeting {
     pub changed: Option<Vec<ChangedMeeting>>,
     pub cancelled: Option<bool>,
     /// Timestamp (ms) when the meeting was soft-deleted. None means not deleted.
+    #[ts(type = "number | null")]
     pub deleted_at: Option<i64>,
 }
 
@@ -41,6 +48,8 @@ pub struct Meeting {
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
 pub struct ChangedMeeting {
     pub by: String,
+    /// UTC timestamp in milliseconds. The first entry is the creation.
+    #[ts(type = "number")]
     pub at: i64,
 }
 
@@ -306,7 +315,9 @@ pub struct InternalMember {
     pub address: Address,
     pub email: String,
     pub phone: Option<String>,
+    #[ts(type = "number")]
     pub start_time_ms: i64,
+    #[ts(type = "number | null")]
     pub end_time_ms: Option<i64>,
     pub status: Option<MembershipStatus>,
     pub user_notes: Option<String>,
@@ -385,8 +396,9 @@ pub struct UpdateMeetingRequestBody {
 }
 
 /// The author-supplied content of a new meeting. Server-owned fields (`_id`,
-/// `changed`, `deleted_at`, `attendance`, `rating`, `cancelled`, `location`) are
-/// deliberately absent, and sending them is rejected, so a client cannot set them.
+/// `changed`, `deleted_at`, `attendance`, `rating`, `cancelled`, `location`, `status`)
+/// are deliberately absent, and sending them is rejected, so a client cannot set them.
+/// New meetings are always `Planned`: an editor publishes each one by hand.
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
@@ -396,7 +408,6 @@ pub struct NewMeeting {
     pub authority: String,
     pub age_restriction: Vec<u8>,
     /// Start time as UTC timestamp in milliseconds.
-    // Exported as `number` because the JSON value is a plain number, not a bigint.
     #[ts(type = "number")]
     pub time: i64,
     /// A stored place (the server copies its name and coordinates). Exactly one of
@@ -408,7 +419,6 @@ pub struct NewMeeting {
     pub trigger_warning: Option<String>,
     pub accessibility: Option<String>,
     pub tags: MeetingTags,
-    pub status: MeetingStatus,
 }
 
 impl NewMeeting {
@@ -431,7 +441,7 @@ impl NewMeeting {
             rating: None,
             accessibility: self.accessibility,
             tags: self.tags,
-            status: self.status,
+            status: MeetingStatus::Planned,
             changed: None,
             cancelled: Some(false),
             deleted_at: None,
@@ -447,7 +457,8 @@ pub struct CreateMeetingsRequestBody {
     pub meetings: Vec<NewMeeting>,
 }
 
-/// The created meetings with their server-assigned `_id`, in request order.
+/// The created meetings with their server-assigned `_id`, in request order. All are
+/// `Planned`: not public until an editor sets them to `Active` via `update_meeting`.
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone)]
@@ -486,7 +497,9 @@ pub struct CreateMeetingsErrorBody {
 pub struct GetMeetingsResponseBody {
     pub meetings: Vec<Meeting>,
     pub selected_total_count: u32,
-    /// Timestamp (ms) of the most recent meeting update across all meetings of this type
+    /// Latest `changed[].at` or `deleted_at` (ms) of the meetings selected by the query
+    /// (all of the type, or those changed since `since`); `None` if there are none.
+    #[ts(type = "number | null")]
     pub last_updated: Option<i64>,
 }
 
@@ -615,6 +628,9 @@ pub struct GetMeetingsQuery {
     pub i: Option<i64>,
     /// Only return meetings updated/deleted since this timestamp (ms). Used for delta sync.
     pub since: Option<i64>,
+    /// Only return meetings starting at or after this timestamp (ms), e.g. the upcoming
+    /// ones for the duplicate check of the bulk import. Not combinable with `since`.
+    pub from: Option<i64>,
 }
 
 /// Query parameters for get_users endpoint
@@ -654,7 +670,6 @@ mod tests {
                 common: vec![CommonMeetingTag::Meet],
                 queer: vec![QueerMeetingTag::Everyone],
             },
-            status: MeetingStatus::Planned,
         };
 
         let meeting = new_meeting.clone().into_meeting();
@@ -681,9 +696,12 @@ mod tests {
         let json = r#"{"title":"A","authority":"","age_restriction":[0],"time":1793124000000,
             "place_id":"p1","online":null,"description":"","price":[0],
             "trigger_warning":null,"accessibility":null,
-            "tags":{"freeform":[],"common":[],"queer":[]},"status":"Active","rating":5}"#;
+            "tags":{"freeform":[],"common":[],"queer":[]},"rating":5}"#;
         let err = serde_json::from_str::<NewMeeting>(json).unwrap_err();
         assert!(err.to_string().contains("unknown field `rating`"), "{err}");
+        let with_status = json.replace(r#""rating":5"#, r#""status":"Active""#);
+        let err = serde_json::from_str::<NewMeeting>(&with_status).unwrap_err();
+        assert!(err.to_string().contains("unknown field `status`"), "{err}");
         // Coordinates never come from the client.
         let with_location = json.replace(r#","rating":5"#, "").replace(
             r#""place_id":"p1""#,

@@ -137,6 +137,27 @@ export class QaClient {
         }
     };
 
+    /** The public iCal feed (published meetings only). */
+    icalFeedUrl = (): string => `${this.qaEndpoint}/api/ical_feed/`;
+
+    /**
+     * Meetings starting at `from` (ms) or later, straight from the server: never from the
+     * offline cache, and failures are thrown. For checks that must not run on stale data,
+     * like the duplicate check of the bulk import.
+     */
+    get_upcoming_meetings = async (
+        meeting_type: MeetingTypeQuery,
+        from: number
+    ): Promise<Meeting[]> => {
+        const res = await fetch(
+            `${this.qaEndpoint}/api/get_meetings/?t=${meeting_type}&from=${Math.floor(from)}`,
+            { credentials: "include" }
+        );
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const body: GetMeetingsResponseBody = await res.json();
+        return body.meetings;
+    };
+
     /**
      * Fetch meetings from API
      */
@@ -244,7 +265,7 @@ export class QaClient {
                     return {
                         meetings: paginatedMeetings,
                         selected_total_count: cached.total_count,
-                        last_updated: cached.last_updated as unknown as bigint | null
+                        last_updated: cached.last_updated
                     };
                 }
                 throw error;
@@ -268,10 +289,7 @@ export class QaClient {
 
                 if (deltaResponse.meetings.length > 0) {
                     // Merge updates into cache
-                    const serverLastUpdated =
-                        deltaResponse.last_updated !== null
-                            ? Number(deltaResponse.last_updated)
-                            : null;
+                    const serverLastUpdated = deltaResponse.last_updated;
                     updatedCache = this.mergeDeltaUpdates(
                         cached,
                         deltaResponse.meetings,
@@ -287,10 +305,7 @@ export class QaClient {
                 } else if (deltaResponse.selected_total_count !== cached.total_count) {
                     // Count mismatch but no updates - something's wrong, do full refresh
                     const fullResponse = await this.fetchMeetings(meeting_type);
-                    const fullLastUpdated =
-                        fullResponse.last_updated !== null
-                            ? Number(fullResponse.last_updated)
-                            : null;
+                    const fullLastUpdated = fullResponse.last_updated;
                     this.setCachedMeetings(
                         meeting_type,
                         fullResponse.meetings,
@@ -317,13 +332,12 @@ export class QaClient {
                 return {
                     meetings: paginatedMeetings,
                     selected_total_count: updatedCache.total_count,
-                    last_updated: updatedCache.last_updated as unknown as bigint | null
+                    last_updated: updatedCache.last_updated
                 };
             } else {
                 // No cache or no last_updated - fetch all meetings
                 const response = await this.fetchMeetings(meeting_type);
-                const responseLastUpdated =
-                    response.last_updated !== null ? Number(response.last_updated) : null;
+                const responseLastUpdated = response.last_updated;
                 this.setCachedMeetings(
                     meeting_type,
                     response.meetings,
@@ -357,7 +371,7 @@ export class QaClient {
                 return {
                     meetings: paginatedMeetings,
                     selected_total_count: cached.total_count,
-                    last_updated: cached.last_updated as unknown as bigint | null
+                    last_updated: cached.last_updated
                 };
             }
             throw error;
@@ -486,7 +500,7 @@ export class QaClient {
                 kind: "unknown",
                 index: null,
                 message:
-                    "Keine Antwort vom Server. Es ist unklar, ob die Treffen angelegt wurden, bitte die Liste prüfen."
+                    "Keine Antwort vom Server. Es ist unklar, ob die Treffen angelegt wurden, bitte unter „Geplante Treffen“ prüfen."
             };
         }
         // Any write may have happened from here on, so the cache must go even on errors.
@@ -502,7 +516,8 @@ export class QaClient {
                     ok: false,
                     kind: "unknown",
                     index: null,
-                    message: "Unerwartete Antwort vom Server, bitte die Liste prüfen."
+                    message:
+                        "Unerwartete Antwort vom Server, bitte unter „Geplante Treffen“ prüfen."
                 };
             }
         }
@@ -525,7 +540,7 @@ export class QaClient {
                 ok: false,
                 kind: "unknown",
                 index: null,
-                message: `Serverfehler (HTTP ${res.status}). Es ist unklar, ob die Treffen angelegt wurden, bitte die Liste prüfen.`
+                message: `Serverfehler (HTTP ${res.status}). Es ist unklar, ob die Treffen angelegt wurden, bitte unter „Geplante Treffen“ prüfen.`
             };
         }
         const kind =

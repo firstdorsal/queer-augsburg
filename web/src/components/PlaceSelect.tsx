@@ -1,5 +1,5 @@
 import { useState } from "preact/hooks";
-import { Button, Message, SelectPicker } from "rsuite";
+import { Button, SelectPicker } from "rsuite";
 import { Place } from "../apiTypes/Place";
 
 interface PlaceSelectProps {
@@ -51,13 +51,3 @@ const PlaceSelect = ({ places, placeId, label, onSelect, onCreate }: PlaceSelect
 };
 
 export default PlaceSelect;
-
-/** Shown instead of a place dropdown when `GET /api/places/` failed. */
-export const PlacesLoadError = ({ onRetry }: { readonly onRetry: () => void }) => (
-    <Message showIcon type="error">
-        Die Orte konnten nicht geladen werden.{" "}
-        <Button appearance="link" size="sm" className="p-0" onClick={onRetry}>
-            Erneut versuchen
-        </Button>
-    </Message>
-);

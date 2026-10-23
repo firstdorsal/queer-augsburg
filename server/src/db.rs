@@ -105,11 +105,14 @@ impl DB {
     /// Get meetings by type.
     /// - `since`: If provided, returns only meetings updated/deleted since this timestamp (for delta sync)
     /// - `include_deleted`: If true, includes soft-deleted meetings in results
+    /// - `starting_from`: If provided (and `since` is not), only meetings starting at or after
+    ///   this timestamp; the count then counts only those
     pub async fn get_meetings(
         &self,
         meeting_type: MeetingTypeQuery,
         since: Option<i64>,
         include_deleted: bool,
+        starting_from: Option<i64>,
     ) -> anyhow::Result<(Vec<Meeting>, u32)> {
         let collection = self.db.collection::<Meeting>("meetings");
         let find_options = FindOptions::builder().sort(doc! {"time": -1}).build();
@@ -121,7 +124,7 @@ impl DB {
 
         // Build the filter
         // Note: In MongoDB, { "field": null } matches documents where field is null OR doesn't exist
-        let filter = if let Some(since_ts) = since {
+        let mut filter = if let Some(since_ts) = since {
             // Delta sync: return meetings changed or deleted since timestamp
             // This includes soft-deleted meetings so clients can remove them from cache
             doc! {
@@ -146,10 +149,14 @@ impl DB {
         };
 
         // For count, we always count non-deleted meetings only
-        let count_filter = doc! {
+        let mut count_filter = doc! {
             "status": status_str,
             "deleted_at": null
         };
+        if let (Some(from), None) = (starting_from, since) {
+            filter.insert("time", doc! { "$gte": from });
+            count_filter.insert("time", doc! { "$gte": from });
+        }
 
         let (meetings, count) = (
             collection

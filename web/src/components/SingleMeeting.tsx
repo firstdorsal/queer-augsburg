@@ -118,16 +118,21 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
     render = () => {
         const m = this.props.meeting;
 
-        const time = new Intl.DateTimeFormat(["ban", "de-de"], {
-            weekday: "short",
-            year: "2-digit",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "numeric",
-            minute: "numeric"
-        }).format(Number(m.time));
+        // Some old imported meetings have no time.
+        const time =
+            m.time === null
+                ? "Zeit unbekannt"
+                : new Intl.DateTimeFormat(["ban", "de-de"], {
+                      weekday: "short",
+                      year: "2-digit",
+                      month: "2-digit",
+                      day: "2-digit",
+                      hour: "numeric",
+                      minute: "numeric"
+                  }).format(m.time);
 
-        const isPast = Number(m.time) < Date.now();
+        const isPast = m.time !== null && m.time < Date.now();
+        const icalFeedUrl = this.props.g.qaClient?.icalFeedUrl();
 
         return (
             <div
@@ -206,34 +211,34 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                                     <Modal.Title>Datum & Uhrzeit</Modal.Title>
                                 </Modal.Header>
                                 <Modal.Body>
-                                    <Suspense fallback={<div>Loading...</div>}>
-                                        <ICalendarLink
-                                            event={{
-                                                title: m.title,
-                                                description: m.description,
-                                                location: meetingVenueText(m),
-                                                startTime: new Date(Number(m.time)).toISOString(),
-                                                endTime: new Date(
-                                                    Number(m.time) + 3600000
-                                                ).toISOString()
-                                            }}
-                                            filename={m.title + ".ics"}
-                                        >
-                                            ICS herunterladen (Zum Kalender hinzufügen)
-                                        </ICalendarLink>
-                                    </Suspense>
+                                    {m.time !== null && (
+                                        <Suspense fallback={<div>Loading...</div>}>
+                                            <ICalendarLink
+                                                event={{
+                                                    title: m.title,
+                                                    description: m.description,
+                                                    location: meetingVenueText(m),
+                                                    startTime: new Date(m.time).toISOString(),
+                                                    endTime: new Date(
+                                                        m.time + 3600000
+                                                    ).toISOString()
+                                                }}
+                                                filename={m.title + ".ics"}
+                                            >
+                                                ICS herunterladen (Zum Kalender hinzufügen)
+                                            </ICalendarLink>
+                                        </Suspense>
+                                    )}
                                     <br />
                                     <div>
                                         Oder unseren Kalender abonnieren (iCal Feed):
                                         <br />
-                                        <span style={{ userSelect: "all" }}>
-                                            https://api.queer-augsburg.de/api/ical_feed/
-                                        </span>
+                                        <span style={{ userSelect: "all" }}>{icalFeedUrl}</span>
                                         <br />
                                         <span>oder</span>
                                         <br />
                                         <span>
-                                            <a href="webcal://api.queer-augsburg.de/api/ical_feed/">
+                                            <a href={icalFeedUrl?.replace(/^https?:/, "webcal:")}>
                                                 webcal
                                             </a>
                                         </span>

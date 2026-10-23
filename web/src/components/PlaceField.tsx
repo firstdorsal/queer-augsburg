@@ -5,7 +5,8 @@ import { Place } from "../apiTypes/Place";
 import { findPlaceByName, placeChosenText, withPlace } from "../places";
 import { withToasterHook } from "../utils";
 import CreatePlaceDialog from "./CreatePlaceDialog";
-import PlaceSelect, { PlacesLoadError } from "./PlaceSelect";
+import LoadError from "./LoadError";
+import PlaceSelect from "./PlaceSelect";
 
 interface PlaceFieldProps {
     readonly qaClient: QaClient;
@@ -77,7 +78,7 @@ class PlaceField extends Component<PlaceFieldProps, PlaceFieldState> {
     render = () => {
         const { places, loadError, creatingName } = this.state;
         const { placeId, legacyName } = this.props;
-        if (loadError) return <PlacesLoadError onRetry={this.loadPlaces} />;
+        if (loadError) return <LoadError onRetry={this.loadPlaces} />;
 
         return (
             <div>

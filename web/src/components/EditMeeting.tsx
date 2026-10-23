@@ -182,7 +182,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
 
     render = () => {
         const em = this.state.editingMeeting;
-        const emTime = new Date(Number(em.time));
+        const emTime = em.time === null ? null : new Date(em.time);
         return (
             <div className="EditMeeting">
                 <Modal open={this.props.editing}>
@@ -272,7 +272,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                     return update(state, {
                                         editingMeeting: {
                                             time: {
-                                                $set: (t as unknown as bigint) ?? null
+                                                $set: t ?? null
                                             }
                                         }
                                     });
@@ -283,7 +283,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                     return update(state, {
                                         editingMeeting: {
                                             time: {
-                                                $set: (v.getTime() as unknown as bigint) ?? null
+                                                $set: v.getTime()
                                             }
                                         }
                                     });

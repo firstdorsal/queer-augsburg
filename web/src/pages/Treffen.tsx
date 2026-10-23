@@ -51,6 +51,7 @@ export default class Treffen extends Component<TreffenProps, TreffenState> {
                     g={this.props.g}
                     type={this.state.type}
                     qaClient={this.props.g.qaClient}
+                    showPlanned={() => this.setState({ type: "Planned" })}
                 />
             </div>
         );

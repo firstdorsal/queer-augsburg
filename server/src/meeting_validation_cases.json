@@ -22,7 +22,6 @@
         "Everyone"
       ]
     },
-    "status": "Active",
     "place_id": "p1",
     "online": null
   },
@@ -30,13 +29,6 @@
     {
       "name": "valid base",
       "patch": {},
-      "error": null
-    },
-    {
-      "name": "planned status is fine",
-      "patch": {
-        "status": "Planned"
-      },
       "error": null
     },
     {

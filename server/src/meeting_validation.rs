@@ -300,7 +300,7 @@ mod tests {
     use serde_json::Value;
 
     use crate::place_rules::{MAX_PLATFORM_LEN, MAX_URL_LEN};
-    use crate::types::{MeetingLocation, NewOnlineMeeting};
+    use crate::types::{MeetingLocation, MeetingStatus, NewOnlineMeeting};
 
     fn stored_place() -> Place {
         Place {
@@ -501,6 +501,9 @@ mod tests {
             })
         );
         assert_eq!(meetings[0].online, None);
+        assert!(meetings
+            .iter()
+            .all(|meeting| meeting.status == MeetingStatus::Planned));
         assert_eq!(meetings[1].place_id, None);
         assert_eq!(meetings[1].location, None);
         let stored = meetings[1].online.as_ref().unwrap();

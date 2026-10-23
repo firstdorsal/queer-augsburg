@@ -25,7 +25,8 @@ use crate::{
 /// Every meeting is validated before anything is written; if one is invalid,
 /// nothing is created. Each meeting needs either the `place_id` of a stored place
 /// (name and coordinates are copied from it into `location`) or `online` details, not
-/// both. `_id`, `changed`, `location`, `attendance`, `rating`, `cancelled` and
+/// both. All meetings are created as `Planned`: an editor publishes each one by hand
+/// (status `Active` via `update_meeting`). `_id`, `changed`, `location`, `status`, `attendance`, `rating`, `cancelled` and
 /// `deleted_at` are set by the server; sending any of them is rejected. Members-only
 /// links are not included in the response. Error bodies carry a German `message` for
 /// the member.
@@ -34,7 +35,7 @@ use crate::{
     path = "/api/create_meetings/",
     request_body = CreateMeetingsRequestBody,
     responses(
-        (status = 200, description = "All meetings were created", body = CreateMeetingsResponseBody),
+        (status = 200, description = "All meetings were created, as Planned (published later via update_meeting)", body = CreateMeetingsResponseBody),
         (status = 400, description = "Malformed JSON; nothing was created", body = CreateMeetingsErrorBody),
         (status = 401, description = "Not logged in", content_type = "text/plain"),
         (status = 403, description = "Missing UpdateMeetings capability", content_type = "text/plain"),
@@ -113,7 +114,7 @@ pub async fn create_meetings(
                 ),
                 CreateMeetingsError::RollbackFailed { .. } => (
                     CreateMeetingsErrorCode::PartiallyCreated,
-                    "Datenbankfehler, einige Treffen wurden eventuell trotzdem angelegt. Bitte die Liste prüfen, bevor du es erneut versuchst.",
+                    "Datenbankfehler, einige Treffen wurden eventuell trotzdem angelegt. Bitte unter „Geplante Treffen“ prüfen, bevor du es erneut versuchst.",
                 ),
             };
             error_response(
