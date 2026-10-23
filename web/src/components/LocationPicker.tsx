@@ -1,6 +1,13 @@
 import { Component, ComponentChildren } from "preact";
 import { FaSearch } from "react-icons/fa";
-import { Button, Input, InputGroup, Modal } from "rsuite";
+import { Button, Input, InputGroup, Message, Modal } from "rsuite";
+import {
+    NOMINATIM_MIN_INTERVAL_MS,
+    OSM_REFERRER_POLICY,
+    OSM_TILE_OPTIONS,
+    OSM_TILE_URL,
+    nominatimSearchUrl
+} from "../osm";
 
 interface LocationPickerProps {
     lat?: number;
@@ -34,12 +41,17 @@ interface LocationPickerState {
         };
     }>;
     isSearching: boolean;
+    /** The map tiles could not be loaded (e.g. blocked by OpenStreetMap). */
+    tilesFailed: boolean;
+    /** Why the last search showed no results, if it did not. */
+    searchProblem: string | null;
 }
 
 export default class LocationPicker extends Component<LocationPickerProps, LocationPickerState> {
     private mapContainer: HTMLDivElement | null = null;
     private L: any = null;
     private currentSearchController: AbortController | null = null;
+    private lastSearchAt = 0;
 
     constructor(props: LocationPickerProps) {
         super(props);
@@ -50,7 +62,9 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
             cssLoaded: false,
             searchQuery: props.initialSearchQuery ?? "",
             searchResults: [],
-            isSearching: false
+            isSearching: false,
+            tilesFailed: false,
+            searchProblem: null
         };
     }
 
@@ -125,10 +139,12 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
 
         const map = this.L.map(this.mapContainer).setView([validLat, validLon], 13);
 
-        this.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-            attribution:
-                '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
+        const tiles = this.L.tileLayer(OSM_TILE_URL, OSM_TILE_OPTIONS).addTo(map);
+        tiles.on("tileerror", () => {
+            if (this.state.tilesFailed) return;
+            console.error("OpenStreetMap tiles failed to load");
+            this.setState({ tilesFailed: true });
+        });
 
         const marker = this.L.marker([validLat, validLon], { draggable: true }).addTo(map);
 
@@ -169,12 +185,15 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
     };
 
     handleSearchChange = (value: string) => {
-        this.setState({ searchQuery: value });
+        this.setState({ searchQuery: value, searchProblem: null });
     };
 
     handleSearchSubmit = () => {
-        const { searchQuery } = this.state;
-        if (searchQuery.length > 2) {
+        const { searchQuery, isSearching } = this.state;
+        // Only explicit searches, and not faster than Nominatim allows (see osm.ts).
+        const tooSoon = Date.now() - this.lastSearchAt < NOMINATIM_MIN_INTERVAL_MS;
+        if (searchQuery.length > 2 && !isSearching && !tooSoon) {
+            this.lastSearchAt = Date.now();
             this.performSearch(searchQuery);
         }
     };
@@ -195,21 +214,21 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
         this.currentSearchController = new AbortController();
         const controller = this.currentSearchController;
 
-        this.setState({ isSearching: true });
+        this.setState({ isSearching: true, searchProblem: null });
 
         try {
-            const response = await fetch(
-                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-                    query
-                )}&format=json&limit=5&addressdetails=1&countrycodes=de`,
-                { signal: controller.signal }
-            );
+            const response = await fetch(nominatimSearchUrl(query), {
+                signal: controller.signal,
+                referrerPolicy: OSM_REFERRER_POLICY
+            });
 
             // Check if this request was aborted
             if (controller.signal.aborted) {
                 return;
             }
 
+            // A block (403) or rate limit (429) must not look like "no results".
+            if (!response.ok) throw new Error(`Nominatim answered HTTP ${response.status}`);
             const results = await response.json();
 
             // Check again if this request was aborted after getting results
@@ -227,7 +246,9 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
             if (this.currentSearchController === controller) {
                 this.setState({
                     searchResults: formattedResults,
-                    isSearching: false
+                    isSearching: false,
+                    searchProblem:
+                        formattedResults.length === 0 ? "Keine Treffer für diese Suche." : null
                 });
             }
         } catch (error) {
@@ -242,7 +263,9 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
             if (this.currentSearchController === controller) {
                 this.setState({
                     searchResults: [],
-                    isSearching: false
+                    isSearching: false,
+                    searchProblem:
+                        "Die Adresssuche ist gerade nicht erreichbar. Setze den Ort direkt auf der Karte."
                 });
             }
         }
@@ -268,7 +291,15 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
 
     render() {
         const { onClose, title, children, footer } = this.props;
-        const { leafletLoaded, cssLoaded, searchQuery, searchResults, isSearching } = this.state;
+        const {
+            leafletLoaded,
+            cssLoaded,
+            searchQuery,
+            searchResults,
+            isSearching,
+            tilesFailed,
+            searchProblem
+        } = this.state;
         const isLoading = !leafletLoaded || !cssLoaded;
 
         return (
@@ -351,6 +382,17 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
                             </div>
                         )}
                     </div>
+                    {searchProblem !== null && (
+                        <Message showIcon type="info" className="mb-3">
+                            {searchProblem}
+                        </Message>
+                    )}
+                    {tilesFailed && (
+                        <Message showIcon type="warning" className="mb-3">
+                            Die Karte konnte nicht vollständig geladen werden. Du kannst den Ort
+                            trotzdem über die Suche oder per Klick auf die Karte setzen.
+                        </Message>
+                    )}
                     {isLoading && (
                         <div
                             style={{

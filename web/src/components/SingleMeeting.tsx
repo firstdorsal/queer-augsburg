@@ -83,18 +83,16 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                     </h2>
                     <h2>
                         <a
-                            rel="no-referrer"
+                            rel="noopener noreferrer"
                             target="_blank"
-                            href={`
-                                https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=16/${lat}/${lon}
-                                    `}
+                            href={`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=16/${lat}/${lon}`}
                         >
                             OpenStreetMap
                         </a>
                     </h2>
                     <h2>
                         <a
-                            rel="no-referrer"
+                            rel="noopener noreferrer"
                             target="_blank"
                             href={`https://www.google.com/maps/place/${lat},${lon}`}
                         >
@@ -103,7 +101,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                     </h2>
                     <h2>
                         <a
-                            rel="no-referrer"
+                            rel="noopener noreferrer"
                             target="_blank"
                             href={`https://www.bing.com/maps?q=${lat},${lon}`}
                         >

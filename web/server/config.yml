@@ -16,9 +16,9 @@ headers:
 
             manifest-src 'self';
 
-            connect-src 'self'; 
+            connect-src 'self' https://nominatim.openstreetmap.org; 
 
-            img-src 'self' tile.openstreetmap.org; 
+            img-src 'self' https://tile.openstreetmap.org; 
 
             font-src 'self'; 
 

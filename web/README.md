@@ -39,6 +39,12 @@ Code: `src/bulkImport.ts` (format, parsing, validation), `src/meetingDuplicates.
 
 The "Prompt kopieren" button needs `clipboard-write=(self)` in the `permissions-policy` header: `server/config.yml` in the image, and `deployment/templates/config/qa-web.yml`, which production mounts over it. Without clipboard access the prompt is shown for manual copying.
 
+## Map and address search (OpenStreetMap)
+
+"Neuen Ort anlegen" shows OpenStreetMap tiles and searches addresses with Nominatim, directly from the browser. Their usage policies are kept in `src/osm.ts`: the canonical tile URL `https://tile.openstreetmap.org/…` (no a/b/c subdomains), visible attribution, at most one search per second and only on explicit search (no search-as-you-type), and a Referer — the site sends `Referrer-Policy: no-referrer`, so tiles and searches override it per request and send only the origin. Without the Referer, OSM blocks the tiles (403, "does not comply with the tile usage policy").
+
+Security headers live in two files that must be changed together: `server/config.yml` (baked into the image) and `deployment/templates/config/qa-web.yml` (production mounts its rendered copy, `deployment/results/config/qa-web.yml` on turing, over it; changes there need `docker compose -p results up -d --no-deps --force-recreate qa-web`). Their CSP must allow `https://tile.openstreetmap.org` in `img-src` and `https://nominatim.openstreetmap.org` in `connect-src`; `src/osm.test.ts` checks both files.
+
 ## Tests
 
 ```sh
