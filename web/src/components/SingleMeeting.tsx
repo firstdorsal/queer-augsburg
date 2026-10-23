@@ -20,7 +20,7 @@ import { CommonMeetingTag } from "../apiTypes/CommonMeetingTag";
 import { Meeting } from "../apiTypes/Meeting";
 import { MeetingLocation } from "../apiTypes/MeetingLocation";
 import { QueerMeetingTag } from "../apiTypes/QueerMeetingTag";
-import { meetingVenueText } from "../places";
+import { meetingVenue, meetingVenueText, PLACE_TO_BE_ANNOUNCED_TEXT } from "../places";
 import { G } from "../types";
 import EditMeeting from "./EditMeeting";
 import Md from "./Md";
@@ -131,6 +131,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
 
         const isPast = m.time !== null && m.time < Date.now();
         const icalFeedUrl = this.props.g.qaClient?.icalFeedUrl();
+        const venue = meetingVenue(m);
 
         return (
             <div
@@ -138,7 +139,7 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                     this.props.g.meetingId === m._id ? "ShortHighlight" : ""
                 }`}
             >
-                {m.location && this.renderLocationModal(m.location)}
+                {venue.kind === "place" && this.renderLocationModal(venue.location)}
 
                 <div className="Title">
                     {m.cancelled === true && (
@@ -154,14 +155,14 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                 </div>
                 <div className="Infos">
                     <div className="Left">
-                        {m.online ? (
+                        {venue.kind === "online" ? (
                             <OnlineMeetingInfo
                                 key={m._id}
                                 meeting={m}
-                                online={m.online}
+                                online={venue.online}
                                 g={this.props.g}
                             />
-                        ) : (
+                        ) : venue.kind === "place" ? (
                             <div
                                 className="Location flex items-center"
                                 title="Ort"
@@ -170,8 +171,16 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                                 }}
                             >
                                 <IoLocation />
+                                <span className="InfoText">{venue.location.name}</span>
+                            </div>
+                        ) : (
+                            // Nothing to show on a map.
+                            <div className="flex items-center" title="Ort">
+                                <IoLocation />
                                 <span className="InfoText">
-                                    {m.location?.name ?? "Ort unbekannt"}
+                                    {venue.kind === "toBeAnnounced"
+                                        ? PLACE_TO_BE_ANNOUNCED_TEXT
+                                        : "Ort unbekannt"}
                                 </span>
                             </div>
                         )}

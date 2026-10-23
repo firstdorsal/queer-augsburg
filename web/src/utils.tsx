@@ -27,6 +27,7 @@ export const defaultMeeting: Meeting = {
     location: null,
     place_id: null,
     online: null,
+    place_to_be_announced: false,
     rating: null,
     status: "Active",
     cancelled: false,

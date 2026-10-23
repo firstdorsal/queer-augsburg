@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install upx -y
 RUN cargo install cargo-build-deps --version 0.2.0 --locked
 
 COPY Cargo.toml Cargo.lock ./
+COPY .cargo .cargo
 RUN cargo build-deps --release
 RUN rm -f target/x86_64-unknown-linux-musl/release/deps/qa-server*
 # build

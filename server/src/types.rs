@@ -3,7 +3,8 @@ use core::fmt;
 use serde::{Deserialize, Serialize};
 use serde_valid::Validate;
 use ts_rs::TS;
-use utoipa::ToSchema;
+use url::Url;
+use utoipa::{IntoParams, ToSchema};
 
 // Timestamps are `i64` milliseconds. ts-rs exports `i64` as `bigint`, but serde writes a
 // plain JSON number and `JSON.parse` returns a `number`, so every such field carries
@@ -20,7 +21,8 @@ pub struct Meeting {
     /// Start time as UTC timestamp in milliseconds; `None` for some old imported meetings.
     #[ts(type = "number | null")]
     pub time: Option<i64>,
-    /// Copy of the place (`place_id`) for display and the iCal feed; `None` for online meetings.
+    /// Copy of the place (`place_id`) for display and the iCal feed; `None` for online
+    /// meetings and places to be announced.
     pub location: Option<MeetingLocation>,
     /// The stored place the meeting takes place at (id from `GET /api/places/`); the
     /// server derives `location` from it on save. Meetings imported before places
@@ -28,6 +30,10 @@ pub struct Meeting {
     pub place_id: Option<String>,
     /// Set for online meetings, which have no place.
     pub online: Option<OnlineMeeting>,
+    /// The place is not fixed yet ("Ort wird noch bekanntgegeben"): no place, not online.
+    /// Missing in meetings stored before it existed.
+    #[serde(default)]
+    pub place_to_be_announced: bool,
     pub description: String,
     pub price: Vec<f32>,
     pub trigger_warning: Option<String>,
@@ -124,6 +130,38 @@ impl Meeting {
         }
         self
     }
+
+    /// Where the meeting takes place. The stored fields allow combinations the save rules
+    /// refuse (`place_rules::finish_venue`); this is the one precedence every reader uses.
+    pub fn venue(&self) -> Venue<'_> {
+        if self.place_to_be_announced {
+            Venue::ToBeAnnounced
+        } else if let Some(online) = &self.online {
+            Venue::Online(online)
+        } else if let Some(location) = &self.location {
+            Venue::Place(location)
+        } else {
+            Venue::Unknown
+        }
+    }
+
+    /// The meeting's page on the website (`ui_origin` is checked in `config::read_config`).
+    pub fn page_url(&self, ui_origin: &Url) -> Url {
+        let mut url = ui_origin.clone();
+        url.set_path("/");
+        url.query_pairs_mut().clear().append_pair("m", &self._id);
+        url
+    }
+}
+
+/// See `Meeting::venue`.
+#[derive(Debug, PartialEq)]
+pub enum Venue<'a> {
+    ToBeAnnounced,
+    Online(&'a OnlineMeeting),
+    Place(&'a MeetingLocation),
+    /// Meetings imported before places and online meetings existed may have neither.
+    Unknown,
 }
 
 /// A place meetings can take place at.
@@ -410,10 +448,13 @@ pub struct NewMeeting {
     /// Start time as UTC timestamp in milliseconds.
     #[ts(type = "number")]
     pub time: i64,
-    /// A stored place (the server copies its name and coordinates). Exactly one of
-    /// `place_id` and `online` must be set.
+    /// A stored place (the server copies its name and coordinates). Exactly one venue: a
+    /// stored place (`place_id`), `online` details or `place_to_be_announced: true`.
     pub place_id: Option<String>,
     pub online: Option<NewOnlineMeeting>,
+    /// The place is not fixed yet ("Ort wird noch bekanntgegeben").
+    #[serde(default)]
+    pub place_to_be_announced: bool,
     pub description: String,
     pub price: Vec<f32>,
     pub trigger_warning: Option<String>,
@@ -434,6 +475,7 @@ impl NewMeeting {
             location: None,
             place_id: self.place_id,
             online: self.online.map(OnlineMeeting::from),
+            place_to_be_announced: self.place_to_be_announced,
             description: self.description,
             price: self.price,
             trigger_warning: self.trigger_warning,
@@ -633,6 +675,56 @@ pub struct GetMeetingsQuery {
     pub from: Option<i64>,
 }
 
+/// Query parameters of `GET /api/meetings_overview/`. Dates, unlike the millisecond
+/// timestamps of `get_meetings`.
+#[derive(Debug, Deserialize, IntoParams)]
+#[serde(deny_unknown_fields)]
+pub struct MeetingsOverviewQuery {
+    /// First day (YYYY-MM-DD, Berlin time); default today.
+    pub from: Option<String>,
+    /// Last day (YYYY-MM-DD, Berlin time, inclusive); default: no end.
+    pub to: Option<String>,
+}
+
+/// Published meetings for AI assistants and other tools (`GET /api/meetings_overview/`).
+/// Fields are only ever added, never renamed or retyped: tools outside this repository
+/// read them.
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Serialize, Debug)]
+pub struct MeetingsOverview {
+    /// Always "Europe/Berlin": the zone of `start` and of the `from`/`to` days.
+    pub time_zone: String,
+    /// Sorted by start; at most 500, the earliest ones.
+    pub meetings: Vec<MeetingSummary>,
+    /// More meetings are in the range than were returned: ask again with a shorter one.
+    pub truncated: bool,
+}
+
+/// One published meeting in `MeetingsOverview`: no description and no links to online
+/// meetings. Exactly one of `place`, `online` and `place_to_be_announced` is set, unless
+/// an old meeting has no venue at all.
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Serialize, Debug, PartialEq)]
+pub struct MeetingSummary {
+    pub id: String,
+    /// Start in Berlin time, e.g. "2026-10-27T19:00".
+    pub start: String,
+    pub title: String,
+    /// Name of the place; null for online meetings, places to be announced and old
+    /// meetings without a place.
+    pub place: Option<String>,
+    /// An online meeting; its link is not part of the overview.
+    pub online: bool,
+    /// Platform of an online meeting, e.g. "Zoom"; null if not online or unknown.
+    pub platform: Option<String>,
+    pub place_to_be_announced: bool,
+    pub cancelled: bool,
+    /// The meeting's page on the website.
+    pub url: String,
+}
+
 /// Query parameters for get_users endpoint
 #[derive(Debug, Deserialize, ToSchema)]
 pub struct GetUsersQuery {
@@ -648,9 +740,45 @@ pub struct GetUsersQuery {
     pub so: Option<String>,
 }
 
+/// A meeting as stored before places, online meetings and "to be announced" existed (no
+/// `place_id`, `online` or `place_to_be_announced` in the document) and without a
+/// location. Tests set what they need.
+#[cfg(test)]
+pub(crate) fn stored_test_meeting() -> Meeting {
+    serde_json::from_value(serde_json::json!({
+        "_id": "abcde", "title": "A", "authority": "", "age_restriction": [0],
+        "time": 1_793_124_000_000_i64, "location": null,
+        "description": "", "price": [0.0], "trigger_warning": null, "attendance": null,
+        "rating": null, "accessibility": null,
+        "tags": {"freeform": [], "common": [], "queer": []}, "status": "Active",
+        "changed": null, "cancelled": false, "deleted_at": null
+    }))
+    .unwrap()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn stored_meetings_without_the_new_field_are_saved_with_it() {
+        let meeting = stored_test_meeting();
+        assert!(!meeting.place_to_be_announced);
+        let saved = serde_json::to_value(&meeting).unwrap();
+        assert_eq!(saved["place_to_be_announced"], serde_json::json!(false));
+    }
+
+    #[test]
+    fn meeting_page_urls_are_built_from_the_origin() {
+        let mut meeting = stored_test_meeting();
+        meeting._id = "a b&c".to_string();
+        for origin in ["https://queer-augsburg.de", "https://queer-augsburg.de/"] {
+            assert_eq!(
+                meeting.page_url(&Url::parse(origin).unwrap()).as_str(),
+                "https://queer-augsburg.de/?m=a+b%26c"
+            );
+        }
+    }
 
     #[test]
     fn into_meeting_sets_server_owned_fields() {
@@ -661,6 +789,7 @@ mod tests {
             time: 1_793_124_000_000,
             place_id: Some("p1".to_string()),
             online: None,
+            place_to_be_announced: false,
             description: "Beschreibung".to_string(),
             price: vec![5.0],
             trigger_warning: Some("Laut".to_string()),

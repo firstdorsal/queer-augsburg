@@ -4,7 +4,7 @@
 import type { Meeting } from "./apiTypes/Meeting";
 import type { MeetingStatus } from "./apiTypes/MeetingStatus";
 import { HOUR_MS, berlinDay, formatBerlinTime } from "./berlinTime";
-import { foldAccents, placeNameKey, trimWhiteSpace } from "./places";
+import { foldAccents, meetingVenue, placeNameKey, trimWhiteSpace } from "./places";
 
 /** What two meetings are compared by. */
 export interface MeetingCandidate {
@@ -27,13 +27,18 @@ export const comparableMeetings = (meetings: readonly Meeting[]): TimedMeeting[]
         (meeting): meeting is TimedMeeting => meeting.time !== null && !meeting.deleted_at
     );
 
-export const candidateOfMeeting = (meeting: TimedMeeting): MeetingCandidate => ({
-    title: meeting.title,
-    time: meeting.time,
-    placeId: meeting.online ? null : (meeting.place_id ?? null),
-    placeName: meeting.online ? null : (meeting.location?.name ?? null),
-    onlinePlatform: meeting.online ? meeting.online.platform : null
-});
+export const candidateOfMeeting = (meeting: TimedMeeting): MeetingCandidate => {
+    const venue = meetingVenue(meeting);
+    // Online meetings and places to be announced have no place to compare.
+    const hasPlace = venue.kind === "place" || venue.kind === "unknown";
+    return {
+        title: meeting.title,
+        time: meeting.time,
+        placeId: hasPlace ? (meeting.place_id ?? null) : null,
+        placeName: venue.kind === "place" ? venue.location.name : null,
+        onlinePlatform: venue.kind === "online" ? venue.online.platform : null
+    };
+};
 
 // Words that do not tell meetings apart: German and English function words, and the
 // group's own name, which is part of many titles. Folded like the title words.

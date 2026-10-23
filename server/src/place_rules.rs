@@ -127,15 +127,21 @@ pub fn validate_online(online: &OnlineMeeting) -> Result<OnlineMeeting, OnlineEr
     })
 }
 
+/// Shown instead of a place (card, iCal feed, AI prompt). Mirrored by
+/// `PLACE_TO_BE_ANNOUNCED_TEXT` in web/src/places.ts.
+pub const PLACE_TO_BE_ANNOUNCED: &str = "Ort wird noch bekanntgegeben";
+
 #[derive(Debug, PartialEq, Eq, Clone, thiserror::Error)]
 pub enum VenueError {
-    #[error("Bitte einen Ort auswählen oder „Online-Treffen“ ankreuzen.")]
+    #[error("Bitte einen Ort auswählen, „Online-Treffen“ oder „{tba}“ ankreuzen.", tba = PLACE_TO_BE_ANNOUNCED)]
     MissingPlace,
     #[error("Der gewählte Ort existiert nicht mehr, bitte neu auswählen.")]
     UnknownPlace,
-    /// Only for new meetings: the editor keeps the place while "online" is ticked.
-    #[error("Bitte entweder einen Ort oder Online-Angaben angeben, nicht beides.")]
-    PlaceAndOnline,
+    /// Online details and "to be announced" together; for new meetings also a place with
+    /// either of them. A saved meeting may keep its place (the editor keeps it while a box
+    /// is ticked): `finish_venue` drops it.
+    #[error("Bitte nur eins angeben: einen Ort, Online-Angaben oder „{tba}“.", tba = PLACE_TO_BE_ANNOUNCED)]
+    SeveralVenues,
     #[error("Bitte den gespeicherten Link zuerst anzeigen, bevor er öffentlich gemacht wird.")]
     HiddenLinkMadePublic,
     #[error(transparent)]
@@ -153,16 +159,20 @@ pub fn needs_stored_link(meeting: &Meeting) -> bool {
     meeting.online.as_ref().is_some_and(keeps_stored_link)
 }
 
-/// Decides where a meeting takes place before it is stored: online meetings lose their
-/// place, all others get name and coordinates copied from their place (coordinates sent
-/// by the client are ignored). `place` is the place `meeting.place_id` refers to;
-/// `stored_link` the link currently stored for this meeting (see `needs_stored_link`).
+/// Decides where a meeting takes place before it is stored: online meetings and meetings
+/// whose place is to be announced lose their place, all others get name and coordinates
+/// copied from their place (coordinates sent by the client are ignored). `place` is the
+/// place `meeting.place_id` refers to; `stored_link` the link currently stored for this
+/// meeting (see `needs_stored_link`). Online plus "to be announced" is refused here, as
+/// saving goes through this function only; new meetings are checked further before
+/// (`meeting_validation::resolve_venue`).
 pub fn finish_venue(
     mut meeting: Meeting,
     place: Option<Place>,
     stored_link: Option<String>,
 ) -> Result<Meeting, VenueError> {
     match meeting.online.take() {
+        Some(_) if meeting.place_to_be_announced => return Err(VenueError::SeveralVenues),
         Some(online) => {
             let keep = keeps_stored_link(&online);
             if keep && stored_link.is_some() && !online.members_only {
@@ -175,6 +185,11 @@ pub fn finish_venue(
             }
             online.url_hidden = false;
             meeting.online = Some(online);
+            meeting.location = None;
+            meeting.place_id = None;
+        }
+        // The editor keeps the chosen place while the box is ticked, as for online.
+        None if meeting.place_to_be_announced => {
             meeting.location = None;
             meeting.place_id = None;
         }
@@ -229,7 +244,7 @@ pub fn link_access(meeting: Option<&Meeting>, logged_in: bool, user: Option<&Use
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::MeetingLocation;
+    use crate::types::{stored_test_meeting, MeetingLocation};
 
     #[test]
     fn place_name_key_unifies_spelling_variants() {
@@ -352,16 +367,15 @@ mod tests {
         }
     }
 
+    /// A legacy meeting with only a location.
     fn meeting() -> Meeting {
-        serde_json::from_value(serde_json::json!({
-            "_id": "abcde", "title": "A", "authority": "", "age_restriction": [0],
-            "time": 1_793_124_000_000_i64, "location": {"name": "Alt", "lat": 1.0, "lon": 2.0},
-            "description": "", "price": [0.0], "trigger_warning": null, "attendance": null,
-            "rating": null, "accessibility": null,
-            "tags": {"freeform": [], "common": [], "queer": []}, "status": "Active",
-            "changed": null, "cancelled": false, "deleted_at": null
-        }))
-        .unwrap()
+        let mut meeting = stored_test_meeting();
+        meeting.location = Some(MeetingLocation {
+            name: "Alt".to_string(),
+            lat: 1.0,
+            lon: 2.0,
+        });
+        meeting
     }
 
     fn place() -> Place {
@@ -378,6 +392,7 @@ mod tests {
         let meeting = meeting();
         assert_eq!(meeting.place_id, None);
         assert_eq!(meeting.online, None);
+        assert!(!meeting.place_to_be_announced);
         assert_eq!(meeting.location.unwrap().name, "Alt");
     }
 
@@ -405,7 +420,7 @@ mod tests {
         );
         assert_eq!(
             VenueError::MissingPlace.to_string(),
-            "Bitte einen Ort auswählen oder „Online-Treffen“ ankreuzen."
+            "Bitte einen Ort auswählen, „Online-Treffen“ oder „Ort wird noch bekanntgegeben“ ankreuzen."
         );
         let mut input = meeting();
         input.place_id = Some("gone".to_string());
@@ -433,6 +448,39 @@ mod tests {
         assert_eq!(
             finish_venue(input, None, None),
             Err(VenueError::Online(OnlineError::InvalidUrl))
+        );
+    }
+
+    #[test]
+    fn place_to_be_announced_drops_a_kept_place() {
+        let mut input = meeting();
+        input.place_id = Some("p1".to_string());
+        input.place_to_be_announced = true;
+        let result = finish_venue(input, Some(place()), None).unwrap();
+        assert_eq!(result.place_id, None);
+        assert_eq!(result.location, None);
+        assert_eq!(result.online, None);
+        assert!(result.place_to_be_announced);
+
+        // The kept place may have been deleted meanwhile: nothing to look up.
+        let mut input = meeting();
+        input.place_id = Some("gone".to_string());
+        input.place_to_be_announced = true;
+        assert!(finish_venue(input, None, None).is_ok());
+    }
+
+    #[test]
+    fn place_to_be_announced_and_online_are_refused() {
+        let mut input = meeting();
+        input.place_to_be_announced = true;
+        input.online = Some(online("Zoom", None));
+        assert_eq!(
+            finish_venue(input, None, None),
+            Err(VenueError::SeveralVenues)
+        );
+        assert_eq!(
+            VenueError::SeveralVenues.to_string(),
+            "Bitte nur eins angeben: einen Ort, Online-Angaben oder „Ort wird noch bekanntgegeben“."
         );
     }
 

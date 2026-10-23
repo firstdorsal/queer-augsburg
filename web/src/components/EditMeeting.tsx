@@ -15,7 +15,14 @@ import {
 import { Meeting } from "../apiTypes/Meeting";
 import { OnlineMeeting } from "../apiTypes/OnlineMeeting";
 import { Place } from "../apiTypes/Place";
-import { keepsHiddenLink, newOnlineMeeting, venueProblem } from "../places";
+import {
+    PLACE_TO_BE_ANNOUNCED_TEXT,
+    VenueChoice,
+    chooseOnline,
+    choosePlaceToBeAnnounced,
+    keepsHiddenLink,
+    venueProblem
+} from "../places";
 import { G, commonTags, queerTags } from "../types";
 import { withToasterHook } from "../utils";
 import Md from "./Md";
@@ -54,17 +61,10 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
         };
     }
 
-    /** Ticking "online" again restores what was typed before unticking it. */
-    setOnline = (online: boolean) => {
-        this.setState((state) => {
-            const current = state.editingMeeting.online;
-            return {
-                lastOnline: current ?? state.lastOnline,
-                editingMeeting: {
-                    ...state.editingMeeting,
-                    online: online ? (state.lastOnline ?? newOnlineMeeting()) : null
-                }
-            };
+    chooseVenue = (choose: (choice: VenueChoice) => VenueChoice) => {
+        this.setState(({ editingMeeting, lastOnline }) => {
+            const choice = choose({ meeting: editingMeeting, lastOnline });
+            return { editingMeeting: choice.meeting, lastOnline: choice.lastOnline };
         });
     };
 
@@ -298,14 +298,32 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <br />
                         <Checkbox
                             checked={em.online != null}
-                            onChange={(_value, checked) => this.setOnline(checked)}
+                            onChange={(_value, checked) =>
+                                this.chooseVenue((choice) => chooseOnline(choice, checked))
+                            }
                         >
                             Online-Treffen (kein Ort)
                         </Checkbox>
+                        <Checkbox
+                            checked={em.place_to_be_announced}
+                            onChange={(_value, checked) =>
+                                this.chooseVenue((choice) =>
+                                    choosePlaceToBeAnnounced(choice, checked)
+                                )
+                            }
+                        >
+                            {PLACE_TO_BE_ANNOUNCED_TEXT}
+                        </Checkbox>
                         {this.props.g.qaClient && (
-                            // Stays mounted while "online" is ticked so the place list is not
-                            // reloaded on every toggle.
-                            <div className={em.online != null ? "hidden" : undefined}>
+                            // Stays mounted while "online" or "to be announced" is ticked so the
+                            // place list is not reloaded on every toggle.
+                            <div
+                                className={
+                                    em.online != null || em.place_to_be_announced
+                                        ? "hidden"
+                                        : undefined
+                                }
+                            >
                                 <PlaceField
                                     qaClient={this.props.g.qaClient}
                                     placeId={em.place_id}

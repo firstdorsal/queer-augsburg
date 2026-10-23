@@ -9,11 +9,14 @@ import type { OnlineMeeting } from "./apiTypes/OnlineMeeting";
 import type { Place } from "./apiTypes/Place";
 import type { User } from "./apiTypes/User";
 import {
+    chooseOnline,
+    choosePlaceToBeAnnounced,
     comparePlaceNames,
     findPlaceByName,
     indexPlaces,
     keepsHiddenLink,
     maySeeMembersOnlyLinks,
+    meetingVenue,
     meetingVenueText,
     newOnlineMeeting,
     onlineLabel,
@@ -202,11 +205,83 @@ describe("meetingVenueText / onlineLabel", () => {
             "Online"
         );
         expect(meetingVenueText(meeting({}))).toBe("");
+        expect(
+            meetingVenueText(
+                meeting({ place_to_be_announced: true, location: { name: "Alt", lat: 1, lon: 2 } })
+            )
+        ).toBe("Ort wird noch bekanntgegeben");
     });
 
     it("labels the meeting card", () => {
         expect(onlineLabel(online({ platform: " Zoom " }))).toBe("Online · Zoom");
         expect(onlineLabel(online({ platform: "  " }))).toBe("Online");
+    });
+});
+
+describe("meetingVenue", () => {
+    const neruda = { name: "Café Neruda", lat: 48.37, lon: 10.89 };
+
+    it("has one precedence for combinations saving refuses", () => {
+        // Same order as the server's `Meeting::venue`.
+        const zoom = online({ platform: "Zoom" });
+        expect(
+            meetingVenue(meeting({ place_to_be_announced: true, online: zoom, location: neruda }))
+        ).toEqual({ kind: "toBeAnnounced" });
+        expect(meetingVenue(meeting({ online: zoom, location: neruda }))).toEqual({
+            kind: "online",
+            online: zoom
+        });
+        expect(meetingVenue(meeting({ location: neruda }))).toEqual({
+            kind: "place",
+            location: neruda
+        });
+        expect(meetingVenue(meeting({}))).toEqual({ kind: "unknown" });
+    });
+});
+
+describe("chooseOnline / choosePlaceToBeAnnounced", () => {
+    const atPlace = meeting({
+        place_id: "b",
+        location: { name: "Café Neruda", lat: 48.37, lon: 10.89 }
+    });
+    const typed = online({ platform: "Zoom", url: "https://zoom.us/j/1" });
+
+    it("ticks one box at a time and keeps the chosen place", () => {
+        const announced = choosePlaceToBeAnnounced(
+            { meeting: { ...atPlace, online: typed }, lastOnline: null },
+            true
+        );
+        expect(announced.meeting).toMatchObject({
+            place_to_be_announced: true,
+            online: null,
+            place_id: "b"
+        });
+        expect(announced.lastOnline).toBe(typed);
+        expect(venueProblem(announced.meeting)).toBeNull();
+
+        const backOnline = chooseOnline(announced, true);
+        expect(backOnline.meeting).toMatchObject({ place_to_be_announced: false, online: typed });
+        expect(venueProblem(backOnline.meeting)).toBeNull();
+    });
+
+    it("brings back what was typed when online is ticked again", () => {
+        const unticked = chooseOnline(
+            { meeting: { ...atPlace, online: typed }, lastOnline: null },
+            false
+        );
+        expect(unticked.meeting.online).toBeNull();
+        expect(chooseOnline(unticked, true).meeting.online).toBe(typed);
+        // The first time: empty details.
+        expect(chooseOnline({ meeting: atPlace, lastOnline: null }, true).meeting.online).toEqual(
+            newOnlineMeeting()
+        );
+    });
+
+    it("unticking to be announced keeps online unticked", () => {
+        const announced = choosePlaceToBeAnnounced({ meeting: atPlace, lastOnline: null }, true);
+        const unticked = choosePlaceToBeAnnounced(announced, false);
+        expect(unticked.meeting).toMatchObject({ place_to_be_announced: false, online: null });
+        expect(venueProblem(unticked.meeting)).toBeNull();
     });
 });
 
@@ -222,10 +297,20 @@ describe("onlineProblem", () => {
 describe("venueProblem", () => {
     it("requires a place unless the meeting is online", () => {
         expect(venueProblem(meeting({}))).toBe(
-            "Bitte einen Ort auswählen oder „Online-Treffen“ ankreuzen."
+            "Bitte einen Ort auswählen, „Online-Treffen“ oder „Ort wird noch bekanntgegeben“ ankreuzen."
         );
         expect(venueProblem(meeting({ place_id: "a" }))).toBeNull();
         expect(venueProblem(meeting({ online: online() }))).toBeNull();
+    });
+
+    it("accepts a place to be announced, but not together with online", () => {
+        expect(venueProblem(meeting({ place_to_be_announced: true }))).toBeNull();
+        expect(venueProblem(meeting({ place_to_be_announced: true, online: online() }))).toBe(
+            "Bitte nur eins angeben: einen Ort, Online-Angaben oder „Ort wird noch bekanntgegeben“."
+        );
+        expect(meetingVenueText(meeting({ place_to_be_announced: true }))).toBe(
+            "Ort wird noch bekanntgegeben"
+        );
     });
 
     it("rejects links that are not http(s)", () => {

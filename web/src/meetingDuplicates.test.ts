@@ -163,6 +163,13 @@ describe("stored meetings", () => {
             placeName: null,
             onlinePlatform: "Zoom"
         });
+        // A place kept from before the box was ticked is no venue.
+        const [announced] = comparableMeetings([stored({ place_to_be_announced: true })]);
+        expect(candidateOfMeeting(announced)).toMatchObject({
+            placeId: null,
+            placeName: null,
+            onlinePlatform: null
+        });
     });
 
     it("finds possible duplicates and words the hint with the state", () => {

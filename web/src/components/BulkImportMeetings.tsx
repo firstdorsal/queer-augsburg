@@ -11,6 +11,7 @@ import {
     BulkDraft,
     BulkParseResult,
     PlacePicks,
+    draftVenue,
     includedDrafts,
     parseBulkJson,
     toNewMeeting
@@ -18,6 +19,7 @@ import {
 import { buildBulkPrompt } from "../bulkPrompt";
 import {
     MEMBERS_ONLY_LINK_TEXT,
+    PLACE_TO_BE_ANNOUNCED_TEXT,
     onlineLabel,
     placeChosenText,
     placeNameKey,
@@ -75,6 +77,21 @@ const priceText = (price: readonly number[]) =>
 
 const ageText = (age: readonly number[]) =>
     age.length === 2 ? `${age[0]}–${age[1]} Jahre` : age[0] ? `ab ${age[0]} Jahren` : "alle";
+
+const draftVenueText = ({ fields, placeName }: BulkDraft): string => {
+    const venue = draftVenue(fields, placeName);
+    switch (venue.kind) {
+        case "toBeAnnounced":
+            return PLACE_TO_BE_ANNOUNCED_TEXT;
+        case "online":
+            return onlineText(venue.online);
+        case "place":
+            return venue.place?.name || venue.placeName || "Ort fehlt";
+        case "several":
+            // The error below says what to fix.
+            return "Mehrere Angaben zum Ort";
+    }
+};
 
 const meetingCountText = (count: number) => (count === 1 ? "1 Treffen" : `${count} Treffen`);
 
@@ -220,7 +237,7 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
             now: new Date(),
             places: this.state.places,
             existing: this.state.existing,
-            calendarUrl: qaClient.icalFeedUrl()
+            overviewUrl: qaClient.meetingsOverviewUrl()
         });
         try {
             await navigator.clipboard.writeText(prompt);
@@ -330,8 +347,11 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
     renderPlaceControls = (draft: BulkDraft, number: number) => {
         const placeKey = placeNameKey(draft.placeName);
         const place = draft.fields.place;
-        // With online details, a place name is an error to fix in the JSON, not to pick.
-        if (!draft.placeName || draft.fields.online !== null) return null;
+        // With online details or a place to be announced, a place name is an error to fix in
+        // the JSON, not to pick.
+        if (!draft.placeName || draftVenue(draft.fields, draft.placeName).kind !== "place") {
+            return null;
+        }
         if (place !== null && this.state.changingPlace !== placeKey) {
             return (
                 <Button
@@ -416,11 +436,7 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                     <div className="text-sm opacity-80">
                         {fields.time === null ? "Zeit fehlt" : formatBerlinTime(fields.time)}
                         {" · "}
-                        <span className="break-words">
-                            {fields.online !== null
-                                ? onlineText(fields.online)
-                                : fields.place?.name || draft.placeName || "Ort fehlt"}
-                        </span>
+                        <span className="break-words">{draftVenueText(draft)}</span>
                     </div>
                     <div className="break-words text-sm opacity-80">{details.join(" · ")}</div>
                     {fields.description && (
@@ -495,9 +511,12 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                         <p className="mb-2">
                             <b>1.</b> Kopiere den Prompt und füge ihn zusammen mit deiner
                             Beschreibung der Termine in ein KI-Modell deiner Wahl ein. Die KI fragt
-                            nach, wenn etwas fehlt, und antwortet am Ende mit JSON. Damit sie
-                            doppelte Termine erkennt, enthält der Prompt Titel, Zeit und Ort der
-                            nächsten Termine, auch der geplanten.
+                            nach, wenn etwas fehlt, und antwortet am Ende mit JSON. Sie fragt auch
+                            nach freiwilligen Angaben wie Kosten, Alter, Barrierefreiheit und
+                            Triggerwarnungen; die darfst du weglassen. Damit sie doppelte Termine
+                            erkennt, enthält der Prompt Titel, Zeit und Ort der nächsten Termine,
+                            auch der geplanten; kann sie Webseiten abrufen, liest sie die
+                            veröffentlichten Termine auch selbst von der Website.
                         </p>
                         {this.state.loadError || !qaClient ? (
                             <LoadError

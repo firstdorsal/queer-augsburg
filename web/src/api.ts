@@ -84,8 +84,8 @@ export class QaClient {
      * Get the cache key for a meeting type
      */
     private getMeetingsCacheKey = (meeting_type: MeetingTypeQuery): string => {
-        // v3: meetings have place_id/online and an optional location since the places feature.
-        return `meetings_cache_v3_${meeting_type}`;
+        // v4: meetings have place_to_be_announced (v3: place_id/online, optional location).
+        return `meetings_cache_v4_${meeting_type}`;
     };
 
     /**
@@ -139,6 +139,9 @@ export class QaClient {
 
     /** The public iCal feed (published meetings only). */
     icalFeedUrl = (): string => `${this.qaEndpoint}/api/ical_feed/`;
+
+    /** Published meetings as small JSON, for AI assistants (named in the bulk prompt). */
+    meetingsOverviewUrl = (): string => `${this.qaEndpoint}/api/meetings_overview/`;
 
     /**
      * Meetings starting at `from` (ms) or later, straight from the server: never from the

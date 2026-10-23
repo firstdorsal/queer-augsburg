@@ -1,0 +1,5 @@
+[env]
+# Only the zone the server uses: chrono-tz compiles in the whole tz database otherwise
+# (about 2 MB of the stripped binary). Read when chrono-tz is built (feature
+# "filter-by-regex"); the Dockerfile copies this file before building the dependencies.
+CHRONO_TZ_TIMEZONE_FILTER = "^Europe/Berlin$"

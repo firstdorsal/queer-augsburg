@@ -30,7 +30,8 @@ import {
 import { commonTags, queerTags } from "./types";
 
 // Limits, rule order and messages mirror server/src/meeting_validation.rs (content) and
-// server/src/place_rules.rs (place or online details, via `onlineProblem` in places.ts).
+// server/src/place_rules.rs (the venue: place, online details or "to be announced", via
+// `onlineProblem` in places.ts).
 // Both test suites run server/src/meeting_validation_cases.json, so drift between the two
 // fails the tests.
 export const MAX_MEETINGS_PER_BATCH = 50;
@@ -49,6 +50,7 @@ export const IMPORT_FIELDS: ReadonlySet<string> = new Set([
     "start",
     "place",
     "online",
+    "place_to_be_announced",
     "description",
     "authority",
     "common_tags",
@@ -62,16 +64,16 @@ export const IMPORT_FIELDS: ReadonlySet<string> = new Set([
 
 export const ONLINE_FIELDS: ReadonlySet<string> = new Set(["platform", "link", "link_public"]);
 
-/** A `NewMeeting` whose start and place may still be unknown. Valid drafts have either a
- * `place` or `online` details. */
+/** A `NewMeeting` whose start and place may still be unknown. Valid drafts have exactly one
+ * of a `place`, `online` details and `place_to_be_announced` (see `draftVenue`). */
 export type DraftFields = Omit<NewMeeting, "time" | "place_id"> & {
     time: number | null;
     place: Place | null;
 };
 
 export interface BulkDraft {
-    /** Stays the same while the JSON is edited, as long as title, start and place or online
-     * details do not change; the member's "Nicht anlegen" is keyed by it. */
+    /** Stays the same while the JSON is edited, as long as title, start and venue do not
+     * change; the member's "Nicht anlegen" is keyed by it. */
     readonly id: string;
     readonly fields: DraftFields;
     /** The place name as written in the JSON ("" if there is none), also the key for the
@@ -154,7 +156,7 @@ export const parseBerlinStart = (value: string): StartParseResult => {
 // Validation (mirror of server/src/meeting_validation.rs)
 
 /** Fields whose "missing" message is suppressed when the JSON value had the wrong type
- * ("place" also stands for "online"). */
+ * ("place" also stands for "online" and "place_to_be_announced"). */
 type InputField = "title" | "time" | "place";
 
 interface ValidationProblem {
@@ -194,7 +196,7 @@ const hasDuplicates = (items: readonly string[]) => new Set(items).size !== item
 
 /**
  * All rule violations, in the order the server checks them (batch validation, then the
- * place or online details), so the first entry equals the server's error. `time`/`place`
+ * venue), so the first entry equals the server's error. `time`/`place`
  * may be null for drafts; `placeName` is the unresolved name from the JSON.
  */
 export const validateFields = (fields: DraftFields, placeName: string): ValidationProblem[] => {
@@ -249,11 +251,11 @@ export const validateFields = (fields: DraftFields, placeName: string): Validati
         add(null, "Tags dürfen nicht doppelt vorkommen.");
     }
 
-    // meeting_validation.rs `resolve_venue`: online details or a stored place, not both.
-    if (fields.online !== null && (fields.place !== null || !isBlank(placeName))) {
-        add("place", 'Entweder "place" oder "online" angeben, nicht beides.');
-    } else if (fields.online !== null) add("place", onlineProblem(fields.online));
-    else if (fields.place === null) {
+    const venue = draftVenue(fields, placeName);
+    if (venue.kind === "several") {
+        add("place", 'Nur eins angeben: "place", "online" oder "place_to_be_announced".');
+    } else if (venue.kind === "online") add("place", onlineProblem(venue.online));
+    else if (venue.kind === "place" && venue.place === null) {
         add(
             "place",
             isBlank(placeName)
@@ -265,12 +267,41 @@ export const validateFields = (fields: DraftFields, placeName: string): Validati
     return problems;
 };
 
+export type DraftVenue =
+    | { readonly kind: "toBeAnnounced" }
+    | { readonly kind: "online"; readonly online: NewOnlineMeeting }
+    /** `place` is null while the name is unknown or missing. */
+    | { readonly kind: "place"; readonly place: Place | null; readonly placeName: string }
+    /** More than one: an error (meeting_validation.rs `resolve_venue`). */
+    | { readonly kind: "several" };
+
+/** A draft without any venue counts as a place still missing. */
+export const draftVenue = (fields: DraftFields, placeName: string): DraftVenue => {
+    const named = [
+        fields.place !== null || !isBlank(placeName),
+        fields.online !== null,
+        fields.place_to_be_announced
+    ].filter(Boolean).length;
+    if (named > 1) return { kind: "several" };
+    if (fields.place_to_be_announced) return { kind: "toBeAnnounced" };
+    if (fields.online !== null) return { kind: "online", online: fields.online };
+    return { kind: "place", place: fields.place, placeName };
+};
+
 /** The meeting ready to send, or null while the draft has errors. */
 export const toNewMeeting = (draft: BulkDraft): NewMeeting | null => {
-    const { time, place, ...fields } = draft.fields;
+    const { time, place: _place, ...fields } = draft.fields;
     if (draft.errors.length > 0 || time === null) return null;
-    if (fields.online !== null) return place === null ? { ...fields, time, place_id: null } : null;
-    return place === null ? null : { ...fields, time, place_id: place._id };
+    const venue = draftVenue(draft.fields, draft.placeName);
+    switch (venue.kind) {
+        case "several":
+            return null;
+        case "place":
+            return venue.place === null ? null : { ...fields, time, place_id: venue.place._id };
+        case "toBeAnnounced":
+        case "online":
+            return { ...fields, time, place_id: null };
+    }
 };
 
 // ---------------------------------------------------------------------------------------
@@ -297,6 +328,19 @@ const readString = (
     if (value === undefined || value === null) return undefined;
     if (typeof value === "string") return value;
     errors.push(`"${label}" muss ein Text sein.`);
+    return INVALID;
+};
+
+const readBoolean = (
+    entry: Record<string, unknown>,
+    key: string,
+    errors: string[],
+    label = key
+): Read<boolean> => {
+    const value = entry[key];
+    if (value === undefined || value === null) return undefined;
+    if (typeof value === "boolean") return value;
+    errors.push(`"${label}" muss true oder false sein.`);
     return INVALID;
 };
 
@@ -344,7 +388,8 @@ const emptyFields = (): DraftFields => ({
     title: "",
     time: null,
     place: null,
-    online: null
+    online: null,
+    place_to_be_announced: false
 });
 
 /** The member's pick for this name, else the stored place of that name. A pick whose place
@@ -379,10 +424,7 @@ const readOnline = (
     const problems: string[] = [];
     const platform = readString(details, "platform", problems, "online.platform");
     const link = readString(details, "link", problems, "online.link");
-    const linkPublic = details.link_public;
-    if (linkPublic !== undefined && linkPublic !== null && typeof linkPublic !== "boolean") {
-        problems.push('"online.link_public" muss true oder false sein.');
-    }
+    const linkPublic = readBoolean(details, "link_public", problems, "online.link_public");
     if (problems.length > 0) {
         errors.push(...problems);
         return INVALID;
@@ -454,9 +496,13 @@ const convertEntry = (
 
     const place = readString(entry, "place", errors);
     const online = readOnline(entry, errors, warnings);
+    const toBeAnnounced = readBoolean(entry, "place_to_be_announced", errors);
     const placeName = typeof place === "string" ? place.trim() : "";
-    if (place === INVALID || online === INVALID) invalidInputs.add("place");
+    if (place === INVALID || online === INVALID || toBeAnnounced === INVALID) {
+        invalidInputs.add("place");
+    }
     if (online !== INVALID && online !== undefined) fields.online = online;
+    fields.place_to_be_announced = toBeAnnounced === true;
     fields.place = resolvePlace(placeName, context.picks, places);
 
     const common = readStringArray(entry, "common_tags", errors);
@@ -629,27 +675,35 @@ export const parseBulkJson = (text: string, context: BulkParseContext): BulkPars
     return { ok: true, drafts };
 };
 
-/** Title, start and place or online details: equal keys are the same meeting. */
-const draftKey = ({ fields, placeName }: ParsedEntry): string => {
-    const online = fields.online;
-    const venue =
-        online !== null
-            ? `online|${online.platform}|${online.url ?? ""}`
-            : (fields.place?._id ?? placeNameKey(placeName));
-    return `${fields.title.toLowerCase()}|${fields.time}|${venue}`;
+const venueKey = (venue: DraftVenue): string => {
+    switch (venue.kind) {
+        case "toBeAnnounced":
+        case "several":
+            return venue.kind;
+        case "online":
+            return `online|${venue.online.platform}|${venue.online.url ?? ""}`;
+        case "place":
+            return venue.place?._id ?? placeNameKey(venue.placeName);
+    }
 };
 
-const draftCandidate = ({ fields, placeName }: ParsedEntry): MeetingCandidate | null =>
-    fields.time === null
-        ? null
-        : {
-              title: fields.title,
-              time: fields.time,
-              placeId: fields.place?._id ?? null,
-              placeName:
-                  fields.online !== null ? null : (fields.place?.name ?? (placeName || null)),
-              onlinePlatform: fields.online?.platform ?? null
-          };
+/** Title, start and venue: equal keys are the same meeting. */
+const draftKey = ({ fields, placeName }: ParsedEntry): string =>
+    `${fields.title.toLowerCase()}|${fields.time}|${venueKey(draftVenue(fields, placeName))}`;
+
+const draftCandidate = ({ fields, placeName }: ParsedEntry): MeetingCandidate | null => {
+    if (fields.time === null) return null;
+    const venue = draftVenue(fields, placeName);
+    // A place to be announced is no venue to compare: only the title rule applies.
+    const place = venue.kind === "place" ? venue : null;
+    return {
+        title: fields.title,
+        time: fields.time,
+        placeId: place?.place?._id ?? null,
+        placeName: place ? (place.place?.name ?? (place.placeName || null)) : null,
+        onlinePlatform: venue.kind === "online" ? venue.online.platform : null
+    };
+};
 
 /** The drafts to create: all except those the member left out ("Nicht anlegen"). */
 export const includedDrafts = (

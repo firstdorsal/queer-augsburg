@@ -19,6 +19,7 @@ pub mod methods {
     pub mod get_own_user;
     pub mod get_users;
     pub mod ical;
+    pub mod meetings_overview;
     pub mod places;
     pub mod send_email_preview;
     pub mod update_meeting;

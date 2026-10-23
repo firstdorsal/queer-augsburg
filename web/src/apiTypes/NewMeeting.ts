@@ -2,4 +2,4 @@
 import type { MeetingTags } from "./MeetingTags";
 import type { NewOnlineMeeting } from "./NewOnlineMeeting";
 
-export interface NewMeeting { title: string, authority: string, age_restriction: Array<number>, time: number, place_id: string | null, online: NewOnlineMeeting | null, description: string, price: Array<number>, trigger_warning: string | null, accessibility: string | null, tags: MeetingTags, }
+export interface NewMeeting { title: string, authority: string, age_restriction: Array<number>, time: number, place_id: string | null, online: NewOnlineMeeting | null, place_to_be_announced: boolean, description: string, price: Array<number>, trigger_warning: string | null, accessibility: string | null, tags: MeetingTags, }

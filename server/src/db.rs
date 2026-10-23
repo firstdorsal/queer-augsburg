@@ -9,9 +9,24 @@ use anyhow::{bail, Context};
 use futures::stream::TryStreamExt;
 use mongodb::options::{FindOneAndUpdateOptions, FindOptions, IndexOptions, ReturnDocument};
 use mongodb::IndexModel;
-use mongodb::{bson::doc, options::ClientOptions, Client, Database};
+use mongodb::{
+    bson::{doc, Document},
+    options::ClientOptions,
+    Client, Database,
+};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+
+/// Filter of `DB::get_published_meetings_between`: never planned or deleted meetings, as
+/// the overview is public.
+pub fn published_between_filter(from: i64, until: i64) -> Document {
+    // `deleted_at: null` also matches documents without the field.
+    doc! {
+        "status": "Active",
+        "deleted_at": null,
+        "time": { "$gte": from, "$lt": until },
+    }
+}
 
 /// Stored form of a place; `name_key` enforces unique names (unique index).
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -99,7 +114,34 @@ impl DB {
             )
             .await
             .context("creating the unique index places.name_key (duplicate place names?)")?;
+        // For the date ranges of the public meetings overview.
+        self.db
+            .collection::<Meeting>("meetings")
+            .create_index(IndexModel::builder().keys(doc! { "time": 1 }).build(), None)
+            .await
+            .context("creating the index meetings.time")?;
         Ok(())
+    }
+
+    /// Published meetings starting in `[from, until)` (ms), earliest first (ties by id),
+    /// at most `limit`.
+    pub async fn get_published_meetings_between(
+        &self,
+        from: i64,
+        until: i64,
+        limit: i64,
+    ) -> anyhow::Result<Vec<Meeting>> {
+        let find_options = FindOptions::builder()
+            .sort(doc! { "time": 1, "_id": 1 })
+            .limit(limit)
+            .build();
+        Ok(self
+            .db
+            .collection::<Meeting>("meetings")
+            .find(published_between_filter(from, until), find_options)
+            .await?
+            .try_collect()
+            .await?)
     }
 
     /// Get meetings by type.

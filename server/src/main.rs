@@ -18,6 +18,7 @@ use backend::methods::get_meetings::get_meetings;
 use backend::methods::get_own_user::get_own_user;
 use backend::methods::get_users::get_users;
 use backend::methods::ical::ical_feed;
+use backend::methods::meetings_overview::meetings_overview;
 use backend::methods::places::{create_place, get_places};
 use backend::methods::send_email_preview::send_email_preview;
 use backend::methods::update_meeting::update_meeting;
@@ -29,7 +30,7 @@ use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tokio::sync::RwLock;
-use tower_http::cors::CorsLayer;
+use tower_http::cors::{Any, CorsLayer};
 use utoipa::OpenApi;
 use utoipa_scalar::{Scalar, Servable};
 
@@ -41,6 +42,7 @@ use utoipa_scalar::{Scalar, Servable};
         backend::methods::places::get_places,
         backend::methods::places::create_place,
         backend::methods::ical::ical_feed,
+        backend::methods::meetings_overview::meetings_overview,
         backend::methods::get_users::get_users,
         backend::methods::update_meeting::update_meeting,
         backend::methods::create_meetings::create_meetings,
@@ -54,6 +56,8 @@ use utoipa_scalar::{Scalar, Servable};
         get_assertion_validity_seconds,
     ),
     components(schemas(
+        backend::types::MeetingsOverview,
+        backend::types::MeetingSummary,
         backend::types::Meeting,
         backend::types::MeetingLocation,
         backend::types::OnlineMeeting,
@@ -173,11 +177,22 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Clone session_map for cleanup task before state is moved
     let cleanup_session_map = state.session_map.clone();
 
+    // Public data without credentials: any website or browser-based tool may read it.
+    // Merged after `.layer(cors)`, which only wraps the routes added before it.
+    let public_routes = Router::new()
+        .route("/api/meetings_overview/", get(meetings_overview))
+        .layer(
+            CorsLayer::new()
+                .allow_origin(Any)
+                .allow_methods([Method::GET]),
+        );
+
     let app = Router::new()
         .nest("/api", api_routes)
         .route("/docs", get(serve_scalar))
         .route("/openapi.json", get(serve_openapi))
         .layer(cors)
+        .merge(public_routes)
         .with_state(state);
 
     let internal_http_addr: SocketAddr = config.http.internal_address.parse().unwrap();
@@ -249,4 +264,17 @@ async fn serve_scalar() -> Html<String> {
 
 async fn serve_openapi() -> Json<utoipa::openapi::OpenApi> {
     Json(ApiDoc::openapi())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_overview_is_documented() {
+        let api = ApiDoc::openapi();
+        assert!(api.paths.paths.contains_key("/api/meetings_overview/"));
+        let schemas = api.components.unwrap().schemas;
+        assert!(schemas.contains_key("MeetingsOverview") && schemas.contains_key("MeetingSummary"));
+    }
 }

@@ -19,6 +19,7 @@ export const storedMeeting = (overrides: Partial<Meeting> = {}): Meeting => ({
     place_id: "p1",
     location: { name: "Café Neruda", lat: 48.3705, lon: 10.8978 },
     online: null,
+    place_to_be_announced: false,
     attendance: null,
     rating: null,
     status: "Active",

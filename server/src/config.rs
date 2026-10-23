@@ -2,6 +2,7 @@ use anyhow::bail;
 use lazy_static::lazy_static;
 use serde::{Deserialize, Serialize};
 use std::fs::read_to_string;
+use url::Url;
 
 const CONFIG_PATH: &str = "/config.yml";
 const DEV_CONFIG_PATH: &str = "dev/config.yml";
@@ -24,7 +25,24 @@ pub fn read_config() -> anyhow::Result<ServerConfig> {
 
     let config_file = replace_variables(config_file)?;
     let config: ServerConfig = serde_yaml::from_str(&config_file)?;
+    check_ui_origin(&config.ui_origin)?;
     Ok(config)
+}
+
+/// Links to meeting pages are built from `uiOrigin` and published (meetings overview, iCal
+/// feed), so a typo must stop the server instead of producing wrong links.
+fn check_ui_origin(ui_origin: &Url) -> anyhow::Result<()> {
+    if !matches!(ui_origin.scheme(), "https" | "http")
+        || ui_origin.host_str().is_none()
+        || ui_origin.path() != "/"
+        || ui_origin.query().is_some()
+        || ui_origin.fragment().is_some()
+    {
+        bail!(
+            "uiOrigin must be the website's origin like https://queer-augsburg.de, not {ui_origin}"
+        );
+    }
+    Ok(())
 }
 
 pub fn replace_variables(mut config_file: String) -> anyhow::Result<String> {
@@ -51,7 +69,8 @@ pub struct ServerConfig {
     pub db: DbConfig,
     pub http: HttpConfig,
     pub dev: DevConfig,
-    pub ui_origin: String,
+    /// The website's origin, e.g. https://queer-augsburg.de.
+    pub ui_origin: Url,
     pub service_id: String,
     pub interossea: InterosseaConfig,
     pub services: Vec<Service>,
@@ -101,4 +120,34 @@ pub struct MailConfig {
     pub from_address: String,
     pub user_agent: String,
     pub reply_to: String,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn ui_origin_must_be_an_origin() {
+        for origin in [
+            "https://queer-augsburg.de",
+            "https://queer-augsburg.de/",
+            "http://localhost:20352",
+        ] {
+            assert!(
+                check_ui_origin(&Url::parse(origin).unwrap()).is_ok(),
+                "{origin}"
+            );
+        }
+        for origin in [
+            "https://queer-augsburg.de/web",
+            "https://queer-augsburg.de/?m=1",
+            "ftp://queer-augsburg.de",
+            "mailto:mail@queer-augsburg.de",
+        ] {
+            assert!(
+                check_ui_origin(&Url::parse(origin).unwrap()).is_err(),
+                "{origin}"
+            );
+        }
+    }
 }

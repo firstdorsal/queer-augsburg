@@ -209,6 +209,7 @@ describe("parseBulkJson", () => {
             time: Date.UTC(2026, 10, 14, 21, 0),
             place: places[1],
             online: null,
+            place_to_be_announced: false,
             description: "**Tanzen**\nbis spät",
             authority: "Paul",
             tags: { common: ["Party", "Kultur"], queer: ["Queer"], freeform: ["Tanz"] },
@@ -373,6 +374,7 @@ describe("parseBulkJson", () => {
             time: Date.UTC(2026, 9, 27, 18, 0),
             place_id: null,
             online: { platform: "Zoom", url: "https://zoom.us/j/1", members_only: true },
+            place_to_be_announced: false,
             description: "",
             price: [0],
             trigger_warning: null,
@@ -417,7 +419,7 @@ describe("parseBulkJson", () => {
     });
 
     it("refuses a place and online details at once", () => {
-        const both = 'Entweder "place" oder "online" angeben, nicht beides.';
+        const both = 'Nur eins angeben: "place", "online" oder "place_to_be_announced".';
         for (const fields of [
             { online: { platform: "Zoom" } },
             { online: true },
@@ -427,6 +429,35 @@ describe("parseBulkJson", () => {
             expect(draft.errors, JSON.stringify(fields)).toEqual([both]);
             expect(toNewMeeting(draft)).toBeNull();
         }
+    });
+
+    it("reads a place that is to be announced", () => {
+        const parse = (fields: Record<string, unknown>) =>
+            parseOk(JSON.stringify([{ title: "A", start: "2026-10-27T19:00", ...fields }]))[0];
+        const announced = parse({ place_to_be_announced: true });
+        expect(announced.errors).toEqual([]);
+        expect(toNewMeeting(announced)).toMatchObject({
+            place_id: null,
+            online: null,
+            place_to_be_announced: true
+        });
+        const several = 'Nur eins angeben: "place", "online" oder "place_to_be_announced".';
+        expect(parse({ place_to_be_announced: true, place: "Café Neruda" }).errors).toEqual([
+            several
+        ]);
+        expect(parse({ place_to_be_announced: true, online: {} }).errors).toEqual([several]);
+        // Only real booleans; a wrong type is not also reported as a missing place.
+        for (const value of ["ja", "true", 1, 0, [], {}]) {
+            expect(parse({ place_to_be_announced: value }).errors, JSON.stringify(value)).toEqual([
+                '"place_to_be_announced" muss true oder false sein.'
+            ]);
+        }
+        // false and null mean: there is a place, which is then missing.
+        expect(parse({ place_to_be_announced: false }).errors).toEqual(["Ort fehlt."]);
+        expect(parse({ place_to_be_announced: null }).errors).toEqual(["Ort fehlt."]);
+        // A blank place and "no online meeting" are no venue.
+        expect(parse({ place_to_be_announced: true, place: "  " }).errors).toEqual([]);
+        expect(parse({ place_to_be_announced: true, online: false }).errors).toEqual([]);
     });
 
     it("reads the shapes models write for online details", () => {
@@ -606,13 +637,24 @@ describe("parseBulkJson", () => {
         expect(
             warnings([at({ place: "Ort A" }), at({ place: "Café Neruda" })], { "ort a": "p1" })
         ).toEqual([[], duplicate]);
+        // A place to be announced is no venue: only the title counts.
+        const announced = { place_to_be_announced: true };
+        expect(warnings([at(announced), at(announced)])).toEqual([[], duplicate]);
+        expect(
+            warnings([
+                at({ title: "Lesekreis", ...announced }),
+                at({ title: "Brunch", ...announced })
+            ])
+        ).toEqual([[], []]);
+        expect(warnings([at(announced), at({ place: "Ort A" })])).toEqual([[], similar]);
     });
 
     it("sends exactly the fields of NewMeeting", () => {
         const drafts = parseOk(
             JSON.stringify([
                 { title: "A", start: "2026-10-27T19:00", place: "Café Neruda" },
-                { title: "B", start: "2026-10-27T19:00", online: { platform: "Zoom" } }
+                { title: "B", start: "2026-10-27T19:00", online: { platform: "Zoom" } },
+                { title: "C", start: "2026-10-27T19:00", place_to_be_announced: true }
             ])
         );
         // The server rejects unknown fields; the fixture's base is a valid NewMeeting.
@@ -631,6 +673,7 @@ describe("parseBulkJson", () => {
             time: Date.UTC(2026, 9, 27, 18, 0),
             place_id: "p1",
             online: null,
+            place_to_be_announced: false,
             description: "",
             price: [0],
             trigger_warning: null,
@@ -701,6 +744,22 @@ describe("duplicates of stored meetings", () => {
         expect(warnings({ title: "Anders", place: "neue  bar" }, [legacy])).toEqual([
             hint("Treff")
         ]);
+    });
+
+    it("compares a stored place to be announced only by its title", () => {
+        // A location left over from before the box was ticked is not compared.
+        const announced = stored({
+            title: "Sommerfest",
+            place_id: null,
+            place_to_be_announced: true
+        });
+        expect(warnings({ title: "Brettspiele" }, [announced])).toEqual([]);
+        expect(warnings({ title: "Sommerfest" }, [announced])).toEqual([hint("Sommerfest")]);
+        expect(
+            warnings({ title: "Sommerfest", place: undefined, place_to_be_announced: true }, [
+                announced
+            ])
+        ).toEqual([hint("Sommerfest")]);
     });
 
     it("marks cancelled meetings", () => {

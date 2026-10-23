@@ -114,7 +114,7 @@ docker exec qa-db sh -c 'mongosh --quiet --port 27030 -u root -p "$MONGODB_ROOT_
 print(\"places: \" + db.places.countDocuments());
 print(\"unique index: \" + db.places.getIndexes().some(i => i.unique));
 print(\"online meetings with a location (must be 0): \" + db.meetings.countDocuments({online: {\$ne: null}, location: {\$ne: null}}));
-print(\"meetings without place and not online: \" + db.meetings.countDocuments({place_id: null, online: null}));
+print(\"meetings without place, not online, not to be announced: \" + db.meetings.countDocuments({place_id: null, online: null, place_to_be_announced: {\$ne: true}}));
 "'
 docker cp qa-db:/tmp/places-migration/report.json /tmp/places-report.json
 docker exec qa-db rm -rf /tmp/places-migration

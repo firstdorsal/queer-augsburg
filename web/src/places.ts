@@ -1,6 +1,7 @@
-// Where a meeting takes place: one of the stored places, or online.
+// Where a meeting takes place: one of the stored places, online, or not fixed yet.
 
 import type { Meeting } from "./apiTypes/Meeting";
+import type { MeetingLocation } from "./apiTypes/MeetingLocation";
 import type { OnlineMeeting } from "./apiTypes/OnlineMeeting";
 import type { Place } from "./apiTypes/Place";
 import type { User } from "./apiTypes/User";
@@ -134,18 +135,45 @@ export const onlineLabel = (online: Pick<OnlineMeeting, "platform">): string => 
     return platform ? `Online · ${platform}` : "Online";
 };
 
+/** Mirrors `PLACE_TO_BE_ANNOUNCED` in server/src/place_rules.rs. */
+export const PLACE_TO_BE_ANNOUNCED_TEXT = "Ort wird noch bekanntgegeben";
+
+/** Where a meeting takes place. */
+export type MeetingVenue =
+    | { readonly kind: "toBeAnnounced" }
+    | { readonly kind: "online"; readonly online: OnlineMeeting }
+    | { readonly kind: "place"; readonly location: MeetingLocation }
+    /** Meetings imported before places and online meetings existed may have neither. */
+    | { readonly kind: "unknown" };
+
+/** The stored fields allow combinations saving refuses; this is the one precedence every
+ * reader uses, as the server's `Meeting::venue`. */
+export const meetingVenue = (
+    meeting: Pick<Meeting, "place_to_be_announced" | "online" | "location">
+): MeetingVenue => {
+    if (meeting.place_to_be_announced) return { kind: "toBeAnnounced" };
+    if (meeting.online) return { kind: "online", online: meeting.online };
+    if (meeting.location) return { kind: "place", location: meeting.location };
+    return { kind: "unknown" };
+};
+
 /** Calendar location, same format as the server's iCal feed (`ical_location`). */
 export const meetingVenueText = (meeting: Meeting): string => {
-    if (meeting.online) {
-        const platform = trimWhiteSpace(meeting.online.platform);
-        const label = platform ? `Online (${platform})` : "Online";
-        const url = safeHttpUrl(meeting.online.url);
-        return url ? `${label}: ${url}` : label;
+    const venue = meetingVenue(meeting);
+    switch (venue.kind) {
+        case "toBeAnnounced":
+            return PLACE_TO_BE_ANNOUNCED_TEXT;
+        case "online": {
+            const platform = trimWhiteSpace(venue.online.platform);
+            const label = platform ? `Online (${platform})` : "Online";
+            const url = safeHttpUrl(venue.online.url);
+            return url ? `${label}: ${url}` : label;
+        }
+        case "place":
+            return `${venue.location.name}: ${venue.location.lat},${venue.location.lon}`;
+        case "unknown":
+            return "";
     }
-    if (meeting.location) {
-        return `${meeting.location.name}: ${meeting.location.lat},${meeting.location.lon}`;
-    }
-    return "";
 };
 
 export const newOnlineMeeting = (): OnlineMeeting => ({
@@ -154,6 +182,36 @@ export const newOnlineMeeting = (): OnlineMeeting => ({
     members_only: true,
     url_hidden: false
 });
+
+/** The editor's venue boxes. The chosen place stays selected while "online" or "to be
+ * announced" is ticked (the server drops it on save). */
+export interface VenueChoice {
+    readonly meeting: Meeting;
+    /** Online details while "online" is unticked, restored when it is ticked again. */
+    readonly lastOnline: OnlineMeeting | null;
+}
+
+/** Ticking "online" unticks "to be announced". */
+export const chooseOnline = (
+    { meeting, lastOnline }: VenueChoice,
+    online: boolean
+): VenueChoice => ({
+    lastOnline: meeting.online ?? lastOnline,
+    meeting: {
+        ...meeting,
+        online: online ? (lastOnline ?? newOnlineMeeting()) : null,
+        place_to_be_announced: online ? false : meeting.place_to_be_announced
+    }
+});
+
+/** Ticking "to be announced" unticks "online". */
+export const choosePlaceToBeAnnounced = (
+    choice: VenueChoice,
+    toBeAnnounced: boolean
+): VenueChoice => {
+    const { meeting, lastOnline } = toBeAnnounced ? chooseOnline(choice, false) : choice;
+    return { lastOnline, meeting: { ...meeting, place_to_be_announced: toBeAnnounced } };
+};
 
 /** The meeting came with its members-only link withheld and the editor has not loaded or
  * changed it: saving keeps the stored link (server: `keeps_stored_link`). */
@@ -194,11 +252,17 @@ export const onlineProblem = (online: Pick<OnlineMeeting, "platform" | "url">): 
 
 /** Why the meeting cannot be saved yet, or null. The server checks the same. */
 export const venueProblem = (meeting: Meeting): string | null => {
+    if (meeting.online && meeting.place_to_be_announced) {
+        return `Bitte nur eins angeben: einen Ort, Online-Angaben oder „${PLACE_TO_BE_ANNOUNCED_TEXT}“.`;
+    }
+    if (meeting.place_to_be_announced) return null;
     if (meeting.online) {
         if (keepsHiddenLink(meeting.online) && !meeting.online.members_only) {
             return "Bitte den gespeicherten Link zuerst anzeigen, bevor er öffentlich gemacht wird.";
         }
         return onlineProblem(meeting.online);
     }
-    return meeting.place_id ? null : "Bitte einen Ort auswählen oder „Online-Treffen“ ankreuzen.";
+    return meeting.place_id
+        ? null
+        : `Bitte einen Ort auswählen, „Online-Treffen“ oder „${PLACE_TO_BE_ANNOUNCED_TEXT}“ ankreuzen.`;
 };

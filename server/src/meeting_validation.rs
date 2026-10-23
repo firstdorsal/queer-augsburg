@@ -159,8 +159,16 @@ fn resolve_venue(
     meeting: NewMeeting,
     places: &HashMap<String, Place>,
 ) -> Result<Meeting, VenueError> {
-    if meeting.place_id.is_some() && meeting.online.is_some() {
-        return Err(VenueError::PlaceAndOnline);
+    // Before the place lookup, so a place next to online details or "to be announced" is
+    // reported as such, not as an unknown place. Saving an existing meeting may keep the
+    // place (see `VenueError::SeveralVenues`), a new one may not.
+    let venues = [
+        meeting.place_id.is_some(),
+        meeting.online.is_some(),
+        meeting.place_to_be_announced,
+    ];
+    if venues.into_iter().filter(|&set| set).count() > 1 {
+        return Err(VenueError::SeveralVenues);
     }
     let place = meeting
         .place_id
@@ -481,6 +489,9 @@ mod tests {
     fn prepared_batch_copies_places_and_keeps_online_details() {
         let cases = load_cases();
         let base = meeting_for(&cases, &cases.cases[0]);
+        let mut to_be_announced = base.clone();
+        to_be_announced.place_id = None;
+        to_be_announced.place_to_be_announced = true;
         let mut online = base.clone();
         online.place_id = None;
         online.online = Some(NewOnlineMeeting {
@@ -489,7 +500,8 @@ mod tests {
             members_only: true,
         });
 
-        let meetings = prepare_meeting_batch(vec![base, online], &stored_places()).unwrap();
+        let meetings =
+            prepare_meeting_batch(vec![base, online, to_be_announced], &stored_places()).unwrap();
 
         assert_eq!(meetings[0].place_id.as_deref(), Some("p1"));
         assert_eq!(
@@ -511,6 +523,28 @@ mod tests {
         assert_eq!(stored.url.as_deref(), Some("http://example.org/"));
         assert!(stored.members_only);
         assert!(!stored.url_hidden);
+        assert!(!meetings[0].place_to_be_announced && !meetings[1].place_to_be_announced);
+        assert!(meetings[2].place_to_be_announced);
+        assert_eq!(
+            (
+                &meetings[2].place_id,
+                &meetings[2].location,
+                &meetings[2].online
+            ),
+            (&None, &None, &None)
+        );
+    }
+
+    #[test]
+    fn new_meetings_without_the_field_have_a_place() {
+        let cases = load_cases();
+        let mut value = cases.base.clone();
+        value
+            .as_object_mut()
+            .unwrap()
+            .remove("place_to_be_announced");
+        let meeting: NewMeeting = serde_json::from_value(value).unwrap();
+        assert!(!meeting.place_to_be_announced);
     }
 
     #[test]

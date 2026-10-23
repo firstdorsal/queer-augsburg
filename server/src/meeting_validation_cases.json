@@ -23,7 +23,8 @@
       ]
     },
     "place_id": "p1",
-    "online": null
+    "online": null,
+    "place_to_be_announced": false
   },
   "cases": [
     {
@@ -667,7 +668,7 @@
       "patch": {
         "place_id": null
       },
-      "error": "Bitte einen Ort auswählen oder „Online-Treffen“ ankreuzen.",
+      "error": "Bitte einen Ort auswählen, „Online-Treffen“ oder „Ort wird noch bekanntgegeben“ ankreuzen.",
       "client_error": "Ort fehlt."
     },
     {
@@ -679,8 +680,8 @@
           "members_only": true
         }
       },
-      "error": "Bitte entweder einen Ort oder Online-Angaben angeben, nicht beides.",
-      "client_error": "Entweder \"place\" oder \"online\" angeben, nicht beides."
+      "error": "Bitte nur eins angeben: einen Ort, Online-Angaben oder „Ort wird noch bekanntgegeben“.",
+      "client_error": "Nur eins angeben: \"place\", \"online\" oder \"place_to_be_announced\"."
     },
     {
       "name": "unknown place",
@@ -796,6 +797,58 @@
         }
       },
       "error": null
+    },
+    {
+      "name": "place to be announced",
+      "patch": {
+        "place_id": null,
+        "place_to_be_announced": true
+      },
+      "error": null
+    },
+    {
+      "name": "place to be announced and a place",
+      "patch": {
+        "place_to_be_announced": true
+      },
+      "error": "Bitte nur eins angeben: einen Ort, Online-Angaben oder „Ort wird noch bekanntgegeben“.",
+      "client_error": "Nur eins angeben: \"place\", \"online\" oder \"place_to_be_announced\"."
+    },
+    {
+      "name": "place to be announced and online",
+      "patch": {
+        "place_id": null,
+        "place_to_be_announced": true,
+        "online": {
+          "platform": "Zoom",
+          "url": null,
+          "members_only": true
+        }
+      },
+      "error": "Bitte nur eins angeben: einen Ort, Online-Angaben oder „Ort wird noch bekanntgegeben“.",
+      "client_error": "Nur eins angeben: \"place\", \"online\" oder \"place_to_be_announced\"."
+    },
+    {
+      "name": "place to be announced and an unknown place",
+      "patch": {
+        "place_id": "gone",
+        "place_to_be_announced": true
+      },
+      "error": "Bitte nur eins angeben: einen Ort, Online-Angaben oder „Ort wird noch bekanntgegeben“.",
+      "client_error": "Nur eins angeben: \"place\", \"online\" oder \"place_to_be_announced\"."
+    },
+    {
+      "name": "place, online and place to be announced",
+      "patch": {
+        "place_to_be_announced": true,
+        "online": {
+          "platform": "Zoom",
+          "url": null,
+          "members_only": true
+        }
+      },
+      "error": "Bitte nur eins angeben: einen Ort, Online-Angaben oder „Ort wird noch bekanntgegeben“.",
+      "client_error": "Nur eins angeben: \"place\", \"online\" oder \"place_to_be_announced\"."
     }
   ]
 }
