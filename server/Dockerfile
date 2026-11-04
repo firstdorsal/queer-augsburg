@@ -3,15 +3,20 @@ FROM clux/muslrust:stable AS build
 # build deps
 USER root
 RUN apt-get update && apt-get install upx -y
-RUN cargo install cargo-build-deps --version 0.2.0 --locked
 
 COPY Cargo.toml Cargo.lock ./
 COPY .cargo .cargo
-RUN cargo build-deps --release
-RUN rm -f target/x86_64-unknown-linux-musl/release/deps/qa-server*
+# Stub lib and bin, so that this layer compiles only the locked dependencies and stays cached
+# until they change. New targets in Cargo.toml need a stub here too.
+RUN mkdir src && echo 'fn main() {}' > src/main.rs && touch src/lib.rs \
+    && cargo build --release --locked --bin main \
+    && rm -rf src
 # build
 COPY --chown=root:root src src
-RUN cargo build --release --locked --bin main
+# Cargo compares modification times, and the copied sources can be older than the stubs,
+# which would leave the stub binary in place.
+RUN find src -name '*.rs' -exec touch {} + \
+    && cargo build --release --locked --bin main
 RUN strip target/x86_64-unknown-linux-musl/release/main
 RUN upx --best --lzma target/x86_64-unknown-linux-musl/release/main
 RUN useradd -u 50001 -N qa-server
