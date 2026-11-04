@@ -39,7 +39,30 @@ db.meetings.find(
 EOF
 ```
 
+## Versions
+
+-   `server/Cargo.lock` decides what is built (`--locked` in CI and in the image). After
+    changing `server/Cargo.toml`, commit the lock file too, or both fail.
+-   Production runs MongoDB 7.0 (checked 2026-11-04: 7.0.34). `mongodb/Dockerfile` is pinned
+    to it, because `qa-db` is built from that file. Going to 8 is a planned step with a backup,
+    never a side effect of a rebuild. `server/dev/Dockerfile` still says 6, so test database
+    changes with `TEST_MONGODB_URI` against a `mongo:7.0` container (`cargo test`; CI runs them).
+
+## After a server update
+
+The server stops at startup if it cannot reach the database or build its indexes, and
+`restart: always` turns that into a loop. Check after every update:
+
+-   `docker logs qa-server` shows "Listening on" and `docker ps` a growing uptime.
+-   `https://api.queer-augsburg.de/api/meetings_overview/` and `/api/ical_feed/` answer 200.
+-   Logging in works and `/ich` shows your data: this fetches the login service's key over
+    plain HTTP (`interossea.url` must stay `http://`, the server has no TLS client for it).
+-   Saving an existing meeting unchanged works.
+
 ## Rolling back the server
+
+Dependency updates do not change what is stored: an older image reads and writes the data as
+before. Go back with the tag made before the pull, or with `:<short sha>` of the older commit.
 
 Stored meetings keep fields an older server does not know; it ignores them when reading,
 and drops them when it saves such a meeting. After going back to a server without

@@ -11,6 +11,12 @@ stages:
 test-server:
     stage: test
     image: rust:1
+    services:
+        # The version production runs, for server/tests/database.rs.
+        - name: mongo:7.0
+          alias: mongo
+    variables:
+        TEST_MONGODB_URI: mongodb://mongo:27017
     rules:
         - changes:
             - server/**/*
@@ -26,6 +32,21 @@ test-server:
                 echo "web/src/apiTypes is out of date: run cargo test in server/ and commit it"
                 exit 1
             fi
+
+# Advisories appear without any change here, so this also runs in scheduled pipelines. It
+# only warns: a new advisory must not block an unrelated deploy.
+audit-server:
+    stage: test
+    image: rust:1
+    allow_failure: true
+    rules:
+        - if: $CI_PIPELINE_SOURCE == "schedule"
+        - changes:
+            - server/Cargo.lock
+    script:
+        - cargo install cargo-audit --locked
+        - cd server
+        - cargo audit
 
 test-web:
     stage: test
@@ -52,6 +73,7 @@ docker-build-server:
         - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
           changes:
             - server/src/**/*
+            - server/.cargo/**/*
             - server/Cargo.toml
             - server/Cargo.lock
             - server/Dockerfile

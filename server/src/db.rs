@@ -7,7 +7,8 @@ use crate::types::{
 use crate::utils::{fresh_ids, generate_id};
 use anyhow::{bail, Context};
 use futures::stream::TryStreamExt;
-use mongodb::options::{FindOneAndUpdateOptions, FindOptions, IndexOptions, ReturnDocument};
+use mongodb::action::Action;
+use mongodb::options::{IndexOptions, ReturnDocument};
 use mongodb::IndexModel;
 use mongodb::{
     bson::{doc, Document},
@@ -100,7 +101,7 @@ impl DB {
         ];
 
         for collection in collections {
-            let _ = self.db.create_collection(collection, None).await;
+            let _ = self.db.create_collection(collection).await;
         }
 
         self.db
@@ -110,14 +111,13 @@ impl DB {
                     .keys(doc! { "name_key": 1 })
                     .options(IndexOptions::builder().unique(true).build())
                     .build(),
-                None,
             )
             .await
             .context("creating the unique index places.name_key (duplicate place names?)")?;
         // For the date ranges of the public meetings overview.
         self.db
             .collection::<Meeting>("meetings")
-            .create_index(IndexModel::builder().keys(doc! { "time": 1 }).build(), None)
+            .create_index(IndexModel::builder().keys(doc! { "time": 1 }).build())
             .await
             .context("creating the index meetings.time")?;
         Ok(())
@@ -131,14 +131,12 @@ impl DB {
         until: i64,
         limit: i64,
     ) -> anyhow::Result<Vec<Meeting>> {
-        let find_options = FindOptions::builder()
-            .sort(doc! { "time": 1, "_id": 1 })
-            .limit(limit)
-            .build();
         Ok(self
             .db
             .collection::<Meeting>("meetings")
-            .find(published_between_filter(from, until), find_options)
+            .find(published_between_filter(from, until))
+            .sort(doc! { "time": 1, "_id": 1 })
+            .limit(limit)
             .await?
             .try_collect()
             .await?)
@@ -157,7 +155,6 @@ impl DB {
         starting_from: Option<i64>,
     ) -> anyhow::Result<(Vec<Meeting>, u32)> {
         let collection = self.db.collection::<Meeting>("meetings");
-        let find_options = FindOptions::builder().sort(doc! {"time": -1}).build();
 
         let status_str = match meeting_type {
             MeetingTypeQuery::Planned => "Planned",
@@ -202,11 +199,12 @@ impl DB {
 
         let (meetings, count) = (
             collection
-                .find(filter, find_options)
+                .find(filter)
+                .sort(doc! { "time": -1 })
                 .await?
                 .try_collect::<Vec<_>>()
                 .await?,
-            collection.count_documents(count_filter, None).await?,
+            collection.count_documents(count_filter).await?,
         );
 
         Ok((meetings, count as u32))
@@ -234,7 +232,6 @@ impl DB {
                         }
                     }
                 },
-                None,
             )
             .await?;
 
@@ -248,10 +245,7 @@ impl DB {
         let collection = self.db.collection::<Meeting>("meetings");
 
         // check if meeting exists
-        match collection
-            .find_one(doc! { "_id": &meeting._id }, None)
-            .await?
-        {
+        match collection.find_one(doc! { "_id": &meeting._id }).await? {
             Some(mut db_meeting) => {
                 match db_meeting.changed {
                     Some(ref mut changes) => {
@@ -269,7 +263,7 @@ impl DB {
                     }
                 }
                 collection
-                    .replace_one(doc! { "_id": &meeting._id }, meeting, None)
+                    .replace_one(doc! { "_id": &meeting._id }, meeting)
                     .await?;
             }
             None => {
@@ -281,7 +275,7 @@ impl DB {
                     by: auth.authenticated_user.clone().unwrap(),
                 }]);
 
-                collection.insert_one(meeting, None).await?;
+                collection.insert_one(meeting).await?;
             }
         };
 
@@ -290,23 +284,24 @@ impl DB {
 
     pub async fn get_meeting(&self, meeting_id: &str) -> anyhow::Result<Option<Meeting>> {
         let collection = self.db.collection::<Meeting>("meetings");
-        Ok(collection
-            .find_one(doc! { "_id": meeting_id }, None)
-            .await?)
+        Ok(collection.find_one(doc! { "_id": meeting_id }).await?)
     }
 
     pub async fn get_places(&self) -> anyhow::Result<Vec<Place>> {
         let collection = self.db.collection::<PlaceDocument>("places");
-        let options = FindOptions::builder().sort(doc! { "name_key": 1 }).build();
-        let documents: Vec<PlaceDocument> =
-            collection.find(None, options).await?.try_collect().await?;
+        let documents: Vec<PlaceDocument> = collection
+            .find(doc! {})
+            .sort(doc! { "name_key": 1 })
+            .await?
+            .try_collect()
+            .await?;
         Ok(documents.into_iter().map(Place::from).collect())
     }
 
     pub async fn get_place(&self, place_id: &str) -> anyhow::Result<Option<Place>> {
         let collection = self.db.collection::<PlaceDocument>("places");
         Ok(collection
-            .find_one(doc! { "_id": place_id }, None)
+            .find_one(doc! { "_id": place_id })
             .await?
             .map(Place::from))
     }
@@ -332,12 +327,12 @@ impl DB {
                 at: chrono::Utc::now().timestamp_millis(),
             }),
         };
-        match collection.insert_one(&document, None).await {
+        match collection.insert_one(&document).await {
             Ok(_) => Ok((document.into(), true)),
             // The unique index on name_key: the place exists (or was created concurrently).
             Err(e) if is_duplicate_key(&e) => {
                 let existing = collection
-                    .find_one(doc! { "name_key": &document.name_key }, None)
+                    .find_one(doc! { "name_key": &document.name_key })
                     .await?
                     .ok_or_else(|| anyhow::anyhow!("duplicate place key vanished: {e}"))?;
                 Ok((existing.into(), false))
@@ -367,9 +362,9 @@ impl DB {
             meeting.changed = Some(vec![created.clone()]);
         }
 
-        if let Err(insert) = collection.insert_many(&meetings, None).await {
+        if let Err(insert) = collection.insert_many(&meetings).await {
             return match collection
-                .delete_many(doc! { "_id": { "$in": &ids } }, None)
+                .delete_many(doc! { "_id": { "$in": &ids } })
                 .await
             {
                 Ok(_) => Err(CreateMeetingsError::RolledBack(Box::new(insert))),
@@ -391,7 +386,7 @@ impl DB {
         loop {
             let ids = fresh_ids(count, &taken, || generate_id(5));
             let existing = collection
-                .distinct("_id", doc! { "_id": { "$in": &ids } }, None)
+                .distinct("_id", doc! { "_id": { "$in": &ids } })
                 .await
                 .map_err(|e| CreateMeetingsError::IdLookup(Box::new(e)))?;
             if existing.is_empty() {
@@ -407,14 +402,14 @@ impl DB {
 
     pub async fn insert_old_meetings(&self, meetings: Vec<Meeting>) -> anyhow::Result<()> {
         let collection = self.db.collection::<Meeting>("meetings");
-        collection.insert_many(meetings, None).await?;
+        collection.insert_many(meetings).await?;
 
         Ok(())
     }
 
     pub async fn create_user(&self, user_id: &str) -> anyhow::Result<()> {
         let collection = self.db.collection::<User>("users");
-        let user = collection.find_one(doc! { "_id": user_id }, None).await?;
+        let user = collection.find_one(doc! { "_id": user_id }).await?;
 
         if user.is_none() {
             let new_user = User {
@@ -423,14 +418,14 @@ impl DB {
                 capabilities: Some(vec![]),
             };
 
-            collection.insert_one(&new_user, None).await?;
+            collection.insert_one(&new_user).await?;
         }
         Ok(())
     }
 
     pub async fn get_user(&self, user_id: &str) -> anyhow::Result<Option<User>> {
         let collection = self.db.collection::<User>("users");
-        Ok(collection.find_one(doc! { "_id": user_id }, None).await?)
+        Ok(collection.find_one(doc! { "_id": user_id }).await?)
     }
 
     pub async fn update_member_data(
@@ -440,7 +435,7 @@ impl DB {
     ) -> anyhow::Result<bool> {
         let users = self.db.collection::<User>("users");
         let original_users = self.db.collection::<User>("originalUsers");
-        let user = users.find_one(doc! { "_id": user_id }, None).await?;
+        let user = users.find_one(doc! { "_id": user_id }).await?;
         let mut first_time = false;
 
         match user {
@@ -480,14 +475,12 @@ impl DB {
                     }
                     None => {
                         user.member = Some(updated_member);
-                        original_users.insert_one(user.clone(), None).await?;
+                        original_users.insert_one(user.clone()).await?;
                         first_time = true;
                     }
                 }
 
-                users
-                    .replace_one(doc! { "_id": user_id }, &user, None)
-                    .await?;
+                users.replace_one(doc! { "_id": user_id }, &user).await?;
             }
             None => {
                 bail!("User not found")
@@ -514,12 +507,6 @@ impl DB {
             Some("asc") => 1,
             _ => -1, // default to descending
         };
-
-        let find_options = FindOptions::builder()
-            .limit(limit)
-            .skip(from_index)
-            .sort(doc! { sort_field: sort_direction })
-            .build();
 
         // Build base selector - member exists and is not null
         let mut selector = doc! {
@@ -551,11 +538,14 @@ impl DB {
 
         let (users, count) = (
             collection
-                .find(selector.clone(), find_options)
+                .find(selector.clone())
+                .optional(limit, |find, limit| find.limit(limit))
+                .skip(from_index)
+                .sort(doc! { sort_field: sort_direction })
                 .await?
                 .try_collect::<Vec<_>>()
                 .await?,
-            collection.count_documents(selector, None).await?,
+            collection.count_documents(selector).await?,
         );
 
         Ok((users, count as u32))
@@ -567,7 +557,7 @@ impl DB {
         new_status: &MembershipStatus,
     ) -> anyhow::Result<()> {
         let users = self.db.collection::<User>("users");
-        let user = users.find_one(doc! { "_id": user_id }, None).await?;
+        let user = users.find_one(doc! { "_id": user_id }).await?;
 
         let new_status_string = match new_status {
             MembershipStatus::Approved => "Approved",
@@ -586,7 +576,6 @@ impl DB {
                             .update_one(
                                 doc! { "_id": user_id },
                                 doc! { "$set": { "member.status": new_status_string } },
-                                None,
                             )
                             .await?;
                     }
@@ -606,23 +595,19 @@ impl DB {
     // Email draft methods
     pub async fn insert_email_draft(&self, draft: &EmailDraft) -> anyhow::Result<()> {
         let collection = self.db.collection::<EmailDraft>("email_drafts");
-        collection.insert_one(draft, None).await?;
+        collection.insert_one(draft).await?;
         Ok(())
     }
 
     pub async fn get_email_draft(&self, draft_id: &str) -> anyhow::Result<Option<EmailDraft>> {
         let collection = self.db.collection::<EmailDraft>("email_drafts");
-        Ok(collection.find_one(doc! { "_id": draft_id }, None).await?)
+        Ok(collection.find_one(doc! { "_id": draft_id }).await?)
     }
 
     /// Atomically claims a draft by changing status from Pending to Processing.
     /// Returns None if draft doesn't exist or is already being processed.
     pub async fn claim_email_draft(&self, draft_id: &str) -> anyhow::Result<Option<EmailDraft>> {
         let collection = self.db.collection::<EmailDraft>("email_drafts");
-        let options = FindOneAndUpdateOptions::builder()
-            .return_document(ReturnDocument::After)
-            .build();
-
         let result = collection
             .find_one_and_update(
                 doc! {
@@ -632,8 +617,8 @@ impl DB {
                 doc! {
                     "$set": { "status": "Processing" }
                 },
-                options,
             )
+            .return_document(ReturnDocument::After)
             .await?;
 
         Ok(result)
@@ -641,7 +626,7 @@ impl DB {
 
     pub async fn delete_email_draft(&self, draft_id: &str) -> anyhow::Result<()> {
         let collection = self.db.collection::<EmailDraft>("email_drafts");
-        collection.delete_one(doc! { "_id": draft_id }, None).await?;
+        collection.delete_one(doc! { "_id": draft_id }).await?;
         Ok(())
     }
 
@@ -652,11 +637,7 @@ impl DB {
             "member.status": "Approved"
         };
 
-        let users: Vec<User> = collection
-            .find(filter, None)
-            .await?
-            .try_collect()
-            .await?;
+        let users: Vec<User> = collection.find(filter).await?.try_collect().await?;
 
         let emails: Vec<String> = users
             .into_iter()
@@ -672,13 +653,13 @@ impl DB {
             "member": { "$exists": true, "$ne": null },
             "member.status": "Approved"
         };
-        let count = collection.count_documents(filter, None).await?;
+        let count = collection.count_documents(filter).await?;
         Ok(count as u32)
     }
 
     pub async fn insert_sent_email_log(&self, log: &SentEmailLog) -> anyhow::Result<()> {
         let collection = self.db.collection::<SentEmailLog>("sent_email_logs");
-        collection.insert_one(log, None).await?;
+        collection.insert_one(log).await?;
         Ok(())
     }
 }
