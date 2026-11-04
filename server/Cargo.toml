@@ -10,7 +10,7 @@ path = "src/main.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-axum = { version = "0.8", features = ["macros"] }
+axum = { version = "0.8", features = ["macros", "ws"] }
 axum-extra = { version = "0.10", features = ["cookie"] }
 tower-http = { version = "0.6", features = ["cors"] }
 tokio = { version = "1.47.1", default-features = false, features = [
@@ -19,7 +19,10 @@ tokio = { version = "1.47.1", default-features = false, features = [
     "signal",
     "fs",
     "net",
+    "sync",
+    "time",
 ] }
+tokio-util = { version = "0.7", features = ["rt"] }
 http = "1.0"
 serde_valid = "0.25"
 utoipa = { version = "5", features = ["axum_extras"] }
@@ -63,4 +66,7 @@ base64 = "0.22"
 thiserror = "2.0.21"
 url = { version = "2.5.8", features = ["serde"] }
 unicode-normalization = "0.1.26"
+regex = "1"
+# Pinned: its sync protocol has to match the y-websocket client in web/package.json.
+yrs = { version = "=0.28.1", features = ["sync"] }
 chrono-tz = { version = "0.10.4", features = ["filter-by-regex"] }

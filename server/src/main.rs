@@ -5,14 +5,25 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
+use backend::capped_allocator::CappedAllocator;
 use backend::config::SERVER_CONFIG;
-use backend::db::DB;
+use backend::db::{MongoDocumentStore, DB};
+use backend::document_rooms::Rooms;
 use backend::interossea::{Interossea, UserAssertion, INTEROSSEA};
 use backend::meeting_validation::MAX_BATCH_BODY_BYTES;
 use backend::methods::admin_create_member::admin_create_member;
 use backend::methods::confirm_send_email::confirm_send_email;
 use backend::methods::create_meetings::create_meetings;
 use backend::methods::create_own_user::create_own_user;
+use backend::methods::document_groups::{
+    create_document_group, delete_document_group, order_document_groups, order_group_documents,
+    rename_document_group,
+};
+use backend::methods::document_sync::document_sync;
+use backend::methods::documents::{
+    create_document, delete_document, get_document, get_document_versions, get_documents,
+    search_documents, set_document_groups,
+};
 use backend::methods::get_meeting_link::get_meeting_link;
 use backend::methods::get_meetings::get_meetings;
 use backend::methods::get_own_user::get_own_user;
@@ -29,10 +40,18 @@ use mongodb::options::ClientOptions;
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use tokio::sync::RwLock;
+use std::time::Duration;
+use tokio::signal::unix::{signal, SignalKind};
+use tokio::sync::{RwLock, Semaphore};
 use tower_http::cors::{Any, CorsLayer};
 use utoipa::OpenApi;
 use utoipa_scalar::{Scalar, Servable};
+
+/// Below `stop_grace_period` in the compose file.
+const ROOMS_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(15);
+
+#[global_allocator]
+static ALLOCATOR: CappedAllocator = CappedAllocator;
 
 #[derive(OpenApi)]
 #[openapi(
@@ -53,6 +72,18 @@ use utoipa_scalar::{Scalar, Servable};
         backend::methods::update_own_member_data::update_own_member_data,
         backend::methods::send_email_preview::send_email_preview,
         backend::methods::confirm_send_email::confirm_send_email,
+        backend::methods::documents::get_documents,
+        backend::methods::documents::get_document,
+        backend::methods::documents::search_documents,
+        backend::methods::documents::get_document_versions,
+        backend::methods::documents::create_document,
+        backend::methods::documents::set_document_groups,
+        backend::methods::documents::delete_document,
+        backend::methods::document_groups::create_document_group,
+        backend::methods::document_groups::rename_document_group,
+        backend::methods::document_groups::delete_document_group,
+        backend::methods::document_groups::order_document_groups,
+        backend::methods::document_groups::order_group_documents,
         get_assertion_validity_seconds,
     ),
     components(schemas(
@@ -95,6 +126,22 @@ use utoipa_scalar::{Scalar, Servable};
         backend::types::SendEmailPreviewResponseBody,
         backend::types::ConfirmSendEmailRequestBody,
         backend::types::ConfirmSendEmailResponseBody,
+        backend::types::WikiDocument,
+        backend::types::WikiDocumentSummary,
+        backend::types::WikiDocumentGroup,
+        backend::types::WikiDocumentHit,
+        backend::types::WikiDocumentVersion,
+        backend::types::GetDocumentVersionsResponseBody,
+        backend::types::GetDocumentsResponseBody,
+        backend::types::SearchDocumentsResponseBody,
+        backend::types::CreateDocumentRequestBody,
+        backend::types::SetDocumentGroupsRequestBody,
+        backend::types::DeleteDocumentRequestBody,
+        backend::types::CreateDocumentGroupRequestBody,
+        backend::types::RenameDocumentGroupRequestBody,
+        backend::types::DeleteDocumentGroupRequestBody,
+        backend::types::OrderDocumentGroupsRequestBody,
+        backend::types::OrderGroupDocumentsRequestBody,
     )),
     tags(
         (name = "meetings", description = "Meeting management endpoints"),
@@ -102,6 +149,7 @@ use utoipa_scalar::{Scalar, Servable};
         (name = "users", description = "User management endpoints"),
         (name = "members", description = "Member management endpoints"),
         (name = "email", description = "Email sending endpoints"),
+        (name = "documents", description = "Internal documents for members"),
     )
 )]
 struct ApiDoc;
@@ -125,9 +173,13 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     let db = DB::new(ClientOptions::parse(&config.db.url).await?).await?;
     db.create_collections().await?;
 
+    let db = Arc::new(db);
+    let document_rooms = Rooms::new(Arc::new(MongoDocumentStore(db.clone())));
     let state = AppState {
-        db: Arc::new(db),
+        db,
         session_map,
+        document_searches: Arc::new(Semaphore::new(2)),
+        document_rooms: document_rooms.clone(),
     };
 
     // Build CORS layer
@@ -167,6 +219,19 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         .route("/update_own_member_data/", post(update_own_member_data))
         .route("/send_email_preview/", post(send_email_preview))
         .route("/confirm_send_email/", post(confirm_send_email))
+        .route("/documents/", get(get_documents))
+        .route("/document/", get(get_document))
+        .route("/search_documents/", get(search_documents))
+        .route("/document_versions/", get(get_document_versions))
+        .route("/document_sync/{document_id}", get(document_sync))
+        .route("/create_document/", post(create_document))
+        .route("/set_document_groups/", post(set_document_groups))
+        .route("/delete_document/", post(delete_document))
+        .route("/create_document_group/", post(create_document_group))
+        .route("/rename_document_group/", post(rename_document_group))
+        .route("/delete_document_group/", post(delete_document_group))
+        .route("/order_document_groups/", post(order_document_groups))
+        .route("/order_group_documents/", post(order_group_documents))
         .route(
             "/get_assertion_validity_seconds/",
             get(get_assertion_validity_seconds),
@@ -219,16 +284,20 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         listener,
         app.into_make_service_with_connect_info::<SocketAddr>(),
     )
-    .with_graceful_shutdown(shutdown_signal())
+    .with_graceful_shutdown(shutdown_signal(document_rooms))
     .await?;
 
     Ok(())
 }
 
-async fn shutdown_signal() {
-    tokio::signal::ctrl_c()
-        .await
-        .expect("failed to install CTRL+C signal handler");
+/// `serve` does not wait for upgraded sockets, so the rooms must be done before this returns.
+async fn shutdown_signal(document_rooms: Arc<Rooms>) {
+    let mut terminate = signal(SignalKind::terminate()).expect("failed to install SIGTERM handler");
+    tokio::select! {
+        _ = terminate.recv() => {}
+        result = tokio::signal::ctrl_c() => result.expect("failed to install CTRL+C handler"),
+    }
+    document_rooms.shut_down(ROOMS_SHUTDOWN_TIMEOUT).await;
 }
 
 #[utoipa::path(
@@ -276,5 +345,27 @@ mod tests {
         assert!(api.paths.paths.contains_key("/api/meetings_overview/"));
         let schemas = api.components.unwrap().schemas;
         assert!(schemas.contains_key("MeetingsOverview") && schemas.contains_key("MeetingSummary"));
+    }
+
+    #[test]
+    fn the_documents_are_documented() {
+        let api = ApiDoc::openapi();
+        for path in [
+            "/api/documents/",
+            "/api/document/",
+            "/api/search_documents/",
+            "/api/document_versions/",
+            "/api/create_document/",
+            "/api/set_document_groups/",
+            "/api/delete_document/",
+            "/api/create_document_group/",
+            "/api/rename_document_group/",
+            "/api/delete_document_group/",
+            "/api/order_document_groups/",
+            "/api/order_group_documents/",
+        ] {
+            assert!(api.paths.paths.contains_key(path), "{path}");
+        }
+        assert!(api.components.unwrap().schemas.contains_key("WikiDocument"));
     }
 }

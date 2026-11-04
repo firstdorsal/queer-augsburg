@@ -1,0 +1,45 @@
+{
+    "_comment": "Run by server/src/document_rules.rs and web/src/documents.test.ts, with a limit of 20 characters.",
+    "limits": { "title": 200, "group_name": 100, "text": 100000 },
+    "close_codes": {
+        "badMessage": 4400,
+        "session": 4401,
+        "noPermission": 4403,
+        "deleted": 4404,
+        "tooLarge": 4413,
+        "damaged": 4422
+    },
+    "names": [
+        { "name": "plain", "value": "Vorstand", "expected": "Vorstand" },
+        { "name": "surrounding space", "value": "  Vorstand\t", "expected": "Vorstand" },
+        { "name": "empty", "value": "", "expected": null },
+        { "name": "only space", "value": "   ", "expected": null },
+        { "name": "only zero width", "value": "​​", "expected": null },
+        { "name": "byte order mark", "value": "﻿Vorstand", "expected": null },
+        { "name": "bidi control", "value": "a‮b", "expected": null },
+        { "name": "line break inside", "value": "a\nb", "expected": null },
+        { "name": "20 umlauts", "value": "ääääääääääääääääääää", "expected": "ääääääääääääääääääää" },
+        { "name": "21 umlauts", "value": "äääääääääääääääääääää", "expected": null },
+        { "name": "20 emoji", "value": "🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈", "expected": "🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈🌈" }
+    ],
+    "titles": [
+        { "name": "first heading", "text": "Vorwort\n\n# Links\n\n# Noch was", "expected": "Links" },
+        { "name": "closing hashes", "text": "  # Links ##  \n", "expected": "Links" },
+        { "name": "first line without a heading", "text": "\n\n  Nur Text\nmehr", "expected": "Nur Text" },
+        { "name": "subheading is no title heading", "text": "## Unterüberschrift", "expected": "## Unterüberschrift" },
+        { "name": "empty", "text": "", "expected": "Ohne Titel" },
+        { "name": "only blank lines", "text": "  \n \n", "expected": "Ohne Titel" },
+        { "name": "empty heading", "text": "# \n", "expected": "Ohne Titel" },
+        { "name": "invisible character removed", "text": "# a\u200bb", "expected": "ab" }
+    ],
+    "access": [
+        { "name": "verified member", "capabilities": [], "status": "Approved", "read": true, "edit": false },
+        { "name": "pending member", "capabilities": [], "status": "Pending", "read": false, "edit": false },
+        { "name": "former member", "capabilities": [], "status": "Left", "read": false, "edit": false },
+        { "name": "expelled member", "capabilities": [], "status": "Expelled", "read": false, "edit": false },
+        { "name": "no membership", "capabilities": [], "status": null, "read": false, "edit": false },
+        { "name": "unrelated capability", "capabilities": ["GetUsers"], "status": null, "read": false, "edit": false },
+        { "name": "meeting editor", "capabilities": ["UpdateMeetings"], "status": null, "read": true, "edit": false },
+        { "name": "document maintainer", "capabilities": ["UpdateDocuments"], "status": null, "read": true, "edit": true }
+    ]
+}

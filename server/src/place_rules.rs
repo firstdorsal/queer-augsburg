@@ -54,7 +54,7 @@ pub fn place_name_key(name: &str) -> String {
 /// Control characters and invisible format characters (zero-width, BOM, direction
 /// marks/overrides, line/paragraph separators): they make different names look identical
 /// or break the iCal feed.
-fn is_forbidden_char(c: char) -> bool {
+pub fn is_forbidden_char(c: char) -> bool {
     c.is_control()
         || matches!(
             c,

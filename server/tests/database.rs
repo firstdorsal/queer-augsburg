@@ -1,10 +1,13 @@
 //! Tests against a real MongoDB, for what the driver decides: error kinds, returned documents,
 //! rollbacks. `TEST_MONGODB_URI` names the server; CI always sets it (a `mongo:7.0` service).
 
-use backend::db::{CreateMeetingsError, DB};
-use backend::types::{DraftStatus, EmailDraft, Meeting};
+use backend::db::{CreateMeetingsError, GroupNameError, MongoDocumentStore, DB};
+use backend::document_rooms::{text_of_state, DocumentStore, NewVersion, SaveOutcome, SavedState};
+use backend::document_rules::arrange_documents;
+use backend::types::{DraftStatus, EmailDraft, GetDocumentsResponseBody, Meeting};
 use mongodb::bson::{doc, Document};
 use mongodb::Client;
+use std::sync::Arc;
 
 /// A database of its own, as tests run in parallel. `None` without a server, outside CI.
 async fn test_db() -> Option<DB> {
@@ -146,5 +149,245 @@ async fn a_batch_that_fails_halfway_leaves_nothing_behind() {
 
     let stored = db.db.collection::<Document>("meetings");
     assert_eq!(stored.count_documents(doc! {}).await.unwrap(), 0);
+    db.db.drop().await.unwrap();
+}
+
+async fn listed(db: &DB) -> GetDocumentsResponseBody {
+    let (groups, group_order, documents) = db.get_document_list().await.unwrap();
+    arrange_documents(groups, &group_order, documents)
+}
+
+#[tokio::test]
+async fn a_new_document_stores_its_text_as_state_and_keeps_it_out_of_reads() {
+    let Some(db) = test_db().await else { return };
+    let text = "# Größe\n\nÄnderung 🏳️‍🌈";
+    let created = db.create_document(text, vec![], "user").await.unwrap();
+    assert_eq!(created.title, "Größe");
+
+    let read = db.get_document(&created._id).await.unwrap().unwrap();
+    assert_eq!(read, created);
+
+    let stored = db
+        .db
+        .collection::<Document>("documents")
+        .find_one(doc! { "_id": &created._id })
+        .await
+        .unwrap()
+        .unwrap();
+    let state = stored.get_binary_generic("state").unwrap();
+    assert_eq!(text_of_state(state).unwrap(), text);
+    db.db.drop().await.unwrap();
+}
+
+#[tokio::test]
+async fn deleted_documents_disappear_from_lists_reads_and_search() {
+    let Some(db) = test_db().await else { return };
+    let document = db.create_document("# Weg", vec![], "user").await.unwrap();
+    assert!(db.delete_document(&document._id, "user").await.unwrap());
+    assert!(!db.delete_document(&document._id, "user").await.unwrap());
+
+    assert!(listed(&db).await.documents.is_empty());
+    assert!(db.get_document(&document._id).await.unwrap().is_none());
+    let mut search = db.searchable_documents().await.unwrap();
+    assert!(!search.advance().await.unwrap());
+    assert!(!db.set_document_groups(&document._id, &[]).await.unwrap());
+    db.db.drop().await.unwrap();
+}
+
+#[tokio::test]
+async fn group_names_are_unique_ignoring_case_and_accents() {
+    let Some(db) = test_db().await else { return };
+    db.create_document_group("Vorstand").await.unwrap();
+    let error = db.create_document_group("vorständ").await.unwrap_err();
+    assert!(matches!(error, GroupNameError::Taken));
+
+    db.create_document_group("Orga").await.unwrap();
+    let orga = listed(&db).await.groups.remove(0)._id;
+    let error = db
+        .rename_document_group(&orga, "VORSTAND")
+        .await
+        .unwrap_err();
+    assert!(matches!(error, GroupNameError::Taken));
+    assert!(db.rename_document_group(&orga, "Team").await.unwrap());
+    db.db.drop().await.unwrap();
+}
+
+#[tokio::test]
+async fn orders_survive_and_a_deleted_group_leaves_its_documents() {
+    let Some(db) = test_db().await else { return };
+    db.create_document_group("Alpha").await.unwrap();
+    db.create_document_group("Beta").await.unwrap();
+    let groups = listed(&db).await.groups;
+    let (alpha, beta) = (groups[0]._id.clone(), groups[1]._id.clone());
+
+    let first = db
+        .create_document("# A", vec![alpha.clone()], "u")
+        .await
+        .unwrap();
+    let second = db
+        .create_document("# B", vec![alpha.clone(), beta.clone()], "u")
+        .await
+        .unwrap();
+
+    db.set_document_group_order(&[beta.clone(), alpha.clone()])
+        .await
+        .unwrap();
+    assert!(db
+        .set_group_document_order(&alpha, &[second._id.clone(), first._id.clone()])
+        .await
+        .unwrap());
+
+    let body = listed(&db).await;
+    assert_eq!(body.groups[0]._id, beta);
+    assert_eq!(
+        body.groups[1].document_ids,
+        vec![second._id.clone(), first._id.clone()]
+    );
+
+    assert!(db.delete_document_group(&alpha).await.unwrap());
+    let body = listed(&db).await;
+    assert_eq!(body.groups.len(), 1);
+    assert_eq!(body.groups[0].document_ids, vec![second._id.clone()]);
+    assert_eq!(body.ungrouped_ids, vec![first._id.clone()]);
+    assert!(!db.delete_document_group(&alpha).await.unwrap());
+    db.db.drop().await.unwrap();
+}
+
+#[tokio::test]
+async fn a_room_saves_into_the_database_with_its_derived_fields() {
+    let Some(db) = test_db().await else { return };
+    let db = Arc::new(db);
+    let store = MongoDocumentStore(db.clone());
+    let document = db.create_document("# Alt\n", vec![], "u").await.unwrap();
+
+    let loaded = store
+        .load_state(document._id.clone())
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(loaded.state_version, 1);
+    assert_eq!(text_of_state(&loaded.state).unwrap(), "# Alt\n");
+
+    let saved = SavedState {
+        state: loaded.state.clone(),
+        content: "# Neu\n".to_string(),
+        title: "Neu".to_string(),
+        state_version: 1,
+    };
+    let outcome = store
+        .save_state(document._id.clone(), saved.clone())
+        .await
+        .unwrap();
+    assert_eq!(outcome, SaveOutcome::Saved { state_version: 2 });
+    let read = db.get_document(&document._id).await.unwrap().unwrap();
+    assert_eq!(read.title, "Neu");
+
+    // The same version again means a second writer, a deleted document the end of the room.
+    let outcome = store
+        .save_state(document._id.clone(), saved.clone())
+        .await
+        .unwrap();
+    assert_eq!(outcome, SaveOutcome::Gone);
+    db.delete_document(&document._id, "u").await.unwrap();
+    let late = SavedState {
+        state_version: 2,
+        ..saved
+    };
+    assert_eq!(
+        store.save_state(document._id.clone(), late).await.unwrap(),
+        SaveOutcome::Gone
+    );
+    assert!(store
+        .load_state(document._id.clone())
+        .await
+        .unwrap()
+        .is_none());
+    db.db.drop().await.unwrap();
+}
+
+#[tokio::test]
+async fn versions_skip_repeats_are_spaced_and_keep_the_newest() {
+    let Some(db) = test_db().await else { return };
+    let db = Arc::new(db);
+    let store = MongoDocumentStore(db.clone());
+    let add = |content: &str| {
+        store.add_version(
+            "d".to_string(),
+            NewVersion {
+                content: content.to_string(),
+                editors: vec!["u".to_string()],
+            },
+        )
+    };
+    add("eins").await.unwrap();
+    add("eins").await.unwrap();
+    add("gleich danach").await.unwrap();
+    let versions = db.get_document_versions("d").await.unwrap();
+    assert_eq!(versions.len(), 1);
+    assert_eq!(versions[0].content, "eins");
+
+    let old = |n: i64| {
+        doc! {
+            "_id": format!("v{n}"), "document_id": "d", "content": format!("Stand {n}"),
+            "editors": [], "saved_at": 1_000 + n,
+        }
+    };
+    let stored = db.db.collection::<Document>("document_versions");
+    stored.delete_many(doc! {}).await.unwrap();
+    stored.insert_many((0..60).map(old)).await.unwrap();
+    add("neu").await.unwrap();
+    let versions = db.get_document_versions("d").await.unwrap();
+    assert_eq!(versions.len(), 50);
+    assert_eq!(versions[0].content, "neu");
+    assert_eq!(stored.count_documents(doc! {}).await.unwrap(), 50);
+    db.db.drop().await.unwrap();
+}
+
+#[tokio::test]
+async fn two_people_sorting_at_once_lose_no_document() {
+    let Some(db) = test_db().await else { return };
+    db.create_document_group("Alpha").await.unwrap();
+    let alpha = listed(&db).await.groups.remove(0)._id;
+    let first = db
+        .create_document("# A", vec![alpha.clone()], "u")
+        .await
+        .unwrap();
+    let second = db
+        .create_document("# B", vec![alpha.clone()], "u")
+        .await
+        .unwrap();
+
+    let order = [second._id.clone()];
+    let new_one = db.create_document("# C", vec![alpha.clone()], "u");
+    let (reordered, added) = tokio::join!(db.set_group_document_order(&alpha, &order), new_one);
+    assert!(reordered.unwrap());
+    let added = added.unwrap();
+
+    let body = listed(&db).await;
+    let ids = &body.groups[0].document_ids;
+    assert_eq!(ids[0], second._id);
+    assert!(ids.contains(&first._id) && ids.contains(&added._id));
+    assert_eq!(ids.len(), 3);
+    db.db.drop().await.unwrap();
+}
+
+#[tokio::test]
+async fn only_existing_groups_count() {
+    let Some(db) = test_db().await else { return };
+    db.create_document_group("Alpha").await.unwrap();
+    let alpha = listed(&db).await.groups.remove(0)._id;
+    assert!(db
+        .document_groups_exist(std::slice::from_ref(&alpha))
+        .await
+        .unwrap());
+    assert!(db
+        .document_groups_exist(&[alpha.clone(), alpha.clone()])
+        .await
+        .unwrap());
+    assert!(db.document_groups_exist(&[]).await.unwrap());
+    assert!(!db
+        .document_groups_exist(&[alpha, "weg".to_string()])
+        .await
+        .unwrap());
     db.db.drop().await.unwrap();
 }

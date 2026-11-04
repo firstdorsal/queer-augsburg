@@ -316,6 +316,12 @@ impl User {
                 .as_ref()
                 .is_some_and(|member| member.status == Some(MembershipStatus::Approved))
     }
+
+    /// The internal documents are for verified members, editors and those who maintain them.
+    pub fn may_read_documents(&self) -> bool {
+        self.has_capability(&UserCapabilities::UpdateDocuments)
+            || self.may_see_members_only_links()
+    }
 }
 
 #[derive(TS, ToSchema)]
@@ -327,6 +333,163 @@ pub enum UserCapabilities {
     UpdateMemberStatus,
     CreateMember,
     SendMassEmail,
+    UpdateDocuments,
+}
+
+/// An internal document. `title` is derived from `content` (`document_rules::derive_title`).
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+pub struct WikiDocument {
+    pub _id: String,
+    pub title: String,
+    /// Markdown.
+    pub content: String,
+    pub group_ids: Vec<String>,
+    /// Someone has it open in the editor, so `content` may be a few seconds behind.
+    #[serde(default)]
+    pub editing: bool,
+}
+
+/// An automatically kept earlier text of a document.
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+pub struct WikiDocumentVersion {
+    pub _id: String,
+    /// Markdown.
+    pub content: String,
+    /// Display names of those who changed the text since the version before.
+    pub editors: Vec<String>,
+    #[ts(type = "number")]
+    pub saved_at: i64,
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+pub struct GetDocumentVersionsResponseBody {
+    /// Newest first.
+    pub versions: Vec<WikiDocumentVersion>,
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+pub struct WikiDocumentSummary {
+    pub _id: String,
+    pub title: String,
+}
+
+/// A group with its documents in display order.
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+pub struct WikiDocumentGroup {
+    pub _id: String,
+    pub name: String,
+    pub document_ids: Vec<String>,
+}
+
+/// Groups in display order; `documents` holds every document once, for the titles.
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+pub struct GetDocumentsResponseBody {
+    pub groups: Vec<WikiDocumentGroup>,
+    pub documents: Vec<WikiDocumentSummary>,
+    /// Documents in no group, alphabetical.
+    pub ungrouped_ids: Vec<String>,
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+pub struct WikiDocumentHit {
+    pub _id: String,
+    pub title: String,
+    /// The text around the first hit; empty when only the title matched.
+    pub snippet: String,
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+pub struct SearchDocumentsResponseBody {
+    pub hits: Vec<WikiDocumentHit>,
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct CreateDocumentRequestBody {
+    pub title: String,
+    /// Markdown below the title; the title becomes the first heading.
+    pub content: String,
+    pub group_ids: Vec<String>,
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct SetDocumentGroupsRequestBody {
+    pub document_id: String,
+    pub group_ids: Vec<String>,
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct DeleteDocumentRequestBody {
+    pub document_id: String,
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct CreateDocumentGroupRequestBody {
+    pub name: String,
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct RenameDocumentGroupRequestBody {
+    pub group_id: String,
+    pub name: String,
+}
+
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct DeleteDocumentGroupRequestBody {
+    pub group_id: String,
+}
+
+/// The wanted order. Ids that are gone are skipped; groups left out follow by name.
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct OrderDocumentGroupsRequestBody {
+    pub group_ids: Vec<String>,
+}
+
+/// The wanted order inside a group. Ids not in the group are skipped; documents left out
+/// follow by title.
+#[derive(TS, ToSchema)]
+#[ts(export, export_to = "../web/src/apiTypes/")]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+#[serde(deny_unknown_fields)]
+pub struct OrderGroupDocumentsRequestBody {
+    pub group_id: String,
+    pub document_ids: Vec<String>,
 }
 
 #[derive(TS, ToSchema, Validate)]

@@ -34,7 +34,8 @@ COPY --from=build /etc/group /etc/group
 
 
 USER qa-server
-STOPSIGNAL SIGKILL
+# The server saves open documents on SIGTERM; compose gives it `stop_grace_period`.
+STOPSIGNAL SIGTERM
 EXPOSE 80
 # run it 
 ENTRYPOINT ["./qa-server"]

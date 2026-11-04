@@ -1,5 +1,9 @@
+pub mod capped_allocator;
 pub mod config;
 pub mod db;
+pub mod document_rooms;
+pub mod document_rules;
+pub mod document_search;
 pub mod extractors;
 pub mod interossea;
 pub mod macros;
@@ -14,6 +18,9 @@ pub mod methods {
     pub mod confirm_send_email;
     pub mod create_meetings;
     pub mod create_own_user;
+    pub mod document_groups;
+    pub mod document_sync;
+    pub mod documents;
     pub mod get_meeting_link;
     pub mod get_meetings;
     pub mod get_own_user;
