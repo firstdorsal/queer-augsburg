@@ -15,7 +15,7 @@ const WHITE_SPACE_CHAR = /^\p{White_Space}$/u;
 const APOSTROPHES = /[\u{2018}\u{2019}\u{2BC}\u{B4}`]/gu;
 // Control and invisible format characters, as server/src/place_rules.rs `is_forbidden_char`,
 // plus lone surrogates (which the server's JSON parser rejects).
-const FORBIDDEN_CHARS =
+export const FORBIDDEN_CHARS =
     /[\p{Cc}\u{AD}\u{61C}\u{180E}\u{200B}-\u{200F}\u{2028}-\u{202E}\u{2060}-\u{2064}\u{2066}-\u{206F}\u{FEFF}\u{FFF9}-\u{FFFB}]|\p{Cs}/u;
 
 // Limits of server/src/place_rules.rs.

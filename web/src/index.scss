@@ -168,10 +168,192 @@ body,
 .Ich,
 .Kontakt,
 .Impressum,
-.Admin {
+.Admin,
+.Documents {
     max-width: $maxWidth;
     margin: 0px auto;
     box-sizing: border-box;
+}
+
+.Documents {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 1fr);
+    align-content: start;
+    gap: 32px;
+    @media (max-width: $bp1) {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 16px;
+    }
+}
+
+.DocumentList {
+    margin-top: 16px;
+    ul {
+        list-style: none;
+        margin: 0px 0px 16px;
+        padding: 0px;
+    }
+    li {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+    }
+    a {
+        flex: 1;
+        min-width: 0;
+        padding: 4px 0px;
+        overflow-wrap: anywhere;
+    }
+    a.active {
+        font-weight: 600;
+    }
+}
+
+.DocumentGroupHeading {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    h2 {
+        flex: 1;
+        min-width: 0;
+        margin: 8px 0px 4px;
+        font-size: 16px;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+}
+
+.DocumentGroupForm {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.DocumentEmptyGroup {
+    margin: 0px 0px 16px;
+    opacity: 0.7;
+}
+
+.DocumentHits {
+    list-style: none;
+    margin: 12px 0px 0px;
+    padding: 0px;
+    button {
+        display: block;
+        width: 100%;
+        padding: 8px 0px;
+        text-align: left;
+        overflow-wrap: anywhere;
+    }
+    span {
+        display: block;
+        opacity: 0.8;
+    }
+}
+
+.DocumentBody {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    .Md {
+        a {
+            text-decoration: underline;
+        }
+        ul,
+        ol {
+            margin: 0px 0px 12px;
+            padding-left: 24px;
+        }
+        ul {
+            list-style: disc;
+        }
+        ol {
+            list-style: decimal;
+        }
+        pre {
+            overflow-x: auto;
+        }
+        blockquote {
+            margin: 0px 0px 12px;
+            padding-left: 12px;
+            border-left: 3px solid var(--rs-border-primary);
+        }
+        hr {
+            margin: 16px 0px;
+            border: none;
+            border-top: 1px solid var(--rs-border-primary);
+        }
+    }
+}
+
+.Documents.editing {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: none;
+    > :first-child {
+        display: none;
+    }
+}
+
+.DocumentEditorBar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    span {
+        flex: 1;
+        min-width: 160px;
+    }
+}
+
+.DocumentPanes {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 24px;
+    &.single {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    @media (max-width: $bp1) {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.DocumentEditorPane {
+    min-height: 60vh;
+    min-width: 0;
+    border: 1px solid var(--rs-border-primary);
+    border-radius: 6px;
+}
+
+.DocumentVersions {
+    margin-bottom: 12px;
+    ul {
+        list-style: none;
+        margin: 0px 0px 8px;
+        padding: 0px;
+        max-height: 180px;
+        overflow-y: auto;
+    }
+    button {
+        padding: 2px 0px;
+        text-decoration: underline;
+    }
+}
+
+.DocumentHelp {
+    margin-top: 16px;
+    ul {
+        list-style: disc;
+        margin: 8px 0px;
+        padding-left: 24px;
+    }
+}
+
+.DocumentActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0px;
 }
 
 .MeetingList {

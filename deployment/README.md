@@ -59,10 +59,74 @@ The server stops at startup if it cannot reach the database or build its indexes
     plain HTTP (`interossea.url` must stay `http://`, the server has no TLS client for it).
 -   Saving an existing meeting unchanged works.
 
+## Documents
+
+`UpdateDocuments` lets a person create, edit, sort and delete documents; no page assigns it. The
+user must have logged in once. Find the id, grant, check. The pipeline form also works for
+users whose `capabilities` is null, where `$addToSet` would fail:
+
+```sh
+ssh root@turing 'bash -s' <<'EOF'
+docker exec qa-db sh -c 'mongosh --quiet --port 27030 -u root -p "$MONGODB_ROOT_PASSWORD" --authenticationDatabase admin queer-augsburg --eval "
+const id = db.users.findOne({\"member.email\": \"name@example.org\"})._id;
+printjson(db.users.updateOne({_id: id}, [{\$set: {capabilities: {\$setUnion: [{\$ifNull: [\"\$capabilities\", []]}, [\"UpdateDocuments\"]]}}}]));
+printjson(db.users.find({capabilities: \"UpdateDocuments\"}, {_id: 1}).toArray())"'
+EOF
+```
+
+To take it away, use `{\$pull: {capabilities: \"UpdateDocuments\"}}` in the same command. An open
+editor then closes within 30 seconds; verified members and meeting editors can still read.
+Leaving the association does not remove it, so take it away when someone leaves.
+
+A deploy of the server disconnects editors for a few seconds (2.2 s measured). Nothing is lost:
+the server saves on SIGTERM (`STOPSIGNAL SIGTERM`, `stop_grace_period: 20s`), and browsers push
+back what it has not seen. Sessions live in memory, so every editor renews its session
+afterwards. There must only ever be one server process, as rooms live in its memory.
+
+Backups are the `mongodump` jobs in `config/ofelia.conf`, `@weekly` on turing; they cover the
+whole database. So `document_versions` is what helps with a mistake in one document, and a dump
+by hand is worth it before risky work.
+
+The first rollout:
+
+1.  Dump the database and tag the running images `:pre-documents`.
+2.  On turing, `results/docker-compose.yml` differs from the template by hand: render to `/tmp`,
+    diff, and apply only `stop_grace_period: 20s` for `qa-server` and the `wss://` source in
+    `CSP_CONNECT_SRC` of `qa-web`. Back up the file one level up first.
+3.  Pull and recreate `qa-server`, which must ship together with `stop_grace_period`.
+    `docker inspect qa-server --format '{{.Config.StopSignal}} {{.Config.StopTimeout}}'` must
+    print `SIGTERM 20`. Check "After a server update".
+4.  Pull and recreate `qa-web` with `--force-recreate`, in the same step as the CSP change, as
+    the header is cached with the document. `curl -sI https://queer-augsburg.de/` must show
+    `wss://api.queer-augsburg.de`. The test in `web/src/documents.test.ts` only sees the template.
+5.  Grant yourself `UpdateDocuments`. Reload twice, open a document in the editor: the socket
+    shows as 101 in the browser's network tab (traefik's access log says 0). Leave it idle for
+    two minutes, type, `docker compose -p results restart qa-server`, and check that the text
+    survives.
+6.  Grant it to the others.
+
 ## Rolling back the server
 
 Dependency updates do not change what is stored: an older image reads and writes the data as
 before. Go back with the tag made before the pull, or with `:<short sha>` of the older commit.
+
+**Going back behind the documents:** an older server cannot read a user holding a capability it
+does not know, so those users could no longer log in and the member list fails. So in this order:
+
+1.  Remove the capability from everybody; the count must be 0:
+
+    ```sh
+    ssh root@turing 'bash -s' <<'EOF'
+    docker exec qa-db sh -c 'mongosh --quiet --port 27030 -u root -p "$MONGODB_ROOT_PASSWORD" --authenticationDatabase admin queer-augsburg --eval "
+    printjson(db.users.updateMany({capabilities: \"UpdateDocuments\"}, {\$pull: {capabilities: \"UpdateDocuments\"}}));
+    print(db.users.countDocuments({capabilities: \"UpdateDocuments\"}))"'
+    EOF
+    ```
+
+2.  `docker tag firstdorsal/queer-augsburg-server:pre-documents firstdorsal/queer-augsburg-server:latest`,
+    the same for `-web`, and `docker compose -p results up -d --no-deps --force-recreate qa-server qa-web`
+    without a `pull`. The old image stops with SIGKILL again, which no longer matters then.
+3.  The compose edits can stay. The document collections stay too, and an older server ignores them.
 
 Stored meetings keep fields an older server does not know; it ignores them when reading,
 and drops them when it saves such a meeting. After going back to a server without

@@ -51,7 +51,10 @@ export default defineConfig({
                 navigateFallbackAllowlist: [/^index.html$/]
             },
             workbox: {
-                globPatterns: ["**/*.{js,css,html,ico,png,svg}"]
+                globPatterns: ["**/*.{js,css,html,ico,png,svg}"],
+                // Only editors need it; it would be 700 KB for every guest. Replaces workbox's
+                // default ignores, which sw.js and workbox-*.js stay out of anyway.
+                globIgnores: ["**/DocumentEditor-*.js", "stats.html"]
             },
             manifest: {
                 name: "Queer Augsburg",

@@ -5,7 +5,8 @@ stages:
     - docker-build
 # v1 tests run before the image builds; a failing test stops the pipeline before any
 # image is pushed. The web tests also read shared fixtures from server/ (validation and
-# place name cases, the places migration), so the web job needs the full checkout.
+# place name cases, the places migration) and the compose template, so the web job needs the
+# full checkout.
 # Images are built only on the default branch: every build is pushed as :latest (what
 # turing pulls) and as :<short sha> (to roll back to).
 test-server:
@@ -56,6 +57,8 @@ test-web:
             - web/**/*
             - server/src/meeting_validation_cases.json
             - server/src/place_key_cases.json
+            - server/src/document_validation_cases.json
+            - deployment/templates/docker-compose.yml
             - server/migrations/**/*
             - .gitlab-ci.yml
     script:

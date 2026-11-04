@@ -27,7 +27,7 @@ services:
             - ./config/qa-web.yml:/config.yml:ro
             - ./config/qa-web-ui.json:/public/config.json:ro
         environment:
-            CSP_CONNECT_SRC: {{ ternary "https://" "http://" $config.tls true }}{{ $interosseaServerHostname}} {{ ternary "https://" "http://" $config.tls true }}{{ $qaServerHostname}}
+            CSP_CONNECT_SRC: {{ ternary "https://" "http://" $config.tls true }}{{ $interosseaServerHostname}} {{ ternary "https://" "http://" $config.tls true }}{{ $qaServerHostname}} {{ ternary "wss://" "ws://" $config.tls true }}{{ $qaServerHostname}}
         labels:
             traefik:
                 docker:
@@ -82,6 +82,8 @@ services:
         {{- end }}
         
         container_name: qa-server
+        # Saving open documents takes up to 15 s (ROOMS_SHUTDOWN_TIMEOUT in server/src/main.rs).
+        stop_grace_period: 20s
         networks:
             - qa-db
             - qa-interossea-server

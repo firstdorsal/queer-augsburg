@@ -72,6 +72,33 @@ Code: `src/bulkImport.ts` (format, parsing, validation), `src/meetingDuplicates.
 
 The "Prompt kopieren" button needs `clipboard-write=(self)` in the `permissions-policy` header: `server/config.yml` in the image, and `deployment/templates/config/qa-web.yml`, which production mounts over it. Without clipboard access the prompt is shown for manual copying.
 
+## Dokumente
+
+Internal documents at `/dokumente` (`/dashboard` forwards there). Verified members, meeting editors and holders of the capability `UpdateDocuments` read them; only holders write. Readers get rendered Markdown over HTTP: what was last saved (within 10 seconds of typing, longer while a save is failing); it updates on reload. Plain Markdown through `Md`, without images (`disallowedElements`), tables (they would need remark-gfm) or raw HTML.
+
+-   **Text:** changes only through the live editor. `documents.state` (Yjs) is the source of truth; `content` and `title` (the first `# ` heading) are derived on every save. A document gets its state once, in `create_document`: two independent states of one text would merge into the text appearing twice.
+-   **Groups:** `group_ids` on the document is the membership, so a document can be in several groups in one atomic write. The order of groups and of documents in a group are separate lists that only express a wish (`apply_order`): ids they do not know follow alphabetically, so a reorder race can never lose a document. Documents without a group are listed alphabetically under "Ohne Gruppe". The page opens the first document of the first group, so sorting decides the start page.
+-   **Search:** `GET /api/search_documents/?q=`. Every term must occur in the title or text, also inside a word ("satzung" finds "Vereinssatzung"), ß finds ss. Matching runs in Rust on the original text (`document_search.rs`). MongoDB's `$text` matches whole words only, which fails for German compounds.
+-   **Versions:** kept automatically: the text before the first change of a session, then at most every 10 minutes while it changes, and when a room closes; never twice the same, at most one a minute, the newest 50. Restoring replaces the text as an ordinary edit, for everyone at once.
+
+### Live editing
+
+`GET /api/document_sync/{document_id}`, a WebSocket speaking the y-websocket protocol (not in the OpenAPI docs). Server: `server/src/document_rooms.rs`, one actor task per open document owning the yrs `Doc`, and `server/src/methods/document_sync.rs`. Browser: `src/documentEditor/`, a lazy chunk of about 200 kB gzip that is kept out of the service worker's precache, so guests do not download it. Nothing outside that folder may import from it except the lazy import in `pages/Documents.tsx`.
+
+-   **Before the upgrade, as HTTP status** (browsers show these only as close code 1006): 503 restarting, 403 wrong `Origin`, 401 no session. The `Origin` check is the only barrier against other websites: the session cookie is `SameSite=None` and CORS does not cover WebSockets.
+-   **Close codes the editor explains:** 4401 session gone, 4403 no permission, 4404 deleted, 4413 too large, 4422 stored state damaged, 4400 broken message; 1011 server error, 1012 restart, 1013 too many rooms or connections. `src/documentEditor/connection.ts` decides what follows: 4401 and 1006 renew the session and reconnect, other 44xx stop, the rest reconnects.
+-   **Name and colour** in the editor come from the server, which overwrites them in every awareness update.
+-   **CSP:** `connect-src` needs `wss://` of the API, as `https://` does not cover it (`CSP_CONNECT_SRC` in the compose template). CodeMirror runs in a shadow root, because the CSP blocks its `<style>` element in `document` but not the constructable stylesheet it uses there. So global CSS does not reach the editor: its styles go through `EditorView.theme`. Remote cursors use classes (`remoteSelections.ts`), because the caret of y-codemirror.next sets a `style` attribute.
+-   **Undo:** no `history()` and no `basicSetup`: their undo takes back other people's text too.
+-   **Limits** are consts at the top of `document_rooms.rs`, measured with 10 million keystrokes. A document's state never shrinks, even after a reload; at 6 000 000 bytes further growth is refused with 4413, and the text moves to a new document.
+-   **Allocations:** `CappedAllocator` is what stands between an 8-byte frame declaring billions of entries and the process being killed. `max_message_size` cannot stop that. It relies on the yrs decoders using `try_reserve`; `tests/document_rooms.rs` sends such frames.
+-   **Links** between documents are stored in their text, so `/dokumente/<id>` has to stay valid.
+-   yjs, y-websocket, y-codemirror.next and yrs are pinned exactly: both sides speak one protocol.
+
+Rules shared with the server: `server/src/document_validation_cases.json`, run by `document_rules.rs` and `src/documents.test.ts`.
+
+Not covered by CI, to check by hand with two browsers through traefik before a deploy that touches this: cursors and console free of CSP errors, typing across a session renewal (10 minutes), `docker stop` while typing, 30 seconds offline, restoring a version, a phone with its on-screen keyboard, Safari.
+
 ## Map and address search (OpenStreetMap)
 
 "Neuen Ort anlegen" shows OpenStreetMap tiles and searches addresses with Nominatim, directly from the browser. Their usage policies are kept in `src/osm.ts`: the canonical tile URL `https://tile.openstreetmap.org/…` (no a/b/c subdomains), visible attribution, at most one search per second and only on explicit search (no search-as-you-type), and a Referer — the site sends `Referrer-Policy: no-referrer`, so tiles and searches override it per request and send only the origin. Without the Referer, OSM blocks the tiles (403, "does not comply with the tile usage policy").
@@ -83,6 +110,7 @@ Security headers live in two files that must be changed together: `server/config
 ```sh
 pnpm test        # type-checks src incl. tests (tsconfig.test.json), then runs vitest
 cd ../server && cargo test   # server tests; also regenerates src/apiTypes via ts-rs
+TEST_MONGODB_URI=mongodb://localhost:<port> cargo test   # plus the tests against a real MongoDB
 ```
 
 `pnpm test` and `pnpm build` both run `fix-react-markdown-types`, which deletes `react-markdown/lib/complex-types.ts`: react-markdown 8 ships that TypeScript source file, and it does not compile against the Preact JSX types. Test files are excluded from `pnpm build` because they import the shared fixture from `server/`, which is outside the web Docker build context. CI runs both test suites (`test-web`, `test-server`) before building images.

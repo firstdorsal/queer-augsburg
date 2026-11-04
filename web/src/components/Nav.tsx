@@ -1,5 +1,6 @@
 import { Component } from "preact";
 import { Link } from "preact-router/match";
+import { mayReadDocuments } from "../documents";
 import { G } from "../types";
 
 const navItems = [
@@ -40,6 +41,19 @@ export default class Nav extends Component<NavProps, NavState> {
                             </li>
                         );
                     })}
+                    {mayReadDocuments(this.props.g.account) && (
+                        <li>
+                            <Link
+                                draggable={false}
+                                activeClassName="active"
+                                // @ts-ignore
+                                href={"/dokumente"}
+                                path="/dokumente/:documentId?"
+                            >
+                                Dokumente
+                            </Link>
+                        </li>
+                    )}
                     {(() => {
                         if (this.props.g.loggedIn) {
                             if (

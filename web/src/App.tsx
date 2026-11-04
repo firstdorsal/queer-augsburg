@@ -14,6 +14,7 @@ import { CustomProvider } from "rsuite";
 import "rsuite/styles/index.less";
 import { QaClient } from "./api";
 import Admin from "./pages/Admin";
+import Documents from "./pages/Documents";
 import Ich from "./pages/Ich";
 import Impressum from "./pages/Impressum";
 import { G, UiConfig } from "./types";
@@ -177,6 +178,8 @@ export default class App extends Component<AppProps, AppState> {
                             <Ich g={this.state.g} path="/ich" />
                             <Admin g={this.state.g} path="/admin" />
                             <Impressum path="/impressum" />
+                            <Documents g={this.state.g} path="/dokumente/:documentId?" />
+                            <Redirect external={true} path="/dashboard/" to="/dokumente" />
                             <QuizBoardRoute path="/quiz/board" />
                             <QuizControlRoute path="/quiz/control" />
                             <Redirect

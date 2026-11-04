@@ -1,11 +1,17 @@
 import { InterosseaClient } from "@firstdorsal/interossea-client";
 import { ConfirmSendEmailResponseBody } from "./apiTypes/ConfirmSendEmailResponseBody";
+import type { CreateDocumentGroupRequestBody } from "./apiTypes/CreateDocumentGroupRequestBody";
+import type { CreateDocumentRequestBody } from "./apiTypes/CreateDocumentRequestBody";
 import type { CreateMeetingsErrorBody } from "./apiTypes/CreateMeetingsErrorBody";
 import type { CreateMeetingsRequestBody } from "./apiTypes/CreateMeetingsRequestBody";
 import type { CreateMeetingsResponseBody } from "./apiTypes/CreateMeetingsResponseBody";
 import type { CreatePlaceRequestBody } from "./apiTypes/CreatePlaceRequestBody";
 import type { CreatePlaceResponseBody } from "./apiTypes/CreatePlaceResponseBody";
+import type { DeleteDocumentGroupRequestBody } from "./apiTypes/DeleteDocumentGroupRequestBody";
+import type { DeleteDocumentRequestBody } from "./apiTypes/DeleteDocumentRequestBody";
 import { EmailAttachment } from "./apiTypes/EmailAttachment";
+import type { GetDocumentVersionsResponseBody } from "./apiTypes/GetDocumentVersionsResponseBody";
+import type { GetDocumentsResponseBody } from "./apiTypes/GetDocumentsResponseBody";
 import { GetMeetingsResponseBody } from "./apiTypes/GetMeetingsResponseBody";
 import type { GetPlacesResponseBody } from "./apiTypes/GetPlacesResponseBody";
 import { GetUsersResponseBody } from "./apiTypes/GetUsersResponseBody";
@@ -14,10 +20,16 @@ import type { MeetingLinkResponseBody } from "./apiTypes/MeetingLinkResponseBody
 import { MeetingTypeQuery } from "./apiTypes/MeetingTypeQuery";
 import { MembershipStatus } from "./apiTypes/MembershipStatus";
 import type { NewMeeting } from "./apiTypes/NewMeeting";
+import type { OrderDocumentGroupsRequestBody } from "./apiTypes/OrderDocumentGroupsRequestBody";
+import type { OrderGroupDocumentsRequestBody } from "./apiTypes/OrderGroupDocumentsRequestBody";
 import type { Place } from "./apiTypes/Place";
+import type { RenameDocumentGroupRequestBody } from "./apiTypes/RenameDocumentGroupRequestBody";
+import type { SearchDocumentsResponseBody } from "./apiTypes/SearchDocumentsResponseBody";
 import { SendEmailPreviewResponseBody } from "./apiTypes/SendEmailPreviewResponseBody";
+import type { SetDocumentGroupsRequestBody } from "./apiTypes/SetDocumentGroupsRequestBody";
 import { SubmittedMember } from "./apiTypes/SubmittedMember";
 import { User } from "./apiTypes/User";
+import type { WikiDocument } from "./apiTypes/WikiDocument";
 
 interface MeetingsCache {
     meetings: Meeting[];
@@ -52,6 +64,7 @@ export type CreateMeetingsResult =
 export class QaClient {
     interosseaClient: InterosseaClient;
     qaEndpoint: string;
+    private skipInterossea: boolean;
 
     constructor(
         qaEndpoint: string,
@@ -62,6 +75,7 @@ export class QaClient {
     ) {
         this.qaEndpoint = qaEndpoint;
 
+        this.skipInterossea = skipInterossea;
         this.interosseaClient = new InterosseaClient(
             interosseaServerEndpoint,
             interosseaWebEndpoint,
@@ -458,6 +472,120 @@ export class QaClient {
             return { ok: false, status: 0 };
         }
     };
+
+    /** GETs JSON with the session. Never throws; `status` 0 means no answer from the server. */
+    private getJson = async <T>(
+        url: string
+    ): Promise<{ ok: true; body: T } | { ok: false; status: number; message: string }> => {
+        try {
+            const res = await fetch(url, { credentials: "include" });
+            if (!res.ok) {
+                const message = await res.text().catch(() => "");
+                return { ok: false, status: res.status, message };
+            }
+            return { ok: true, body: (await res.json()) as T };
+        } catch (error) {
+            console.error(`GET ${url} failed:`, error);
+            return { ok: false, status: 0, message: "Keine Antwort vom Server." };
+        }
+    };
+
+    /** Groups and documents in display order, without the text. */
+    get_documents = async () => {
+        const result = await this.getJson<GetDocumentsResponseBody>(
+            `${this.qaEndpoint}/api/documents/`
+        );
+        return result.ok ? { ok: true as const, list: result.body } : result;
+    };
+
+    get_document = async (document_id: string) => {
+        const result = await this.getJson<WikiDocument>(
+            `${this.qaEndpoint}/api/document/?d=${encodeURIComponent(document_id)}`
+        );
+        return result.ok ? { ok: true as const, document: result.body } : result;
+    };
+
+    search_documents = async (query: string) => {
+        const result = await this.getJson<SearchDocumentsResponseBody>(
+            `${this.qaEndpoint}/api/search_documents/?q=${encodeURIComponent(query)}`
+        );
+        return result.ok ? { ok: true as const, hits: result.body.hits } : result;
+    };
+
+    create_document = async (body: CreateDocumentRequestBody) => {
+        const result = await this.sendJson(`${this.qaEndpoint}/api/create_document/`, body);
+        return result.ok ? { ok: true as const, document: result.body as WikiDocument } : result;
+    };
+
+    get_document_versions = async (document_id: string) => {
+        const result = await this.getJson<GetDocumentVersionsResponseBody>(
+            `${this.qaEndpoint}/api/document_versions/?d=${encodeURIComponent(document_id)}`
+        );
+        return result.ok ? { ok: true as const, versions: result.body.versions } : result;
+    };
+
+    /**
+     * Renews the session for the editor's socket. The login client ignores the answer, but only
+     * a definite 401 means logged out: during a server restart requests simply fail.
+     */
+    renew_session = async (): Promise<"renewed" | "loggedOut" | "offline"> => {
+        if (this.skipInterossea) return "renewed";
+        try {
+            const assertion = await this.interosseaClient.get_user_assertion();
+            const res = await fetch(`${this.qaEndpoint}/api/get_session_cookie/`, {
+                method: "POST",
+                credentials: "include",
+                headers: { InterosseaUserAssertion: assertion },
+                signal: AbortSignal.timeout(3_000)
+            });
+            if (res.status === 401) return "loggedOut";
+            return res.ok ? "renewed" : "offline";
+        } catch {
+            return "offline";
+        }
+    };
+
+    /** POSTs a change that answers with the new list. */
+    private changeDocuments = async <T>(endpoint: string, body: T) => {
+        const result = await this.sendJson(`${this.qaEndpoint}/api/${endpoint}/`, body);
+        return result.ok
+            ? { ok: true as const, list: result.body as GetDocumentsResponseBody }
+            : result;
+    };
+
+    set_document_groups = (document_id: string, group_ids: string[]) =>
+        this.changeDocuments<SetDocumentGroupsRequestBody>("set_document_groups", {
+            document_id,
+            group_ids
+        });
+
+    delete_document = (document_id: string) =>
+        this.changeDocuments<DeleteDocumentRequestBody>("delete_document", { document_id });
+
+    create_document_group = (name: string) =>
+        this.changeDocuments<CreateDocumentGroupRequestBody>("create_document_group", { name });
+
+    rename_document_group = (group_id: string, name: string) =>
+        this.changeDocuments<RenameDocumentGroupRequestBody>("rename_document_group", {
+            group_id,
+            name
+        });
+
+    delete_document_group = (group_id: string) =>
+        this.changeDocuments<DeleteDocumentGroupRequestBody>("delete_document_group", {
+            group_id
+        });
+
+    order_document_groups = (group_ids: string[]) =>
+        this.changeDocuments<OrderDocumentGroupsRequestBody>("order_document_groups", {
+            group_ids
+        });
+
+    order_group_documents = (group_id: string, document_ids: string[]) =>
+        this.changeDocuments<OrderGroupDocumentsRequestBody>("order_group_documents", {
+            group_id,
+            document_ids
+        });
 
     /** POSTs JSON; error bodies are German plain text from the server. Never throws. */
     private sendJson = async (
