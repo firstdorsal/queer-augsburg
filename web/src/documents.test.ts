@@ -15,6 +15,7 @@ import {
     mayEditDocuments,
     mayReadDocuments,
     movedIds,
+    showDocumentsInNav,
     titlesById
 } from "./documents";
 
@@ -118,5 +119,16 @@ describe("the list", () => {
 
     it("finds titles by id", () => {
         expect(titlesById(list).get("d2")).toBe("Zwei");
+    });
+});
+
+describe("navigation", () => {
+    it("does not link to the documents while they are hidden, not even for editors", () => {
+        const editor = {
+            capabilities: ["UpdateDocuments"],
+            member: { membership_status: "Approved" }
+        } as unknown as User;
+        expect(mayReadDocuments(editor)).toBe(true);
+        expect(showDocumentsInNav(editor)).toBe(false);
     });
 });

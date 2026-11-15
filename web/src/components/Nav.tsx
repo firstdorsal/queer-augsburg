@@ -1,6 +1,6 @@
 import { Component } from "preact";
 import { Link } from "preact-router/match";
-import { mayReadDocuments } from "../documents";
+import { showDocumentsInNav } from "../documents";
 import { G } from "../types";
 
 const navItems = [
@@ -41,7 +41,7 @@ export default class Nav extends Component<NavProps, NavState> {
                             </li>
                         );
                     })}
-                    {mayReadDocuments(this.props.g.account) && (
+                    {showDocumentsInNav(this.props.g.account) && (
                         <li>
                             <Link
                                 draggable={false}

@@ -16,6 +16,15 @@ export const mayEditDocuments = (user: User | null | undefined): boolean =>
 export const mayReadDocuments = (user: User | null | undefined): boolean =>
     mayEditDocuments(user) || maySeeMembersOnlyLinks(user);
 
+/**
+ * Whether the navigation links to /dokumente. Off until the documents pages are reworked (owner's
+ * decision, 2026-11-15); the pages themselves stay reachable under their address.
+ */
+export const DOCUMENTS_IN_NAV = false;
+
+export const showDocumentsInNav = (user: User | null | undefined): boolean =>
+    DOCUMENTS_IN_NAV && mayReadDocuments(user);
+
 /** Mirrors the server's `clean_name`: the cleaned name, or `null` if it cannot be saved. */
 export const cleanName = (value: string, maxChars: number): string | null => {
     const name = trimWhiteSpace(value);
