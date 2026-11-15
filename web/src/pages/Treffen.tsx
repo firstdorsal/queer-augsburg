@@ -21,7 +21,7 @@ export default class Treffen extends Component<TreffenProps, TreffenState> {
         if (this.props.g.qaClient === null) {
             return (
                 <div className="Treffen">
-                    <Loader size="md" style={{ width: "100%", textAlign: "center" }} />
+                    <Loader size="md" className="flex w-full justify-center" />
                 </div>
             );
         }

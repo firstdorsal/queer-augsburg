@@ -94,7 +94,7 @@ const renderToasts = () => {
                                     "shadow-ui",
                                     // Moving a toast into a dialog must not replay its entry.
                                     Date.now() - toast.createdAt < ENTER_ANIMATION_MS &&
-                                        "motion-safe:duration-300 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95"
+                                        "motion-safe:animate-in motion-safe:fade-in-0 motion-safe:zoom-in-95 motion-safe:[animation-duration:300ms]"
                                 )}
                                 // Reading a toast keeps it open; leaving it starts the time anew.
                                 onMouseEnter={() => stopTimer(toast.id)}

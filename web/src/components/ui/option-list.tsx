@@ -22,7 +22,7 @@ export const PICKER_TEXTS = {
 };
 
 export const popupClasses =
-    "overflow-hidden rounded-[6px] bg-ui-surface text-left text-inherit shadow-ui motion-safe:duration-150 motion-safe:animate-in motion-safe:fade-in-0";
+    "overflow-hidden rounded-[6px] bg-ui-surface text-left text-inherit shadow-ui motion-safe:[animation-duration:150ms] motion-safe:animate-in motion-safe:fade-in-0";
 
 export const openFieldClasses = "border-ui-primary shadow-[0_0_0_3px_var(--ui-focus-ring)]";
 

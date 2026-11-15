@@ -95,7 +95,7 @@ export const Dialog = ({
                 tabIndex={-1}
                 autofocus
                 className={cn(
-                    "relative mx-auto mt-[30px] flex max-h-[calc(100dvh-92px)] max-w-[calc(100%-10px)] flex-col rounded-[6px] bg-ui-surface p-5 shadow-ui outline-0 motion-safe:duration-300 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-top-4",
+                    "relative mx-auto mt-[30px] flex max-h-[calc(100dvh-92px)] max-w-[calc(100%-10px)] flex-col rounded-[6px] bg-ui-surface p-5 shadow-ui outline-0 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-top-4 motion-safe:[animation-duration:300ms]",
                     dialogSizes[size],
                     className
                 )}
