@@ -1,16 +1,14 @@
 import { Component } from "preact";
-import { Button, Input, Message, Modal, SelectPicker, Toggle, useToaster } from "rsuite";
 import { Meeting } from "../apiTypes/Meeting";
 import { MembershipStatus } from "../apiTypes/MembershipStatus";
 import { User } from "../apiTypes/User";
 import { G, memberShipStatuses } from "../types";
-import { withToasterHook } from "../utils";
+import { Button, Dialog, Input, Message, Select, Switch, toaster } from "./ui";
 import UserList from "./UserList";
 
 interface SingleUserProps {
     readonly user: User;
     readonly g: G;
-    readonly toaster: ReturnType<typeof useToaster>;
     readonly reloadUserList: InstanceType<typeof UserList>["reloadUserList"];
     readonly meetings: Meeting[];
 }
@@ -62,7 +60,7 @@ class SingleUser extends Component<SingleUserProps, SingleUserState> {
 
         if (res.status === 200) {
             await this.props.reloadUserList();
-            this.props.toaster.push(
+            toaster.push(
                 <Message showIcon type={"success"} closable>
                     Status erfolgreich geändert
                 </Message>,
@@ -75,7 +73,7 @@ class SingleUser extends Component<SingleUserProps, SingleUserState> {
                 updateStatusModalOpen: false
             });
         } else {
-            this.props.toaster.push(
+            toaster.push(
                 <Message showIcon type={"error"} closable>
                     {text}
                 </Message>,
@@ -198,13 +196,13 @@ class SingleUser extends Component<SingleUserProps, SingleUserState> {
                                     marginLeft: "1em"
                                 }}
                                 size="xs"
-                                appearance="primary"
+                                variant="primary"
                             >
                                 ändern
                             </Button>
                         </div>
 
-                        <Modal
+                        <Dialog
                             open={this.state.updateStatusModalOpen}
                             onClose={() =>
                                 this.setState({
@@ -212,54 +210,52 @@ class SingleUser extends Component<SingleUserProps, SingleUserState> {
                                 })
                             }
                         >
-                            <b>Neuer Status</b>
-                            <br />
+                            <div>
+                                <b>Neuer Status</b>
+                                <br />
 
-                            <SelectPicker
-                                data={memberShipStatuses.map((item) => ({
-                                    label: item,
-                                    value: item
-                                }))}
-                                value={this.state.status}
-                                onSelect={(v) =>
-                                    this.setState({
-                                        status: v
-                                    })
-                                }
-                                cleanable={false}
-                            ></SelectPicker>
-                            <br />
-                            <br />
-                            <b>Mitglied über Status Update informieren (Mail schicken)</b>
-                            <br />
-                            <Toggle
-                                // @ts-ignore
-                                value={this.state.sendUpdateEmail}
-                                defaultChecked
-                                onChange={(v) => this.setState({ sendUpdateEmail: v })}
-                            />
+                                <Select
+                                    data={memberShipStatuses.map((item) => ({
+                                        label: item,
+                                        value: item
+                                    }))}
+                                    value={this.state.status}
+                                    onChange={(status) => this.setState({ status })}
+                                ></Select>
+                                <br />
+                                <br />
+                                <b>Mitglied über Status Update informieren (Mail schicken)</b>
+                                <br />
+                                <Switch
+                                    aria-label="Mitglied per Mail informieren"
+                                    checked={this.state.sendUpdateEmail}
+                                    onCheckedChange={(sendUpdateEmail) =>
+                                        this.setState({ sendUpdateEmail })
+                                    }
+                                />
 
-                            <br />
-                            <br />
-                            <b>Grund für Änderung (Wird per mail geschickt)</b>
-                            <br />
-                            <Input
-                                value={this.state.updateReason}
-                                onChange={(v) => {
-                                    this.setState({ updateReason: v });
-                                }}
-                            />
-                            <br />
-                            <br />
-                            <Button
-                                onClick={this.update_member_application_status}
-                                loading={this.state.awaitingResponse}
-                                disabled={this.props.user.member?.status === this.state.status}
-                                appearance="primary"
-                            >
-                                Update
-                            </Button>
-                        </Modal>
+                                <br />
+                                <br />
+                                <b>Grund für Änderung (Wird per mail geschickt)</b>
+                                <br />
+                                <Input
+                                    value={this.state.updateReason}
+                                    onValueChange={(v) => {
+                                        this.setState({ updateReason: v });
+                                    }}
+                                />
+                                <br />
+                                <br />
+                                <Button
+                                    onClick={this.update_member_application_status}
+                                    loading={this.state.awaitingResponse}
+                                    disabled={this.props.user.member?.status === this.state.status}
+                                    variant="primary"
+                                >
+                                    Update
+                                </Button>
+                            </div>
+                        </Dialog>
                     </div>
                 )}
             </div>
@@ -267,4 +263,4 @@ class SingleUser extends Component<SingleUserProps, SingleUserState> {
     };
 }
 
-export default withToasterHook(SingleUser);
+export default SingleUser;

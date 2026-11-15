@@ -99,6 +99,22 @@ Rules shared with the server: `server/src/document_validation_cases.json`, run b
 
 Not covered by CI, to check by hand with two browsers through traefik before a deploy that touches this: cursors and console free of CSP errors, typing across a session renewal (10 minutes), `docker stop` while typing, 30 seconds offline, restoring a version, a phone with its on-screen keyboard, Safari.
 
+## UI components
+
+All buttons, fields, dialogs and pickers are our own components in `src/components/ui/`, written the shadcn way: Tailwind classes, `cn()` for merging them and `cva` where a component has variants. Import them from `./ui`; `ui/index.ts` lists everything. File names in `ui/` are kebab-case and generic, app components stay PascalCase beside them. The element defaults the pages rely on (heading line heights, link hover) are at the top of `src/index.scss`.
+
+Colours are CSS variables in `src/theme.scss`, set for light and dark there; dark mode follows `prefers-color-scheme`. Tailwind exposes them as `ui-*` (`bg-ui-surface`, `text-ui-text-secondary`). A new colour goes into both blocks of `theme.scss` and into `tokens` in `tailwind.config.js`; `src/theme.test.ts` fails when a used variable is missing.
+
+They are built on browser features instead of a headless library, because the production CSP forbids injected `<style>` elements and Radix did not work reliably under Preact:
+
+- `Dialog` is a native `<dialog>` opened with `showModal()`, rendered into `body`. It needs Safari 15.4, Firefox 98 or Chrome 37.
+- `Select`, `MultiSelect`, `TagSelect`, `DateTimePicker` and `Toggletip` use the HTML Popover API through `Popover`. It is rendered in place on purpose: a modal dialog makes everything outside of it inert. Browsers without the API (before Safari 17, Firefox 125, Chrome 114) get a plain fixed box with the same behaviour.
+- `toaster.push(<Message … />, { placement, duration })` shows a toast, by default for 2 seconds; `duration: 0` keeps it until closed, hovering pauses it, and a `Message` gets an `onClose` injected. Toasts are a manual popover and move into the topmost open dialog for the same reason.
+- `Toggletip` opens on click, not on hover, so it also works on touch screens.
+- `Input` and `Textarea` report text through `onValueChange`, `Checkbox` and `Switch` through `onCheckedChange`; `onChange` and `onInput` are not available on them, in Preact `onChange` only fires on blur. The pickers, `RadioGroup`, `CheckboxGroup` and `DateTimePicker` call `onChange` with the new value, not an event.
+
+Icons come from `ui/icons.tsx` for the components themselves and from `react-icons` in the pages.
+
 ## Map and address search (OpenStreetMap)
 
 "Neuen Ort anlegen" shows OpenStreetMap tiles and searches addresses with Nominatim, directly from the browser. Their usage policies are kept in `src/osm.ts`: the canonical tile URL `https://tile.openstreetmap.org/…` (no a/b/c subdomains), visible attribution, at most one search per second and only on explicit search (no search-as-you-type), and a Referer — the site sends `Referrer-Policy: no-referrer`, so tiles and searches override it per request and send only the origin. Without the Referer, OSM blocks the tiles (403, "does not comply with the tile usage policy").

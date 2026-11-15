@@ -1,19 +1,5 @@
 import update from "immutability-helper";
 import { Component } from "preact";
-import {
-    Button,
-    Checkbox,
-    DatePicker,
-    Input,
-    Message,
-    Modal,
-    Radio,
-    RadioGroup,
-    SelectPicker,
-    TagInput,
-    TagPicker,
-    useToaster
-} from "rsuite";
 import { Meeting } from "../apiTypes/Meeting";
 import { OnlineMeeting } from "../apiTypes/OnlineMeeting";
 import { Place } from "../apiTypes/Place";
@@ -30,10 +16,26 @@ import {
     venueProblem
 } from "../places";
 import { G, commonTags, queerTags } from "../types";
-import { withToasterHook } from "../utils";
 import Md from "./Md";
 import MeetingList from "./MeetingList";
 import PlaceField from "./PlaceField";
+import {
+    Button,
+    Checkbox,
+    DateTimePicker,
+    Dialog,
+    DialogBody,
+    DialogFooter,
+    Input,
+    Message,
+    Radio,
+    RadioGroup,
+    Select,
+    TagInput,
+    TagSelect,
+    Textarea,
+    toaster
+} from "./ui";
 
 interface EditMeetingProps {
     readonly g: G;
@@ -41,7 +43,6 @@ interface EditMeetingProps {
     readonly editing: boolean;
     readonly changEditing: (editing: boolean) => void;
     readonly reloadMeetingList: InstanceType<typeof MeetingList>["reloadMeetingList"];
-    readonly toaster: ReturnType<typeof useToaster>;
     readonly newMeeting?: boolean;
     readonly type: "Planned" | "Active";
 }
@@ -112,7 +113,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
     };
 
     showError = (message: string) => {
-        this.props.toaster.push(
+        toaster.push(
             <Message showIcon type={"error"} closable>
                 {message}
             </Message>,
@@ -136,7 +137,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
         if (result.ok) {
             await this.props.reloadMeetingList(result.meeting);
             this.props.changEditing(false);
-            this.props.toaster.push(
+            toaster.push(
                 <Message showIcon type={"success"} closable>
                     Treffen erfolgreich gespeichert!
                 </Message>,
@@ -156,7 +157,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
         if (success) {
             await this.props.reloadMeetingList(this.state.editingMeeting, true);
             this.props.changEditing(false);
-            this.props.toaster.push(
+            toaster.push(
                 <Message showIcon type={"success"} closable>
                     Treffen erfolgreich gelöscht!
                 </Message>,
@@ -166,7 +167,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                 }
             );
         } else {
-            this.props.toaster.push(
+            toaster.push(
                 <Message showIcon type={"error"} closable>
                     Treffen konnte nicht gelöscht werden!
                 </Message>,
@@ -189,11 +190,11 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
         const emTime = em.time === null ? null : new Date(em.time);
         return (
             <div className="EditMeeting">
-                <Modal open={this.props.editing}>
-                    <Modal.Body>
+                <Dialog open={this.props.editing}>
+                    <DialogBody>
                         Titel
                         <Input
-                            onChange={(v) => {
+                            onValueChange={(v) => {
                                 this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
@@ -224,8 +225,8 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         2 Leerzeichen am Ende der Zeile für erzwungene Zeilenumbrüche
                         <br />
                         <br />
-                        <Input
-                            onChange={(v) => {
+                        <Textarea
+                            onValueChange={(v) => {
                                 this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
@@ -235,7 +236,6 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                 });
                             }}
                             value={em.description}
-                            as="textarea"
                             rows={10}
                             placeholder="Beschreibung"
                         />
@@ -247,18 +247,16 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <br />
                         <b>Status</b>
                         <br />
-                        <SelectPicker
+                        <Select<"Planned" | "Active">
                             value={em.status}
                             data={[
                                 { value: "Planned", label: "Geplant" },
                                 { value: "Active", label: "Aktiv" }
                             ]}
-                            onChange={(v) => {
+                            onChange={(status) => {
                                 this.setState((state) => {
                                     return update(state, {
-                                        editingMeeting: {
-                                            status: { $set: v as "Planned" | "Active" }
-                                        }
+                                        editingMeeting: { status: { $set: status } }
                                     });
                                 });
                             }}
@@ -268,33 +266,19 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <br />
                         <b>Zeit</b>
                         <br />
-                        <DatePicker
-                            onChange={(v) => {
-                                const t = v?.getTime();
-
-                                this.setState((state) => {
-                                    return update(state, {
-                                        editingMeeting: {
-                                            time: {
-                                                $set: t ?? null
-                                            }
-                                        }
-                                    });
-                                });
-                            }}
-                            onChangeCalendarDate={(v: Date) => {
-                                this.setState((state) => {
-                                    return update(state, {
-                                        editingMeeting: {
-                                            time: {
-                                                $set: v.getTime()
-                                            }
-                                        }
-                                    });
-                                });
-                            }}
+                        <DateTimePicker
                             value={emTime}
-                            format="dd.MM.yyyy HH:mm:ss"
+                            onChange={(date) => {
+                                this.setState((state) => {
+                                    return update(state, {
+                                        editingMeeting: {
+                                            time: {
+                                                $set: date?.getTime() ?? null
+                                            }
+                                        }
+                                    });
+                                });
+                            }}
                         />
                         <br />
                         <br />
@@ -319,7 +303,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         {format !== "online" && (
                             <Checkbox
                                 checked={em.place_to_be_announced}
-                                onChange={(_value, checked) =>
+                                onCheckedChange={(checked) =>
                                     this.setState((state) =>
                                         update(state, {
                                             editingMeeting: {
@@ -356,7 +340,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                 <Input
                                     id="edit-meeting-platform"
                                     value={em.online.platform}
-                                    onChange={(value: string) =>
+                                    onValueChange={(value: string) =>
                                         this.updateOnline({ platform: value })
                                     }
                                     placeholder="z. B. Zoom"
@@ -366,7 +350,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                     id="edit-meeting-link"
                                     value={em.online.url ?? ""}
                                     // Typing (also clearing) replaces the withheld link.
-                                    onChange={(value: string) =>
+                                    onValueChange={(value: string) =>
                                         this.updateOnline({ url: value, url_hidden: false })
                                     }
                                     placeholder={
@@ -379,7 +363,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                     <span className="text-sm opacity-80">
                                         Ein Link ist gespeichert.{" "}
                                         <Button
-                                            appearance="link"
+                                            variant="link"
                                             size="sm"
                                             className="p-0 align-baseline"
                                             onClick={this.loadStoredLink}
@@ -396,7 +380,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                 <Checkbox
                                     checked={!em.online.members_only}
                                     disabled={keepsHiddenLink(em.online)}
-                                    onChange={(_value, checked) =>
+                                    onCheckedChange={(checked) =>
                                         this.updateOnline({ members_only: !checked })
                                     }
                                 >
@@ -418,7 +402,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <Input
                             //@ts-ignore
                             value={em.accessibility}
-                            onChange={(v) => {
+                            onValueChange={(v) => {
                                 this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
@@ -434,7 +418,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <br />
                         <Input
                             value={em.authority}
-                            onChange={(v) => {
+                            onValueChange={(v) => {
                                 this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
@@ -452,7 +436,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <Input
                             //@ts-ignore
                             value={em.trigger_warning}
-                            onChange={(v) => {
+                            onValueChange={(v) => {
                                 this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
@@ -468,7 +452,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <br />
                         <Input
                             value={em.price[0]}
-                            onChange={(v) => {
+                            onValueChange={(v) => {
                                 this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
@@ -490,7 +474,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         />
                         <Input
                             value={em.price[1]}
-                            onChange={(v) => {
+                            onValueChange={(v) => {
                                 this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
@@ -517,7 +501,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <Input
                             value={em.age_restriction[0]}
                             type="number"
-                            onChange={(v) => {
+                            onValueChange={(v) => {
                                 this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
@@ -540,7 +524,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <Input
                             value={em.age_restriction[1]}
                             type="number"
-                            onChange={(v) => {
+                            onValueChange={(v) => {
                                 this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
@@ -560,7 +544,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <br />
                         <br />
                         <b>Art der Veranstaltung</b>
-                        <TagPicker
+                        <TagSelect
                             value={em.tags.common}
                             onChange={(v) => {
                                 this.setState((state) => {
@@ -578,7 +562,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         />
                         <br />
                         <b>Für welche Gruppen</b>
-                        <TagPicker
+                        <TagSelect
                             value={em.tags.queer}
                             onChange={(v) => {
                                 this.setState((state) => {
@@ -617,7 +601,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <Input
                             //@ts-ignore
                             value={em.attendance}
-                            onChange={(v) => {
+                            onValueChange={(v) => {
                                 this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
@@ -634,7 +618,7 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                         <br />
                         <Checkbox
                             checked={em.cancelled === null ? false : em.cancelled}
-                            onChange={(_v, checked) => {
+                            onCheckedChange={(checked) => {
                                 this.setState((state) => {
                                     return update(state, {
                                         editingMeeting: {
@@ -644,17 +628,17 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                 });
                             }}
                         />
-                    </Modal.Body>
-                    <Modal.Footer>
+                    </DialogBody>
+                    <DialogFooter>
                         <Button
                             onClick={() => {
                                 this.updateMeeting();
                             }}
-                            appearance="primary"
+                            variant="primary"
                         >
                             Speichern
                         </Button>
-                        <Button onClick={this.reset} appearance="subtle">
+                        <Button onClick={this.reset} variant="subtle">
                             Verwerfen
                         </Button>
                         {!this.props.newMeeting && (
@@ -663,16 +647,16 @@ class EditMeeting extends Component<EditMeetingProps, EditMeetingState> {
                                 onClick={() => {
                                     this.deleteMeeting();
                                 }}
-                                appearance="subtle"
+                                variant="subtle"
                             >
                                 Löschen
                             </Button>
                         )}
-                    </Modal.Footer>
-                </Modal>
+                    </DialogFooter>
+                </Dialog>
             </div>
         );
     };
 }
 
-export default withToasterHook(EditMeeting);
+export default EditMeeting;

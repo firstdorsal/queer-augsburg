@@ -1,4 +1,4 @@
-import { Button, Message } from "rsuite";
+import { Button, Message } from "./ui";
 
 interface LoadErrorProps {
     readonly message?: string;
@@ -12,7 +12,7 @@ const LoadError = ({
 }: LoadErrorProps) => (
     <Message showIcon type="error">
         {message}{" "}
-        <Button appearance="link" size="sm" className="p-0" onClick={onRetry}>
+        <Button variant="link" size="sm" className="p-0" onClick={onRetry}>
             Erneut versuchen
         </Button>
     </Message>

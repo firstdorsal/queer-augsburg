@@ -1,8 +1,8 @@
 import { Component } from "preact";
-import { Button, CheckPicker } from "rsuite";
 import type { WikiDocument } from "../apiTypes/WikiDocument";
 import type { WikiDocumentGroup } from "../apiTypes/WikiDocumentGroup";
 import Md from "./Md";
+import { Button, MultiSelect } from "./ui";
 
 interface DocumentViewProps {
     readonly document: WikiDocument;
@@ -29,19 +29,19 @@ export default class DocumentView extends Component<DocumentViewProps, DocumentV
                 )}
                 {editor && (
                     <div className="DocumentActions">
-                        <Button appearance="primary" onClick={onEdit}>
+                        <Button variant="primary" onClick={onEdit}>
                             Bearbeiten
                         </Button>
-                        <CheckPicker
+                        <MultiSelect
                             aria-label="Gruppen des Dokuments"
                             placeholder="Gruppen"
                             searchable={false}
                             disabled={busy}
                             value={document.group_ids}
                             data={groups.map((group) => ({ value: group._id, label: group.name }))}
-                            onChange={(groupIds) => onGroupsChange(groupIds as string[])}
+                            onChange={(groupIds) => onGroupsChange(groupIds)}
                         />
-                        <Button color="red" appearance="ghost" disabled={busy} onClick={onDelete}>
+                        <Button tone="red" variant="ghost" disabled={busy} onClick={onDelete}>
                             Löschen
                         </Button>
                     </div>

@@ -1,7 +1,7 @@
 import "@fontsource-variable/inter";
 import { Component } from "preact";
+import Router from "preact-router";
 import { lazy, Suspense } from "preact/compat";
-import Router, { route } from "preact-router";
 import Logo from "./components/Logo";
 import Nav from "./components/Nav";
 import Redirect from "./components/Redirect";
@@ -10,15 +10,12 @@ import Treffen from "./pages/Treffen";
 import Wir from "./pages/Wir";
 
 import update from "immutability-helper";
-import { CustomProvider } from "rsuite";
-import "rsuite/styles/index.less";
 import { QaClient } from "./api";
 import Admin from "./pages/Admin";
 import Documents from "./pages/Documents";
 import Ich from "./pages/Ich";
 import Impressum from "./pages/Impressum";
 import { G, UiConfig } from "./types";
-import { prefersDarkMode } from "./utils";
 
 // Lazy load quiz components - only loaded when /quiz/* routes are accessed
 const LazyQuizBoard = lazy(() => import("./quiz/QuizBoard"));
@@ -27,7 +24,7 @@ const LazyQuizControl = lazy(() => import("./quiz/QuizControl"));
 // Route wrapper components that handle Suspense
 function QuizBoardRoute(_props: { path?: string }) {
     return (
-        <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Lädt...</div>}>
+        <Suspense fallback={<div style={{ padding: "2rem", textAlign: "center" }}>Lädt...</div>}>
             <LazyQuizBoard />
         </Suspense>
     );
@@ -35,7 +32,7 @@ function QuizBoardRoute(_props: { path?: string }) {
 
 function QuizControlRoute(_props: { path?: string }) {
     return (
-        <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>Lädt...</div>}>
+        <Suspense fallback={<div style={{ padding: "2rem", textAlign: "center" }}>Lädt...</div>}>
             <LazyQuizControl />
         </Suspense>
     );
@@ -73,7 +70,7 @@ export default class App extends Component<AppProps, AppState> {
         const meetingId = urlParams.get("m");
 
         super(props);
-        const isQuizRoute = window.location.pathname.startsWith('/quiz');
+        const isQuizRoute = window.location.pathname.startsWith("/quiz");
         this.state = {
             g: {
                 uiConfig: null,
@@ -88,7 +85,7 @@ export default class App extends Component<AppProps, AppState> {
     }
 
     handleRoute = (e: { url: string }) => {
-        const isQuizRoute = e.url.startsWith('/quiz');
+        const isQuizRoute = e.url.startsWith("/quiz");
         if (isQuizRoute !== this.state.isQuizRoute) {
             this.setState({ isQuizRoute });
         }
@@ -162,39 +159,37 @@ export default class App extends Component<AppProps, AppState> {
 
         return (
             <div className="App">
-                <CustomProvider theme={prefersDarkMode() ? "dark" : "light"}>
-                    {!isQuizRoute && (
-                        <div className="Header">
-                            <Logo />
-                            <Nav g={this.state.g} />
-                        </div>
-                    )}
-
-                    <div className={isQuizRoute ? "Page Page--fullscreen" : "Page"}>
-                        <Router onChange={this.handleRoute}>
-                            <Treffen g={this.state.g} path="/" />
-                            <Wir g={this.state.g} path="/wir" />
-                            <Kontakt path="/kontakt" />
-                            <Ich g={this.state.g} path="/ich" />
-                            <Admin g={this.state.g} path="/admin" />
-                            <Impressum path="/impressum" />
-                            <Documents g={this.state.g} path="/dokumente/:documentId?" />
-                            <Redirect external={true} path="/dashboard/" to="/dokumente" />
-                            <QuizBoardRoute path="/quiz/board" />
-                            <QuizControlRoute path="/quiz/control" />
-                            <Redirect
-                                external={true}
-                                path="/data/"
-                                to="https://cloud.vindelicum.eu/s/rnTcKo9zrRkXR25"
-                            />
-                            <Redirect
-                                external={true}
-                                path="/shop/"
-                                to="https://queer-augsburg.myspreadshop.de/"
-                            />
-                        </Router>
+                {!isQuizRoute && (
+                    <div className="Header">
+                        <Logo />
+                        <Nav g={this.state.g} />
                     </div>
-                </CustomProvider>
+                )}
+
+                <div className={isQuizRoute ? "Page Page--fullscreen" : "Page"}>
+                    <Router onChange={this.handleRoute}>
+                        <Treffen g={this.state.g} path="/" />
+                        <Wir g={this.state.g} path="/wir" />
+                        <Kontakt path="/kontakt" />
+                        <Ich g={this.state.g} path="/ich" />
+                        <Admin g={this.state.g} path="/admin" />
+                        <Impressum path="/impressum" />
+                        <Documents g={this.state.g} path="/dokumente/:documentId?" />
+                        <Redirect external={true} path="/dashboard/" to="/dokumente" />
+                        <QuizBoardRoute path="/quiz/board" />
+                        <QuizControlRoute path="/quiz/control" />
+                        <Redirect
+                            external={true}
+                            path="/data/"
+                            to="https://cloud.vindelicum.eu/s/rnTcKo9zrRkXR25"
+                        />
+                        <Redirect
+                            external={true}
+                            path="/shop/"
+                            to="https://queer-augsburg.myspreadshop.de/"
+                        />
+                    </Router>
+                </div>
             </div>
         );
     };

@@ -1,9 +1,9 @@
 import { Component } from "preact";
 import { route } from "preact-router";
-import { Input, Loader } from "rsuite";
 import { QaClient } from "../api";
 import type { WikiDocumentHit } from "../apiTypes/WikiDocumentHit";
 import { documentPath } from "../documents";
+import { Input, Loader } from "./ui";
 
 const MIN_QUERY_CHARS = 2;
 const TYPING_PAUSE_MS = 300;
@@ -84,7 +84,7 @@ export default class DocumentSearch extends Component<DocumentSearchProps, Docum
                 aria-label="Dokumente durchsuchen"
                 placeholder="Dokumente durchsuchen"
                 value={this.state.query}
-                onChange={this.change}
+                onValueChange={this.change}
             />
             {this.renderResults()}
         </div>

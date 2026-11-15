@@ -1,18 +1,18 @@
+import update from "immutability-helper";
 import { Component, createRef } from "preact";
-import AutoSizer from "react-virtualized-auto-sizer";
-import InfiniteLoader from "react-window-infinite-loader";
-import { VariableSizeList } from "react-window";
-import { Meeting } from "../apiTypes/Meeting";
-import { QaClient } from "../api";
-import SingleMeeting from "./SingleMeeting";
 import { CSSProperties, JSX, Ref, forwardRef } from "preact/compat";
-import { G } from "../types";
+import AutoSizer from "react-virtualized-auto-sizer";
+import { VariableSizeList } from "react-window";
+import InfiniteLoader from "react-window-infinite-loader";
+import { QaClient } from "../api";
+import { Meeting } from "../apiTypes/Meeting";
 import { MeetingTypeQuery } from "../apiTypes/MeetingTypeQuery";
-import { Button, SelectPicker } from "rsuite";
+import { G } from "../types";
+import { defaultMeeting } from "../utils";
 import BulkImportMeetings from "./BulkImportMeetings";
 import EditMeeting from "./EditMeeting";
-import { defaultMeeting } from "../utils";
-import update from "immutability-helper";
+import SingleMeeting from "./SingleMeeting";
+import { Button, Select } from "./ui";
 interface MeetingStyle {
     expanded: boolean;
 }
@@ -33,9 +33,9 @@ const MEETING_TYPES: { label: string; value: MeetingTypeQuery }[] = [
 
 /** The scrolled content of the list, with room after the last meeting for the editors'
  * toolbar (`--toolbar-clearance`, see index.scss). */
-const ListContent = forwardRef<HTMLDivElement, JSX.HTMLAttributes<HTMLDivElement>>(
-    (props, ref) => <div ref={ref} {...props} className="MeetingListContent" />
-);
+const ListContent = forwardRef<HTMLDivElement, JSX.HTMLAttributes<HTMLDivElement>>((props, ref) => (
+    <div ref={ref} {...props} className="MeetingListContent" />
+));
 interface MeetingListState {
     readonly meetings: Meeting[];
     readonly meetingsStyle: MeetingStyle[];
@@ -193,14 +193,14 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
     reloadMeetingList = async (updatedMeeting?: Meeting, deleted?: boolean) => {
         if (updatedMeeting) {
             // Update or remove a single meeting in place
-            this.setState(state => {
+            this.setState((state) => {
                 if (deleted) {
                     // Remove the deleted meeting
-                    const meetings = state.meetings.filter(m => m._id !== updatedMeeting._id);
+                    const meetings = state.meetings.filter((m) => m._id !== updatedMeeting._id);
                     return { meetings, meetingCount: state.meetingCount - 1 };
                 } else {
                     // Update the meeting in place
-                    const meetings = state.meetings.map(m =>
+                    const meetings = state.meetings.map((m) =>
                         m._id === updatedMeeting._id ? updatedMeeting : m
                     );
                     return { meetings };
@@ -223,7 +223,7 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
 
     switchExpand = (index: number) => {
         this.setState(
-            state => {
+            (state) => {
                 return update(state, {
                     meetingsStyle: {
                         [index]: {
@@ -249,37 +249,36 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
             >
                 {this.props.g.account?.capabilities?.includes(`UpdateMeetings`) && (
                     <>
-                    <div className="MeetingToolbar" ref={this.observeToolbar}>
-                        <SelectPicker
-                            data={MEETING_TYPES}
-                            searchable={false}
-                            cleanable={false}
-                            value={this.props.type}
-                            onChange={type => {
-                                if (type !== null) this.props.onTypeChange(type);
-                            }}
-                            // Upwards unless the toolbar is too high up for the menu.
-                            placement="autoVerticalEnd"
-                        />
-                        <div className="MeetingToolbarButtons">
-                            <Button
-                                appearance="primary"
-                                onClick={() => {
-                                    this.setState({ newMeeting: true });
+                        <div className="MeetingToolbar" ref={this.observeToolbar}>
+                            <Select
+                                data={MEETING_TYPES}
+                                searchable={false}
+                                value={this.props.type}
+                                onChange={(type) => {
+                                    if (type !== null) this.props.onTypeChange(type);
                                 }}
-                            >
-                                Neues Treffen
-                            </Button>
-                            <Button
-                                appearance="primary"
-                                onClick={() => {
-                                    this.setState({ bulkImport: true });
-                                }}
-                            >
-                                Mehrere Treffen (JSON)
-                            </Button>
+                                // Sits at the bottom of the screen, so the menu flips upwards.
+                                placement="bottomEnd"
+                            />
+                            <div className="MeetingToolbarButtons">
+                                <Button
+                                    variant="primary"
+                                    onClick={() => {
+                                        this.setState({ newMeeting: true });
+                                    }}
+                                >
+                                    Neues Treffen
+                                </Button>
+                                <Button
+                                    variant="primary"
+                                    onClick={() => {
+                                        this.setState({ bulkImport: true });
+                                    }}
+                                >
+                                    Mehrere Treffen (JSON)
+                                </Button>
+                            </div>
                         </div>
-                    </div>
                         {this.state.bulkImport && (
                             <BulkImportMeetings
                                 g={this.props.g}
@@ -308,7 +307,7 @@ export default class MeetingList extends Component<MeetingListProps, MeetingList
                     {({ height, width }) => (
                         <InfiniteLoader
                             ref={this.listRef}
-                            isItemLoaded={index => this.state.meetings[index] !== undefined}
+                            isItemLoaded={(index) => this.state.meetings[index] !== undefined}
                             itemCount={this.state.meetingCount}
                             loadMoreItems={this.loadMoreMeetings}
                             threshold={20}

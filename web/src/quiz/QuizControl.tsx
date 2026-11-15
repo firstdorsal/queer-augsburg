@@ -2,7 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import type { JSX } from 'preact';
-import { Button, Input, InputNumber, Panel, ButtonGroup, Modal, Message, useToaster } from 'rsuite';
+import {
+  Button,
+  ButtonGroup,
+  Dialog,
+  DialogBody,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Message,
+  NumberInput,
+  Panel,
+  Textarea,
+  toaster
+} from '../components/ui';
 import { useQuizStore, quizStore } from './useQuizStore';
 import { QuizQuestion, QuizCategory, QuizTeam } from './types';
 import './quiz.scss';
@@ -19,21 +33,22 @@ function TeamEditor({ team }: { team: QuizTeam }) {
       />
       <Input
         value={team.name}
-        onChange={(value) => quizStore.updateTeam(team.id, { name: value })}
+        onValueChange={(value) => quizStore.updateTeam(team.id, { name: value })}
         style={{ flex: 1, minWidth: 120 }}
       />
       <ButtonGroup>
         <Button size="sm" onClick={() => quizStore.adjustTeamScore(team.id, -100)}>-100</Button>
-        <InputNumber
+        <NumberInput
+          aria-label={`Punkte von ${team.name}`}
           value={team.score}
-          onChange={(value) => quizStore.setTeamScore(team.id, Number(value) || 0)}
+          onValueChange={(value) => quizStore.setTeamScore(team.id, Number(value) || 0)}
           style={{ width: 100 }}
         />
         <Button size="sm" onClick={() => quizStore.adjustTeamScore(team.id, 100)}>+100</Button>
       </ButtonGroup>
       <Button
-        color="red"
-        appearance="subtle"
+        tone="red"
+        variant="subtle"
         onClick={() => quizStore.removeTeam(team.id)}
         title="Team entfernen"
       >
@@ -49,12 +64,12 @@ function CategoryHeader({ category }: { category: QuizCategory }) {
     <div className="qm-category-header">
       <Input
         value={category.name}
-        onChange={(value) => quizStore.updateCategory(category.id, value)}
+        onValueChange={(value) => quizStore.updateCategory(category.id, value)}
         className="qm-category-header__input"
       />
       <Button
-        color="red"
-        appearance="subtle"
+        tone="red"
+        variant="subtle"
         size="sm"
         onClick={() => quizStore.removeCategory(category.id)}
         title="Kategorie entfernen"
@@ -97,47 +112,44 @@ function QuestionEditorModal({ question, onClose }: QuestionEditorModalProps) {
   };
 
   return (
-    <Modal open={!!question} onClose={onClose} size="md">
-      <Modal.Header>
-        <Modal.Title>{question.points} Punkte - Frage bearbeiten</Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
+    <Dialog open={!!question} onClose={onClose} size="md">
+      <DialogHeader>
+        <DialogTitle>{question.points} Punkte - Frage bearbeiten</DialogTitle>
+      </DialogHeader>
+      <DialogBody>
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: 'block', marginBottom: 4 }}>Frage:</label>
-          <Input
-            as="textarea"
+          <Textarea
             rows={3}
             placeholder="Frage eingeben..."
             value={localQuestion}
-            onChange={setLocalQuestion}
+            onValueChange={setLocalQuestion}
           />
         </div>
         <div style={{ marginBottom: 16 }}>
           <label style={{ display: 'block', marginBottom: 4 }}>Antwort:</label>
-          <Input
-            as="textarea"
+          <Textarea
             rows={3}
             placeholder="Antwort eingeben..."
             value={localAnswer}
-            onChange={setLocalAnswer}
+            onValueChange={setLocalAnswer}
           />
         </div>
         <div>
           <label style={{ display: 'block', marginBottom: 4 }}>Notizen (nur für dich sichtbar):</label>
-          <Input
-            as="textarea"
+          <Textarea
             rows={3}
             placeholder="Links, Hinweise, etc."
             value={localNotes}
-            onChange={setLocalNotes}
+            onValueChange={setLocalNotes}
           />
         </div>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button onClick={onClose} appearance="subtle">Abbrechen</Button>
-        <Button onClick={handleSave} appearance="primary">Speichern</Button>
-      </Modal.Footer>
-    </Modal>
+      </DialogBody>
+      <DialogFooter>
+        <Button onClick={onClose} variant="subtle">Abbrechen</Button>
+        <Button onClick={handleSave} variant="primary">Speichern</Button>
+      </DialogFooter>
+    </Dialog>
   );
 }
 
@@ -167,7 +179,7 @@ function QuestionEditorCell({ question, teams, isSelected, onSelect, onEdit }: Q
       <div className="qm-cell__actions">
         <Button size="xs" onClick={onEdit}>Bearbeiten</Button>
         {!question.revealed && (
-          <Button size="xs" appearance={isSelected ? 'primary' : 'ghost'} onClick={onSelect}>
+          <Button size="xs" variant={isSelected ? 'primary' : 'ghost'} onClick={onSelect}>
             {isSelected ? 'Abwählen' : 'Auswählen'}
           </Button>
         )}
@@ -213,7 +225,7 @@ function ActiveQuestionPanel({ question, teams, showAnswer }: ActiveQuestionPane
     <Panel bordered className="qm-active">
       <div className="qm-active__header">
         <span className="qm-active__points">{question.points} Punkte</span>
-        <Button appearance="subtle" onClick={() => quizStore.selectQuestion(null)}>
+        <Button variant="subtle" onClick={() => quizStore.selectQuestion(null)}>
           Schließen
         </Button>
       </div>
@@ -231,8 +243,8 @@ function ActiveQuestionPanel({ question, teams, showAnswer }: ActiveQuestionPane
 
       <div className="qm-active__controls">
         <Button
-          appearance={showAnswer ? 'primary' : 'ghost'}
-          color={showAnswer ? 'green' : undefined}
+          variant={showAnswer ? 'primary' : 'ghost'}
+          tone={showAnswer ? 'green' : undefined}
           onClick={() => quizStore.toggleAnswer()}
         >
           {showAnswer ? 'Antwort verbergen' : 'Antwort zeigen'}
@@ -258,7 +270,7 @@ function ActiveQuestionPanel({ question, teams, showAnswer }: ActiveQuestionPane
             </Button>
           ))}
           <Button
-            appearance="subtle"
+            variant="subtle"
             onClick={() => quizStore.revealQuestion(question.id, null)}
           >
             Niemand
@@ -273,7 +285,6 @@ function ActiveQuestionPanel({ question, teams, showAnswer }: ActiveQuestionPane
 function ImportExportPanel() {
   const state = useQuizStore();
   const [importText, setImportText] = useState('');
-  const toaster = useToaster();
 
   const exportText = JSON.stringify(state, null, 2);
 
@@ -292,11 +303,10 @@ function ImportExportPanel() {
   };
 
   return (
-    <div className="qm-import-export">
+    <div>
       <div style={{ marginBottom: 16 }}>
         <label style={{ display: 'block', marginBottom: 4, fontWeight: 600 }}>Exportieren:</label>
-        <Input
-          as="textarea"
+        <Textarea
           rows={8}
           value={exportText}
           readOnly
@@ -307,15 +317,14 @@ function ImportExportPanel() {
 
       <div>
         <label style={{ display: 'block', marginBottom: 4, fontWeight: 600 }}>Importieren:</label>
-        <Input
-          as="textarea"
+        <Textarea
           rows={6}
           placeholder="JSON hier einfügen..."
           value={importText}
-          onChange={setImportText}
+          onValueChange={setImportText}
           style={{ fontFamily: 'monospace', marginBottom: 8 }}
         />
-        <Button appearance="primary" onClick={handleImport} disabled={!importText.trim()}>
+        <Button variant="primary" onClick={handleImport} disabled={!importText.trim()}>
           Importieren
         </Button>
       </div>
@@ -327,7 +336,6 @@ function ImportExportPanel() {
 export default function QuizControl() {
   const state = useQuizStore();
   const [editingQuestion, setEditingQuestion] = useState<QuizQuestion | null>(null);
-  const toaster = useToaster();
 
   const currentQuestion = state.currentQuestion
     ? state.categories
@@ -352,10 +360,10 @@ export default function QuizControl() {
       <div className="qm__header">
         <h1>Quiz Control</h1>
         <ButtonGroup>
-          <Button color="orange" appearance="primary" onClick={handleResetGame}>
+          <Button tone="orange" variant="primary" onClick={handleResetGame}>
             Spiel zurücksetzen
           </Button>
-          <Button color="red" appearance="primary" onClick={handleResetAll}>
+          <Button tone="red" variant="primary" onClick={handleResetAll}>
             Alles zurücksetzen
           </Button>
         </ButtonGroup>
@@ -374,7 +382,7 @@ export default function QuizControl() {
           {state.teams.map(team => (
             <TeamEditor key={team.id} team={team} />
           ))}
-          <Button appearance="ghost" onClick={() => quizStore.addTeam()}>
+          <Button variant="ghost" onClick={() => quizStore.addTeam()}>
             + Team hinzufügen
           </Button>
         </div>
@@ -382,13 +390,11 @@ export default function QuizControl() {
 
       {/* Board Grid */}
       <Panel
-        header={
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-            <span>Spielfeld</span>
-            <Button appearance="ghost" size="sm" onClick={(e) => { e.stopPropagation(); quizStore.addCategory(); }}>
-              + Kategorie
-            </Button>
-          </div>
+        header="Spielfeld"
+        headerAction={
+          <Button variant="ghost" size="sm" onClick={() => quizStore.addCategory()}>
+            + Kategorie
+          </Button>
         }
         bordered
         collapsible
@@ -422,7 +428,7 @@ export default function QuizControl() {
       {/* Board Link */}
       <Panel header="Anzeigetafel" bordered collapsible className="qm__section">
         <p>Öffne die Anzeigetafel in einem neuen Fenster:</p>
-        <Button appearance="primary" href="/quiz/board" target="_blank">
+        <Button variant="primary" href="/quiz/board" target="_blank">
           Anzeigetafel öffnen →
         </Button>
       </Panel>

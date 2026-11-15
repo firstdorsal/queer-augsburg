@@ -1,12 +1,11 @@
 import { Component } from "preact";
-import { Message, useToaster } from "rsuite";
 import { QaClient } from "../api";
 import { Place } from "../apiTypes/Place";
 import { findPlaceByName, placeChosenText, withPlace } from "../places";
-import { withToasterHook } from "../utils";
 import CreatePlaceDialog from "./CreatePlaceDialog";
 import LoadError from "./LoadError";
 import PlaceSelect from "./PlaceSelect";
+import { Message, toaster } from "./ui";
 
 interface PlaceFieldProps {
     readonly qaClient: QaClient;
@@ -14,8 +13,6 @@ interface PlaceFieldProps {
     /** Location name of a meeting saved before places existed (no `placeId`). */
     readonly legacyName: string | null;
     readonly onChange: (place: Place) => void;
-    /** Injected by withToasterHook. */
-    readonly toaster: ReturnType<typeof useToaster>;
 }
 
 interface PlaceFieldState {
@@ -67,7 +64,7 @@ class PlaceField extends Component<PlaceFieldProps, PlaceFieldState> {
             places: state.places && withPlace(state.places, place)
         }));
         this.props.onChange(place);
-        this.props.toaster.push(
+        toaster.push(
             <Message showIcon type={existed ? "info" : "success"} closable>
                 {placeChosenText(place, existed)}
             </Message>,
@@ -110,4 +107,4 @@ class PlaceField extends Component<PlaceFieldProps, PlaceFieldState> {
     };
 }
 
-export default withToasterHook(PlaceField);
+export default PlaceField;

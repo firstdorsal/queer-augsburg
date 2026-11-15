@@ -1,6 +1,6 @@
 import { useState } from "preact/hooks";
-import { Button, SelectPicker } from "rsuite";
 import { Place } from "../apiTypes/Place";
+import { Button, Select } from "./ui";
 
 interface PlaceSelectProps {
     /** null while the places are loading. */
@@ -17,20 +17,17 @@ interface PlaceSelectProps {
 const PlaceSelect = ({ places, placeId, label, onSelect, onCreate }: PlaceSelectProps) => {
     const [search, setSearch] = useState("");
     return (
-        <SelectPicker
+        <Select
             block
             data={(places ?? []).map((place) => ({ label: place.name, value: place._id }))}
             value={placeId}
             loading={places === null}
             placeholder="Ort auswählen"
             aria-label={label}
-            cleanable={false}
-            locale={{
-                searchPlaceholder: "Ort suchen",
-                noResultsText: "Kein Ort gefunden, unten neu anlegen"
-            }}
+            searchPlaceholder="Ort suchen"
+            noResultsText="Kein Ort gefunden, unten neu anlegen"
             onSearch={setSearch}
-            onChange={(selectedId: string | null) => {
+            onChange={(selectedId) => {
                 const place = places?.find((candidate) => candidate._id === selectedId);
                 if (!place) {
                     console.error("Selected place is not in the list:", selectedId);
@@ -39,13 +36,13 @@ const PlaceSelect = ({ places, placeId, label, onSelect, onCreate }: PlaceSelect
                 setSearch("");
                 onSelect(place);
             }}
-            renderExtraFooter={() => (
-                <div className="border-t border-[var(--rs-border-primary)] p-2">
+            footer={
+                <div className="border-t border-ui-border p-2">
                     <Button block size="sm" onClick={() => onCreate(search)}>
                         Neuen Ort anlegen
                     </Button>
                 </div>
-            )}
+            }
         />
     );
 };

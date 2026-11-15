@@ -1,9 +1,9 @@
 import { Component } from "preact";
-import { Button, CheckPicker, Input } from "rsuite";
 import type { CreateDocumentRequestBody } from "../apiTypes/CreateDocumentRequestBody";
 import type { WikiDocumentGroup } from "../apiTypes/WikiDocumentGroup";
 import { cleanName, MAX_DOCUMENT_TEXT_CHARS, MAX_DOCUMENT_TITLE_CHARS } from "../documents";
 import Md from "./Md";
+import { Button, Input, MultiSelect, Textarea } from "./ui";
 
 interface NewDocumentProps {
     readonly groups: WikiDocumentGroup[];
@@ -49,26 +49,25 @@ export default class NewDocument extends Component<NewDocumentProps, NewDocument
                 <h1>Neues Dokument</h1>
                 {message && <p role="alert">{message}</p>}
                 <b>Titel</b>
-                <Input value={title} onChange={(value) => this.setState({ title: value })} />
+                <Input value={title} onValueChange={(value) => this.setState({ title: value })} />
                 <br />
                 <b>Text (Markdown)</b>
-                <Input
-                    as="textarea"
+                <Textarea
                     rows={12}
                     value={content}
-                    onChange={(value) => this.setState({ content: value })}
+                    onValueChange={(value) => this.setState({ content: value })}
                 />
                 <br />
-                <CheckPicker
+                <MultiSelect
                     aria-label="Gruppen des Dokuments"
                     placeholder="Gruppen"
                     searchable={false}
                     value={groupIds}
                     data={groups.map((group) => ({ value: group._id, label: group.name }))}
-                    onChange={(value) => this.setState({ groupIds: value as string[] })}
+                    onChange={(value) => this.setState({ groupIds: value })}
                 />
                 <div className="DocumentActions">
-                    <Button appearance="primary" disabled={busy} onClick={this.create}>
+                    <Button variant="primary" disabled={busy} onClick={this.create}>
                         Anlegen
                     </Button>
                     <Button disabled={busy} onClick={onCancel}>

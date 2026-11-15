@@ -1,16 +1,14 @@
 import { Component } from "preact";
 import { CSSProperties } from "preact/compat";
 import AutoSizer from "react-virtualized-auto-sizer";
-//@ts-ignore
-import SearchIcon from "@rsuite/icons/Search";
 import { FixedSizeList } from "react-window";
 import InfiniteLoader from "react-window-infinite-loader";
-import { Button, Input, InputGroup, SelectPicker } from "rsuite";
 import { QaClient } from "../api";
 import { Meeting } from "../apiTypes/Meeting";
 import { User } from "../apiTypes/User";
 import { G } from "../types";
 import SingleUser from "./SingleUser";
+import { Button, Input, InputGroup, InputGroupAddon, SearchIcon, Select } from "./ui";
 import UserStats from "./UserStats";
 
 interface UserListProps {
@@ -105,18 +103,20 @@ export default class UserList extends Component<UserListProps, UserListState> {
                                 <Input
                                     placeholder="Suche nach Name, E-Mail oder Institution..."
                                     value={this.state.searchTerm}
-                                    onChange={(value) => this.setState({ searchTerm: value })}
-                                    onPressEnter={this.handleSearchSubmit}
+                                    onValueChange={(value) => this.setState({ searchTerm: value })}
+                                    onKeyDown={(event) => {
+                                        if (event.key === "Enter") this.handleSearchSubmit();
+                                    }}
                                 />
-                                <InputGroup.Addon>
+                                <InputGroupAddon size="sm">
                                     <SearchIcon />
-                                </InputGroup.Addon>
+                                </InputGroupAddon>
                             </InputGroup>
                         </div>
                         <div className="w-24">
                             <Button
                                 size="sm"
-                                appearance="primary"
+                                variant="primary"
                                 onClick={this.handleSearchSubmit}
                                 className="w-full"
                             >
@@ -127,7 +127,7 @@ export default class UserList extends Component<UserListProps, UserListState> {
 
                     <div className="flex items-center gap-2">
                         <div className="flex-1">
-                            <SelectPicker
+                            <Select
                                 size="sm"
                                 label="Sortieren nach"
                                 data={[
@@ -140,18 +140,14 @@ export default class UserList extends Component<UserListProps, UserListState> {
                                 ]}
                                 value={this.state.sortBy}
                                 onChange={(value) =>
-                                    this.handleSortChange(
-                                        value || "start_time_ms",
-                                        this.state.sortOrder
-                                    )
+                                    this.handleSortChange(value, this.state.sortOrder)
                                 }
-                                cleanable={false}
                                 searchable={false}
                                 className="w-full"
                             />
                         </div>
                         <div className="flex-1">
-                            <SelectPicker
+                            <Select
                                 size="sm"
                                 label="Reihenfolge"
                                 data={[
@@ -160,9 +156,8 @@ export default class UserList extends Component<UserListProps, UserListState> {
                                 ]}
                                 value={this.state.sortOrder}
                                 onChange={(value) =>
-                                    this.handleSortChange(this.state.sortBy, value || "desc")
+                                    this.handleSortChange(this.state.sortBy, value)
                                 }
-                                cleanable={false}
                                 searchable={false}
                                 className="w-full"
                             />

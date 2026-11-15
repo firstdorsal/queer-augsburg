@@ -1,5 +1,6 @@
 import type { QaClient } from "./api";
 import type { CommonMeetingTag } from "./apiTypes/CommonMeetingTag";
+import type { MembershipStatus } from "./apiTypes/MembershipStatus";
 import type { QueerMeetingTag } from "./apiTypes/QueerMeetingTag";
 import type { User } from "./apiTypes/User";
 
@@ -56,4 +57,10 @@ const queerTagRecord: Record<QueerMeetingTag, true> = {
 };
 export const queerTags = Object.keys(queerTagRecord) as QueerMeetingTag[];
 
-export const memberShipStatuses = ["Pending", "Approved", "Rejected", "Left", "Expelled"];
+export const memberShipStatuses: readonly MembershipStatus[] = [
+    "Pending",
+    "Approved",
+    "Rejected",
+    "Left",
+    "Expelled"
+];

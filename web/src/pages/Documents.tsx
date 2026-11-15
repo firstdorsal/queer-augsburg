@@ -1,7 +1,6 @@
 import { Component } from "preact";
 import { route } from "preact-router";
 import { lazy, Suspense } from "preact/compat";
-import { Button, Loader } from "rsuite";
 import type { CreateDocumentRequestBody } from "../apiTypes/CreateDocumentRequestBody";
 import type { GetDocumentsResponseBody } from "../apiTypes/GetDocumentsResponseBody";
 import type { WikiDocument } from "../apiTypes/WikiDocument";
@@ -10,6 +9,7 @@ import DocumentList from "../components/DocumentList";
 import DocumentSearch from "../components/DocumentSearch";
 import DocumentView from "../components/DocumentView";
 import NewDocument from "../components/NewDocument";
+import { Button, Loader } from "../components/ui";
 import {
     cleanName,
     deriveTitle,

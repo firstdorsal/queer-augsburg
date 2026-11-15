@@ -1,9 +1,9 @@
 import { Component } from "preact";
-import { Button, Input, Message } from "rsuite";
 import { QaClient } from "../api";
 import { Place } from "../apiTypes/Place";
 import { findPlaceByName } from "../places";
 import LocationPicker from "./LocationPicker";
+import { Button, Input, Message } from "./ui";
 
 interface CreatePlaceDialogProps {
     readonly qaClient: QaClient;
@@ -71,11 +71,11 @@ export default class CreatePlaceDialog extends Component<
                 onClose={this.props.onClose}
                 footer={
                     <>
-                        <Button onClick={this.props.onClose} appearance="subtle" disabled={saving}>
+                        <Button onClick={this.props.onClose} variant="subtle" disabled={saving}>
                             Abbrechen
                         </Button>
                         <Button
-                            appearance="primary"
+                            variant="primary"
                             onClick={this.create}
                             disabled={!name || !position || existing !== null}
                             loading={saving}
@@ -91,14 +91,14 @@ export default class CreatePlaceDialog extends Component<
                 <Input
                     id="create-place-name"
                     value={this.state.name}
-                    onChange={(value: string) => this.setState({ name: value, error: null })}
+                    onValueChange={(value: string) => this.setState({ name: value, error: null })}
                     placeholder="z. B. Café Neruda"
                 />
                 {existing && (
                     <Message showIcon type="info" className="mt-2">
                         Den Ort „{existing.name}“ gibt es schon.{" "}
                         <Button
-                            appearance="link"
+                            variant="link"
                             size="sm"
                             className="p-0 align-baseline"
                             onClick={() => this.props.onDone(existing, true)}

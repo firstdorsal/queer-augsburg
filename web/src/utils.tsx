@@ -1,14 +1,5 @@
-import { useToaster } from "rsuite";
 import { Meeting } from "./apiTypes/Meeting";
 import { defaultMeetingContent } from "./meetingDefaults";
-
-export const withToasterHook = (Component: any) => {
-    return (props: any) => {
-        const toaster = useToaster();
-
-        return <Component toaster={toaster} {...props} />;
-    };
-};
 
 export const getUtcTimeStampNow = () => {
     // Tomorrow at 19:00 local time, as a UTC timestamp in milliseconds.

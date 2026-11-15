@@ -14,7 +14,6 @@ import { IoLocation, IoLogoEuro, IoTime } from "react-icons/io5";
 import { LuMailQuestion } from "react-icons/lu";
 import { MdWheelchairPickup } from "react-icons/md";
 import { TbRating18Plus } from "react-icons/tb";
-import { Modal } from "rsuite";
 import { match } from "ts-pattern";
 import { CommonMeetingTag } from "../apiTypes/CommonMeetingTag";
 import { Meeting } from "../apiTypes/Meeting";
@@ -27,6 +26,7 @@ import Md from "./Md";
 import MeetingList from "./MeetingList";
 import OnlineMeetingInfo from "./OnlineMeetingInfo";
 import QrCode from "./QrCode";
+import { Dialog, DialogBody, DialogHeader, DialogTitle } from "./ui";
 
 const ICalendarLink = lazy(() => import("react-icalendar-link"));
 
@@ -65,16 +65,16 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
         const lon = Number(location.lon).toFixed(6);
         const lat = Number(location.lat).toFixed(6);
         return (
-            <Modal
+            <Dialog
                 open={this.state.locationModalOpen}
                 onClose={() => {
                     this.setState({ locationModalOpen: false });
                 }}
             >
-                <Modal.Header>
-                    <Modal.Title>Ort</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
+                <DialogHeader>
+                    <DialogTitle>Ort</DialogTitle>
+                </DialogHeader>
+                <DialogBody>
                     <h1>{location.name}</h1>
                     <h2>
                         <a href={`geo:${lat},${lon}`}>
@@ -108,8 +108,8 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                             Bing Maps
                         </a>
                     </h2>
-                </Modal.Body>
-            </Modal>
+                </DialogBody>
+            </Dialog>
         );
     };
 
@@ -208,16 +208,16 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                                 this.setState({ timeModalOpen: true });
                             }}
                         >
-                            <Modal
+                            <Dialog
                                 open={this.state.timeModalOpen}
                                 onClose={() => {
                                     this.setState({ timeModalOpen: false });
                                 }}
                             >
-                                <Modal.Header>
-                                    <Modal.Title>Datum & Uhrzeit</Modal.Title>
-                                </Modal.Header>
-                                <Modal.Body>
+                                <DialogHeader>
+                                    <DialogTitle>Datum & Uhrzeit</DialogTitle>
+                                </DialogHeader>
+                                <DialogBody>
                                     {m.time !== null && (
                                         <Suspense fallback={<div>Loading...</div>}>
                                             <ICalendarLink
@@ -250,8 +250,8 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                                             </a>
                                         </span>
                                     </div>
-                                </Modal.Body>
-                            </Modal>
+                                </DialogBody>
+                            </Dialog>
 
                             <IoTime />
                             <span className="InfoText">{time}</span>
@@ -369,13 +369,13 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                                     <BsQrCode />
                                 </button>
                             </span>
-                            <Modal
+                            <Dialog
                                 open={this.state.showQRCode}
                                 onClose={() => {
                                     this.setState({ showQRCode: false });
                                 }}
                             >
-                                <Modal.Body>
+                                <DialogBody>
                                     <h2>Link zur Vereinsanmeldung</h2>
                                     <div>
                                         <span style={{ userSelect: "all" }}>
@@ -392,13 +392,14 @@ export default class SingleMeeting extends Component<SingleMeetingProps, SingleM
                                             }
                                         ></QrCode>
                                     </div>
-                                </Modal.Body>
-                            </Modal>
+                                </DialogBody>
+                            </Dialog>
                         </>
                     )}
                 </div>
                 {this.props.g.account?.capabilities?.includes("UpdateMeetings") && (
                     <EditMeeting
+                        type={this.props.meeting.status}
                         reloadMeetingList={this.props.reloadMeetingList}
                         changEditing={this.changeEditing}
                         editing={this.state.editing}

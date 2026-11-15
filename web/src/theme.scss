@@ -1,0 +1,215 @@
+// Design tokens of the UI components in components/ui. Colours are exposed to Tailwind as `ui-*`:
+// a new one needs both blocks here and an entry in `tokens` in tailwind.config.js. The values are
+// the ones rsuite rendered, so the look stayed the same when it was replaced.
+// Status colours keep WCAG AA contrast on the dialog surface: text 4.5:1, icons 3:1.
+:root {
+    --ui-text: #343434;
+    --ui-text-secondary: #717273;
+    --ui-text-heading: #121212;
+    --ui-text-disabled: #717273;
+    --ui-text-active: #1675e0;
+    --ui-link: #1675e0;
+    --ui-link-hover: #0a5dc2;
+    --ui-link-active: #004299;
+    --ui-border: #e5e5ea;
+    --ui-surface: #fff;
+    --ui-card: #fff;
+    --ui-backdrop: rgba(18, 18, 18, 0.3);
+    --ui-shadow: 0 4px 4px rgba(0, 0, 0, 0.12), 0 0 10px rgba(0, 0, 0, 0.06);
+    --ui-primary: #3498ff;
+    --ui-focus-ring: rgba(52, 152, 255, 0.25);
+
+    --ui-input: #fff;
+    --ui-input-disabled: #f7f7fa;
+
+    --ui-btn: #f7f7fa;
+    --ui-btn-text: #343434;
+    --ui-btn-hover: #e5e5ea;
+    --ui-btn-active: #d9d9d9;
+    --ui-btn-active-text: #121212;
+    --ui-btn-disabled-text: #717273;
+    --ui-btn-primary: #3498ff;
+    --ui-btn-primary-hover: #2589f5;
+    --ui-btn-primary-active: #1675e0;
+    --ui-btn-subtle-text: #343434;
+    --ui-btn-subtle-hover: #e5e5ea;
+    --ui-btn-subtle-hover-text: #343434;
+    --ui-btn-subtle-active: #e5e5ea;
+    --ui-btn-subtle-active-text: #121212;
+    --ui-btn-subtle-disabled-text: #b6b7b8;
+    --ui-btn-ghost: #1675e0;
+    --ui-btn-ghost-hover: #0a5dc2;
+    --ui-btn-ghost-active: #004299;
+
+    --ui-red-primary: #f44336;
+    --ui-red-primary-hover: #d62915;
+    --ui-red-primary-active: #b81c07;
+    --ui-red-subtle-hover: #f44336;
+    --ui-red-subtle-hover-text: #e5e5ea;
+    --ui-red-subtle-active: #eb3626;
+    --ui-red-subtle-active-text: #343434;
+    --ui-red-ghost: #d62915;
+    --ui-red-ghost-hover: #8f1300;
+    --ui-red-ghost-hover-text: #b81c07;
+    --ui-red-ghost-active: #8f1300;
+    --ui-orange-primary: #fa8900;
+    --ui-orange-primary-hover: #db8000;
+    --ui-orange-primary-active: #bd7100;
+    --ui-green-primary: #4caf50;
+    --ui-green-primary-hover: #22a12a;
+    --ui-green-primary-active: #0f9119;
+
+    --ui-option-hover: rgba(204, 233, 255, 0.5);
+    --ui-option-hover-text: #1675e0;
+    --ui-option-selected: #f2faff;
+    --ui-option-selected-text: #1675e0;
+    --ui-picker-value: #1675e0;
+    --ui-picker-count: #3498ff;
+
+    --ui-check-border: #d9d9d9;
+    --ui-check-checked: #3498ff;
+    --ui-check-disabled: #f7f7fa;
+    --ui-check-mark: #fff;
+
+    --ui-switch: #b6b7b8;
+    --ui-switch-hover: #939393;
+    --ui-switch-checked: #3498ff;
+    --ui-switch-checked-hover: #2589f5;
+
+    --ui-tag: #f7f7fa;
+    --ui-tooltip: #121212;
+    --ui-loader-ring: rgba(247, 247, 250, 0.8);
+    --ui-loader-rotor: #939393;
+
+    --ui-steps-border: #717273;
+    --ui-steps-done: #3498ff;
+    --ui-steps-current: #3498ff;
+    --ui-steps-current-text: #f7f7fa;
+
+    --ui-upload-hover: #f7f7fa;
+    --ui-error-tip: #fff;
+    --ui-error-tip-border: #e5e5ea;
+    --ui-error-tip-text: #f44336;
+
+    --ui-message-base: #fff;
+    --ui-message-heading: #121212;
+    --ui-message-text: #343434;
+    --ui-message-info: rgba(197, 231, 252, 0.6);
+    --ui-message-info-icon: #2196f3;
+    --ui-message-success: rgba(200, 240, 199, 0.6);
+    --ui-message-success-icon: #4caf50;
+    --ui-message-warning: rgba(255, 233, 194, 0.6);
+    --ui-message-warning-icon: #ffb300;
+    --ui-message-warning-text: #343434;
+    --ui-message-error: rgba(252, 207, 207, 0.6);
+    --ui-message-error-icon: #f44336;
+
+    --ui-status-error-text: #d62915; // 5.02:1
+    --ui-status-warning-text: #945b00; // 5.59:1
+    --ui-status-success-icon: #22a12a; // 3.39:1
+
+    @media (prefers-color-scheme: dark) {
+        --ui-text: #e9ebf0;
+        --ui-text-secondary: #a4a9b3;
+        --ui-text-heading: #fff;
+        --ui-text-disabled: #6a6f76;
+        --ui-text-active: #34c3ff;
+        --ui-link: #34c3ff;
+        --ui-link-hover: #59d0ff;
+        --ui-link-active: #80ddff;
+        --ui-border: #3c3f43;
+        --ui-surface: #292d33;
+        --ui-card: #1a1d24;
+        --ui-backdrop: rgba(15, 19, 26, 0.8);
+        --ui-primary: #34c3ff;
+        --ui-focus-ring: rgba(92, 96, 102, 0.25);
+
+        --ui-input: #1a1d24;
+        --ui-input-disabled: #292d33;
+
+        --ui-btn: #3c3f43;
+        --ui-btn-text: #e9ebf0;
+        --ui-btn-hover: #5c6066;
+        --ui-btn-active: #858b94;
+        --ui-btn-active-text: #fff;
+        --ui-btn-disabled-text: #6a6f76;
+        --ui-btn-primary: #169de0;
+        --ui-btn-primary-hover: #25b3f5;
+        --ui-btn-primary-active: #59d0ff;
+        --ui-btn-subtle-text: #a4a9b3;
+        --ui-btn-subtle-hover: #5c6066;
+        --ui-btn-subtle-hover-text: #e9ebf0;
+        --ui-btn-subtle-active: #6a6f76;
+        --ui-btn-subtle-active-text: #fff;
+        --ui-btn-subtle-disabled-text: #5c6066;
+        --ui-btn-ghost: #34c3ff;
+        --ui-btn-ghost-hover: #59d0ff;
+        --ui-btn-ghost-active: #a6e9ff;
+
+        --ui-red-primary: #d12f1d;
+        --ui-red-primary-hover: #f04f43;
+        --ui-red-primary-active: #f26a63;
+        --ui-red-subtle-hover: #e63f30;
+        --ui-red-subtle-hover-text: #fff;
+        --ui-red-subtle-active: #f26a63;
+        --ui-red-subtle-active-text: #fff;
+        --ui-red-ghost: #f04f43;
+        --ui-red-ghost-hover: #f26a63;
+        --ui-red-ghost-hover-text: #f26a63;
+        --ui-red-ghost-active: #faa9a7;
+        --ui-orange-primary: #e08e00;
+        --ui-orange-primary-hover: #ff9800;
+        --ui-orange-primary-active: #ffa930;
+        --ui-green-primary: #27a12f;
+        --ui-green-primary-hover: #58b15b;
+        --ui-green-primary-active: #71bf72;
+
+        --ui-option-hover: #3c3f43;
+        --ui-option-hover-text: currentColor;
+        --ui-option-selected: rgba(0, 97, 153, 0.2);
+        --ui-option-selected-text: #34c3ff;
+        --ui-picker-value: #34c3ff;
+        --ui-picker-count: #169de0;
+
+        --ui-check-border: #6a6f76;
+        --ui-check-checked: #34c3ff;
+        --ui-check-disabled: #5c6066;
+        --ui-check-mark: #1a1d24;
+
+        --ui-switch: #6a6f76;
+        --ui-switch-hover: #858b94;
+        --ui-switch-checked: #169de0;
+        --ui-switch-checked-hover: #25b3f5;
+
+        --ui-tag: #3c3f43;
+        --ui-tooltip: #5c6066;
+        --ui-loader-ring: rgba(233, 235, 240, 0.3);
+        --ui-loader-rotor: #fff;
+
+        --ui-steps-border: #a4a9b3;
+        --ui-steps-done: #34c3ff;
+        --ui-steps-current: #169de0;
+        --ui-steps-current-text: #1a1d24;
+
+        --ui-upload-hover: #3c3f43;
+        --ui-error-tip: #f04f43;
+        --ui-error-tip-border: #f04f43;
+        --ui-error-tip-text: #fff;
+
+        --ui-message-heading: #fff;
+        --ui-message-text: #fff;
+        --ui-message-info: #1499ef;
+        --ui-message-info-icon: #fff;
+        --ui-message-success: #58b15b;
+        --ui-message-success-icon: #fff;
+        --ui-message-warning: #ffc757;
+        --ui-message-warning-icon: #0f131a;
+        --ui-message-warning-text: #0f131a;
+        --ui-message-error: #f04f43;
+        --ui-message-error-icon: #fff;
+
+        --ui-status-error-text: #f58884; // 5.76:1
+        --ui-status-warning-text: #ffba61; // 8.20:1
+        --ui-status-success-icon: #58b15b; // 5.18:1
+    }
+}

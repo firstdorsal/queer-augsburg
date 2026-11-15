@@ -1,6 +1,4 @@
 import { Component, ComponentChildren } from "preact";
-import { FaSearch } from "react-icons/fa";
-import { Button, Input, InputGroup, Message, Modal } from "rsuite";
 import {
     NOMINATIM_MIN_INTERVAL_MS,
     OSM_REFERRER_POLICY,
@@ -8,6 +6,22 @@ import {
     OSM_TILE_URL,
     nominatimSearchUrl
 } from "../osm";
+import {
+    Button,
+    Dialog,
+    DialogBody,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    Input,
+    InputGroup,
+    InputGroupButton,
+    Message,
+    SearchIcon
+} from "./ui";
+
+const SEARCH_POPUP_CLASSES =
+    "absolute left-0 right-0 top-full z-[1000] rounded-[6px] border border-ui-border bg-ui-card shadow-ui";
 
 interface LocationPickerProps {
     lat?: number;
@@ -303,59 +317,33 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
         const isLoading = !leafletLoaded || !cssLoaded;
 
         return (
-            <Modal open size="lg" onClose={onClose}>
-                <Modal.Header>
-                    <Modal.Title>{title ?? "Ort auswählen"}</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
+            <Dialog open size="lg" onClose={onClose}>
+                <DialogHeader>
+                    <DialogTitle>{title ?? "Ort auswählen"}</DialogTitle>
+                </DialogHeader>
+                <DialogBody>
                     {children}
                     <div style={{ marginBottom: "15px", position: "relative" }}>
-                        <InputGroup style={{ width: "100%" }}>
+                        <InputGroup>
                             <Input
                                 placeholder="Suche nach Ort oder Adresse..."
                                 value={searchQuery}
-                                onChange={this.handleSearchChange}
+                                onValueChange={this.handleSearchChange}
                                 onKeyPress={this.handleKeyPress}
                             />
-                            <InputGroup.Button onClick={this.handleSearchSubmit}>
-                                <FaSearch />
-                            </InputGroup.Button>
+                            <InputGroupButton onClick={this.handleSearchSubmit}>
+                                <SearchIcon />
+                            </InputGroupButton>
                         </InputGroup>
                         {searchResults.length > 0 && (
                             <div
-                                style={{
-                                    position: "absolute",
-                                    top: "100%",
-                                    left: 0,
-                                    right: 0,
-                                    backgroundColor: "var(--rs-bg-card)",
-                                    border: "1px solid var(--rs-border-primary)",
-                                    borderRadius: "6px",
-                                    maxHeight: "200px",
-                                    overflowY: "auto",
-                                    zIndex: 1000,
-                                    boxShadow: "var(--rs-shadow-lg)"
-                                }}
+                                className={`${SEARCH_POPUP_CLASSES} max-h-[200px] overflow-y-auto`}
                             >
                                 {searchResults.map((result) => (
                                     <div
                                         key={result.data.place_id}
+                                        className="cursor-pointer border-b border-ui-border px-[15px] py-2.5 text-[14px] text-ui-text hover:bg-ui-option-hover"
                                         onClick={() => this.selectSearchResult(result.data)}
-                                        style={{
-                                            padding: "10px 15px",
-                                            cursor: "pointer",
-                                            borderBottom: "1px solid var(--rs-border-primary)",
-                                            fontSize: "14px",
-                                            color: "var(--rs-text-primary)"
-                                        }}
-                                        onMouseEnter={(e) => {
-                                            (e.target as HTMLElement).style.backgroundColor =
-                                                "var(--rs-state-hover)";
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            (e.target as HTMLElement).style.backgroundColor =
-                                                "transparent";
-                                        }}
                                     >
                                         {result.label}
                                     </div>
@@ -364,19 +352,7 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
                         )}
                         {isSearching && (
                             <div
-                                style={{
-                                    position: "absolute",
-                                    top: "100%",
-                                    left: 0,
-                                    right: 0,
-                                    backgroundColor: "var(--rs-bg-card)",
-                                    border: "1px solid var(--rs-border-primary)",
-                                    borderRadius: "6px",
-                                    padding: "10px 15px",
-                                    zIndex: 1000,
-                                    boxShadow: "var(--rs-shadow-lg)",
-                                    color: "var(--rs-text-secondary)"
-                                }}
+                                className={`${SEARCH_POPUP_CLASSES} px-[15px] py-2.5 text-ui-text-secondary`}
                             >
                                 Suche läuft...
                             </div>
@@ -415,15 +391,15 @@ export default class LocationPicker extends Component<LocationPickerProps, Locat
                             display: isLoading ? "none" : "block"
                         }}
                     />
-                </Modal.Body>
-                <Modal.Footer>
+                </DialogBody>
+                <DialogFooter>
                     {footer ?? (
-                        <Button onClick={onClose} appearance="primary">
+                        <Button onClick={onClose} variant="primary">
                             OK
                         </Button>
                     )}
-                </Modal.Footer>
-            </Modal>
+                </DialogFooter>
+            </Dialog>
         );
     }
 }

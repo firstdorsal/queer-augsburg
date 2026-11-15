@@ -1,8 +1,8 @@
 import { Component } from "preact";
-import { Button, Input } from "rsuite";
 import type { GetDocumentsResponseBody } from "../apiTypes/GetDocumentsResponseBody";
 import type { WikiDocumentGroup } from "../apiTypes/WikiDocumentGroup";
 import { documentPath, titlesById } from "../documents";
+import { Button, Input } from "./ui";
 
 interface MoveButtonsProps {
     readonly label: string;
@@ -16,7 +16,7 @@ const MoveButtons = ({ label, disabled, first, last, onMove }: MoveButtonsProps)
     <>
         <Button
             size="xs"
-            appearance="subtle"
+            variant="subtle"
             aria-label={`${label} nach oben`}
             disabled={disabled || first}
             onClick={() => onMove(-1)}
@@ -25,7 +25,7 @@ const MoveButtons = ({ label, disabled, first, last, onMove }: MoveButtonsProps)
         </Button>
         <Button
             size="xs"
-            appearance="subtle"
+            variant="subtle"
             aria-label={`${label} nach unten`}
             disabled={disabled || last}
             onClick={() => onMove(1)}
@@ -69,14 +69,14 @@ export default class DocumentList extends Component<DocumentListProps, DocumentL
                 aria-label="Name der Gruppe"
                 placeholder="Name der Gruppe"
                 value={this.state.name}
-                onChange={(name) => this.setState({ name })}
+                onValueChange={(name) => this.setState({ name })}
             />
             <Button size="sm" disabled={this.props.busy} onClick={this.saveName}>
                 Speichern
             </Button>
             <Button
                 size="sm"
-                appearance="subtle"
+                variant="subtle"
                 onClick={() => this.setState({ namingGroupId: undefined, name: "" })}
             >
                 Abbrechen
@@ -129,7 +129,7 @@ export default class DocumentList extends Component<DocumentListProps, DocumentL
                                 />
                                 <Button
                                     size="xs"
-                                    appearance="subtle"
+                                    variant="subtle"
                                     aria-label={`Gruppe ${group.name} umbenennen`}
                                     onClick={() =>
                                         this.setState({
@@ -142,7 +142,7 @@ export default class DocumentList extends Component<DocumentListProps, DocumentL
                                 </Button>
                                 <Button
                                     size="xs"
-                                    appearance="subtle"
+                                    variant="subtle"
                                     aria-label={`Gruppe ${group.name} löschen`}
                                     disabled={busy}
                                     onClick={() => onDeleteGroup(group)}

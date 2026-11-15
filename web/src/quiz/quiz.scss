@@ -271,7 +271,7 @@ $text-muted: #888;
   gap: 0.5rem;
   align-items: center;
 
-  .rs-input {
+  &__input {
     font-weight: 600;
     text-align: center;
   }
@@ -296,20 +296,20 @@ $text-muted: #888;
   }
 
   &--selected {
-    border-color: var(--rs-primary-500);
+    border-color: var(--ui-primary);
     background: rgba(37, 99, 235, 0.05);
   }
 }
 
 .qm-cell__points {
   font-weight: 700;
-  color: var(--rs-primary-500);
+  color: var(--ui-primary);
   font-size: 1.1rem;
 }
 
 .qm-cell__preview {
   font-size: 0.875rem;
-  color: var(--rs-text-secondary);
+  color: var(--ui-text-secondary);
   min-height: 2rem;
 }
 
@@ -334,7 +334,7 @@ $text-muted: #888;
 
   &--empty {
     background: transparent !important;
-    border-color: var(--rs-border-primary) !important;
+    border-color: var(--ui-border) !important;
     color: inherit;
   }
 }
@@ -407,13 +407,6 @@ $text-muted: #888;
   display: flex;
   gap: 0.5rem;
   flex-wrap: wrap;
-}
-
-// Import/Export
-.qm-import-export {
-  .rs-btn-group {
-    margin-bottom: 0;
-  }
 }
 
 // Responsive

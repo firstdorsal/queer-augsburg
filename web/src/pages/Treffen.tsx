@@ -1,7 +1,7 @@
 import { Component } from "preact";
 import MeetingList from "../components/MeetingList";
+import { Loader } from "../components/ui";
 import { G } from "../types";
-import { Loader } from "rsuite";
 
 interface TreffenProps {
     readonly g: G;
@@ -37,7 +37,7 @@ export default class Treffen extends Component<TreffenProps, TreffenState> {
                             : "Active"
                     }
                     qaClient={this.props.g.qaClient}
-                    onTypeChange={type => this.setState({ type })}
+                    onTypeChange={(type) => this.setState({ type })}
                 />
             </div>
         );

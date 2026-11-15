@@ -4,7 +4,6 @@ import { defaultHighlightStyle, syntaxHighlighting } from "@codemirror/language"
 import { Compartment, EditorState } from "@codemirror/state";
 import { EditorView, keymap, lineNumbers } from "@codemirror/view";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { Button, Message } from "rsuite";
 import {
     yCollab,
     yRemoteSelectionsTheme,
@@ -16,6 +15,7 @@ import * as Y from "yjs";
 import type { QaClient } from "../api";
 import type { WikiDocumentVersion } from "../apiTypes/WikiDocumentVersion";
 import Md from "../components/Md";
+import { Button, Message } from "../components/ui";
 import { MAX_DOCUMENT_TEXT_CHARS } from "../documents";
 import { prefersDarkMode } from "../utils";
 import {
@@ -285,7 +285,7 @@ export default function DocumentEditor({
                 <Button size="sm" onClick={toggleVersions}>
                     Frühere Versionen
                 </Button>
-                <Button size="sm" appearance="primary" onClick={close}>
+                <Button size="sm" variant="primary" onClick={close}>
                     Fertig
                 </Button>
             </div>

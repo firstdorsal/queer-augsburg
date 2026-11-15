@@ -1,6 +1,5 @@
 import { Component } from "preact";
 import { BsCheckCircle, BsDashCircle, BsExclamationTriangle } from "react-icons/bs";
-import { Button, Checkbox, Input, Message, Modal, useToaster } from "rsuite";
 import { CreateMeetingsResult, QaClient } from "../api";
 import { Meeting } from "../apiTypes/Meeting";
 import { NewMeeting } from "../apiTypes/NewMeeting";
@@ -19,18 +18,27 @@ import {
 import { buildBulkPrompt } from "../bulkPrompt";
 import { placeChosenText, placeNameKey, withPlace } from "../places";
 import { G } from "../types";
-import { withToasterHook } from "../utils";
 import CreatePlaceDialog from "./CreatePlaceDialog";
 import LoadError from "./LoadError";
 import PlaceSelect from "./PlaceSelect";
+import {
+    Button,
+    Checkbox,
+    Dialog,
+    DialogBody,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    Message,
+    Textarea,
+    toaster
+} from "./ui";
 
 interface BulkImportMeetingsProps {
     readonly g: G;
     readonly onClose: () => void;
     /** Shows the (planned) meetings after some were (possibly) created. */
     readonly onCreated: () => Promise<void>;
-    /** Injected by withToasterHook. */
-    readonly toaster: ReturnType<typeof useToaster>;
 }
 
 interface ParseInputs {
@@ -178,7 +186,7 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
 
     placeCreated = (placeName: string, place: Place, existed: boolean) => {
         this.pickPlace(placeName, place);
-        this.props.toaster.push(
+        toaster.push(
             <Message showIcon type={existed ? "info" : "success"} closable>
                 {placeChosenText(place, existed)}
             </Message>,
@@ -211,7 +219,7 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
         try {
             await navigator.clipboard.writeText(prompt);
             this.setState({ promptFallback: null });
-            this.props.toaster.push(
+            toaster.push(
                 <Message showIcon type="success" closable>
                     Prompt kopiert!
                 </Message>,
@@ -269,7 +277,7 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
             return;
         }
 
-        this.props.toaster.push(
+        toaster.push(
             <Message showIcon type="success" closable>
                 {meetingCountText(result.meetings.length)} als „Geplant“ angelegt: bitte unter
                 „Geplante Treffen“ prüfen und einzeln auf „Aktiv“ stellen.
@@ -304,7 +312,7 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
             await this.props.onCreated();
         } catch (error) {
             console.error("Reloading the meeting list failed:", error);
-            this.props.toaster.push(
+            toaster.push(
                 <Message showIcon type="warning" closable>
                     Die Liste konnte nicht neu geladen werden, bitte die Seite neu laden.
                 </Message>,
@@ -326,7 +334,7 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
         if (place !== null && this.state.changingPlace !== placeKey) {
             return (
                 <Button
-                    appearance="link"
+                    variant="link"
                     size="sm"
                     className="mt-1 px-0"
                     onClick={() => this.setState({ changingPlace: placeKey })}
@@ -382,7 +390,7 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                         </span>
                     ) : draft.errors.length === 0 ? (
                         <span
-                            className="shrink-0 text-[var(--color-success-icon)]"
+                            className="shrink-0 text-ui-status-success-icon"
                             role="img"
                             aria-label="Bereit"
                         >
@@ -390,7 +398,7 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                         </span>
                     ) : (
                         <span
-                            className="shrink-0 text-[var(--color-error-text)]"
+                            className="shrink-0 text-ui-status-error-text"
                             role="img"
                             aria-label="Fehler"
                         >
@@ -418,7 +426,7 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                         </p>
                     )}
                     {draft.errors.length > 0 && (
-                        <ul className="m-0 mt-1 list-disc pl-4 text-sm text-[var(--color-error-text)]">
+                        <ul className="m-0 mt-1 list-disc pl-4 text-sm text-ui-status-error-text">
                             {draft.errors.map((error, errorIndex) => (
                                 <li key={errorIndex} className="break-words">
                                     {error}
@@ -427,7 +435,7 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                         </ul>
                     )}
                     {draft.warnings.length > 0 && (
-                        <ul className="m-0 mt-1 list-disc pl-4 text-sm text-[var(--color-warning-text)]">
+                        <ul className="m-0 mt-1 list-disc pl-4 text-sm text-ui-status-warning-text">
                             {draft.warnings.map((warning, warningIndex) => (
                                 <li key={warningIndex} className="break-words">
                                     Hinweis: {warning}
@@ -440,11 +448,11 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                 <div className="pl-6">
                     {!leftOut && this.renderPlaceControls(draft, number)}
                     <div>
-                        {/* -ml-2.5 aligns rsuite's padded checkbox with the text above. */}
+                        {/* -ml-2.5 aligns the padded checkbox with the text above. */}
                         <Checkbox
                             className="-ml-2.5"
                             checked={leftOut}
-                            onChange={(_value, checked) => this.setLeftOut(draft.id, checked)}
+                            onCheckedChange={(checked) => this.setLeftOut(draft.id, checked)}
                         >
                             Nicht anlegen
                         </Checkbox>
@@ -467,16 +475,16 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
 
         return (
             <div className="BulkImportMeetings">
-                <Modal
+                <Dialog
                     open={true}
                     onClose={this.close}
                     backdrop={keepOpen ? "static" : true}
                     keyboard={!keepOpen}
                 >
-                    <Modal.Header closeButton={!creating}>
-                        <Modal.Title>Mehrere Treffen anlegen</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
+                    <DialogHeader closeButton={!creating}>
+                        <DialogTitle>Mehrere Treffen anlegen</DialogTitle>
+                    </DialogHeader>
+                    <DialogBody>
                         <p className="mb-2 text-sm opacity-80">
                             Die Treffen werden als „Geplant“ angelegt und sind erst öffentlich, wenn
                             du sie unter „Geplante Treffen“ einzeln auf „Aktiv“ stellst.
@@ -498,7 +506,7 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                             />
                         ) : (
                             <Button
-                                appearance="primary"
+                                variant="primary"
                                 onClick={() => this.copyPrompt(qaClient)}
                                 loading={this.state.loading}
                             >
@@ -511,8 +519,7 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                                     Kopieren in die Zwischenablage ist hier nicht möglich. Bitte den
                                     Text markieren und kopieren:
                                 </p>
-                                <Input
-                                    as="textarea"
+                                <Textarea
                                     rows={8}
                                     readOnly
                                     value={this.state.promptFallback}
@@ -523,11 +530,12 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                         <p className="mb-2 mt-5">
                             <b>2.</b> Füge die Antwort der KI hier ein:
                         </p>
-                        <Input
-                            as="textarea"
+                        <Textarea
                             rows={8}
                             value={jsonText}
-                            onChange={(value: string) => this.updateInputs({ jsonText: value })}
+                            onValueChange={(value: string) =>
+                                this.updateInputs({ jsonText: value })
+                            }
                             disabled={this.state.loading || this.state.loadError || creating}
                             placeholder='[{ "title": "Stammtisch", "start": "2026-10-27T19:00", "place": "…" }]'
                             aria-label="JSON mit Treffen"
@@ -576,10 +584,10 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                                 onClose={() => this.setState({ creatingPlace: null })}
                             />
                         )}
-                    </Modal.Body>
-                    <Modal.Footer>
+                    </DialogBody>
+                    <DialogFooter>
                         <Button
-                            appearance="primary"
+                            variant="primary"
                             onClick={this.create}
                             disabled={!ready}
                             loading={creating}
@@ -588,14 +596,14 @@ class BulkImportMeetings extends Component<BulkImportMeetingsProps, BulkImportMe
                                 ? `${meetingCountText(included.length)} anlegen`
                                 : "Treffen anlegen"}
                         </Button>
-                        <Button onClick={this.close} appearance="subtle" disabled={creating}>
+                        <Button onClick={this.close} variant="subtle" disabled={creating}>
                             Abbrechen
                         </Button>
-                    </Modal.Footer>
-                </Modal>
+                    </DialogFooter>
+                </Dialog>
             </div>
         );
     };
 }
 
-export default withToasterHook(BulkImportMeetings);
+export default BulkImportMeetings;

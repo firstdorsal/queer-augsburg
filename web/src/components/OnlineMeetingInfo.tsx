@@ -1,6 +1,5 @@
 import { Component } from "preact";
 import { IoGlobeOutline } from "react-icons/io5";
-import { Button } from "rsuite";
 import { Meeting } from "../apiTypes/Meeting";
 import { OnlineMeeting } from "../apiTypes/OnlineMeeting";
 import {
@@ -10,6 +9,7 @@ import {
     safeHttpUrl
 } from "../places";
 import { G } from "../types";
+import { Button } from "./ui";
 
 interface OnlineMeetingInfoProps {
     readonly meeting: Meeting;
@@ -102,7 +102,7 @@ export default class OnlineMeetingInfo extends Component<
         return (
             <>
                 <Button
-                    appearance="link"
+                    variant="link"
                     size="xs"
                     className="p-0 align-baseline"
                     onClick={this.showLink}
