@@ -7,3 +7,6 @@ qa-db-uri: mongodb://root:{{ $secrets.MONGODB_ROOT_PASSWORD_QA }}@qa-db.localhos
 interossea-db-uri: mongodb://root:{{ $secrets.MONGODB_ROOT_PASSWORD_INTEROSSEA }}@qa-interossea-db.localhost:{{ $config.interossea.server.db.port }}/?replicaSet=replicaset
 {{- end }}
 
+
+# Postgres has no host port: `docker exec -it qa-pg psql -U qa_owner -d queer-augsburg` (the
+# socket inside the container needs no password).

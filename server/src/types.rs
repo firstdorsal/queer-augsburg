@@ -62,6 +62,10 @@ pub struct ChangedMeeting {
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
 #[derive(Deserialize, Debug, Serialize, PartialEq, Clone, Copy)]
+// The enums stored in the database are Postgres enums with the same labels
+// (migrations-sql/0001_initial.sql), so `sqlx::Type` maps them without renaming.
+#[derive(sqlx::Type)]
+#[sqlx(type_name = "meeting_status")]
 pub enum MeetingStatus {
     Planned,
     Active,
@@ -248,7 +252,8 @@ pub struct MeetingTags {
 
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
-#[derive(Deserialize, Debug, Serialize, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Eq, Hash, Clone, Copy, sqlx::Type)]
+#[sqlx(type_name = "common_meeting_tag")]
 pub enum CommonMeetingTag {
     Kultur,
     Party,
@@ -275,7 +280,8 @@ impl fmt::Display for CommonMeetingTag {
 
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
-#[derive(Deserialize, Debug, Serialize, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(Deserialize, Debug, Serialize, PartialEq, Eq, Hash, Clone, Copy, sqlx::Type)]
+#[sqlx(type_name = "queer_meeting_tag")]
 pub enum QueerMeetingTag {
     Everyone,
     Queer,
@@ -319,14 +325,14 @@ impl User {
 
     /// The internal documents are for verified members, editors and those who maintain them.
     pub fn may_read_documents(&self) -> bool {
-        self.has_capability(&UserCapabilities::UpdateDocuments)
-            || self.may_see_members_only_links()
+        self.has_capability(&UserCapabilities::UpdateDocuments) || self.may_see_members_only_links()
     }
 }
 
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
-#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone, sqlx::Type)]
+#[sqlx(type_name = "user_capability")]
 pub enum UserCapabilities {
     UpdateMeetings,
     GetUsers,
@@ -548,7 +554,8 @@ pub struct InternalMember {
 
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
-#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone)]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone, sqlx::Type)]
+#[sqlx(type_name = "membership_status")]
 pub enum MembershipStatus {
     Approved,
     Rejected,
@@ -575,7 +582,8 @@ pub struct Name {
 
 #[derive(TS, ToSchema)]
 #[ts(export, export_to = "../web/src/apiTypes/")]
-#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone, Copy)]
+#[derive(Deserialize, Debug, Serialize, Eq, PartialEq, Clone, Copy, sqlx::Type)]
+#[sqlx(type_name = "member_type")]
 pub enum MemberType {
     Active,
     Supporting,
@@ -697,9 +705,9 @@ pub enum CreateMeetingsErrorCode {
     InvalidBody,
     /// At least one meeting failed validation (see `index`). Nothing was created.
     InvalidMeeting,
-    /// The insert failed and was rolled back. Nothing was created.
+    /// The database failed before the batch was committed. Nothing was created.
     Internal,
-    /// The insert failed and rolling it back failed too: some meetings may exist.
+    /// The database did not confirm the commit: the meetings may exist.
     PartiallyCreated,
 }
 
@@ -804,7 +812,8 @@ pub struct ConfirmSendEmailResponseBody {
     pub failed_count: u32,
 }
 
-#[derive(Deserialize, Debug, Serialize, Clone, PartialEq)]
+#[derive(Deserialize, Debug, Serialize, Clone, PartialEq, sqlx::Type)]
+#[sqlx(type_name = "draft_status")]
 pub enum DraftStatus {
     Pending,
     Processing,

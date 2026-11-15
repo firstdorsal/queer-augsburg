@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT group_ids FROM document_group_order WHERE _id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "group_ids",
+        "type_info": "TextArray",
+        "origin": {
+          "Table": {
+            "table": "document_group_order",
+            "name": "group_ids"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "4885a59981b1632b2323310eeb8d21557dd313ffb43b22812e83b7d475634a8e"
+}

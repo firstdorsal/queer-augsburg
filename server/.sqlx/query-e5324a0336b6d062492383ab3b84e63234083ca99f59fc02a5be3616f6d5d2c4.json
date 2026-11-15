@@ -1,0 +1,104 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO meetings (\n            _id, title, authority, age_restriction, time,\n            location_name, location_lat, location_lon, place_id,\n            online_platform, online_url, online_members_only, place_to_be_announced,\n            description, price, trigger_warning, attendance, rating, accessibility,\n            tags_freeform, tags_common, tags_queer, status, cancelled, deleted_at\n        ) VALUES (\n            $1, $2, $3, $4, $5,\n            $6, $7, $8, $9,\n            $10, $11, $12, $13,\n            $14, $15, $16, $17, $18, $19,\n            $20, $21, $22, $23, $24, $25\n        )\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Int2Array",
+        "Int8",
+        "Text",
+        "Float8",
+        "Float8",
+        "Text",
+        "Text",
+        "Text",
+        "Bool",
+        "Bool",
+        "Text",
+        "Float4Array",
+        "Text",
+        "Int4",
+        "Float4",
+        "Text",
+        "TextArray",
+        {
+          "Custom": {
+            "name": "common_meeting_tag[]",
+            "kind": {
+              "Array": {
+                "Custom": {
+                  "name": "common_meeting_tag",
+                  "kind": {
+                    "Enum": [
+                      "Kultur",
+                      "Party",
+                      "Orga",
+                      "Sport",
+                      "Education",
+                      "Meet",
+                      "Students",
+                      "Marketing",
+                      "Cinema",
+                      "Talks",
+                      "Open",
+                      "Explores",
+                      "Connect",
+                      "Ostqueer",
+                      "Queermas"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "queer_meeting_tag[]",
+            "kind": {
+              "Array": {
+                "Custom": {
+                  "name": "queer_meeting_tag",
+                  "kind": {
+                    "Enum": [
+                      "Everyone",
+                      "Queer",
+                      "Gay",
+                      "Lesbian",
+                      "Trans",
+                      "Bi",
+                      "Asexual",
+                      "Aromantic",
+                      "Inter",
+                      "Poly",
+                      "Pan"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "meeting_status",
+            "kind": {
+              "Enum": [
+                "Planned",
+                "Active"
+              ]
+            }
+          }
+        },
+        "Bool",
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e5324a0336b6d062492383ab3b84e63234083ca99f59fc02a5be3616f6d5d2c4"
+}

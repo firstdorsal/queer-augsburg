@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                UPDATE documents\n                SET state = $3, content = $4, title = $5, updated_at = $6,\n                    state_version = state_version + 1\n                WHERE _id = $1 AND deleted_at IS NULL AND state_version = $2\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int8",
+        "Bytea",
+        "Text",
+        "Text",
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "808a7edaa06f9a105bc0e519f3eb767e5485c2c904eaf5c590e30d3d320b5ad5"
+}

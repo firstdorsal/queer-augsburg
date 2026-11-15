@@ -9,8 +9,7 @@ import backup_script
 locations = [
 	r'/app/backup_script.py',
 	r'/etc/crontabs/crontab',
-	backup_script.backup_folder,
-	backup_script.temp_dir,
+	backup_script.backup_dir,
 	backup_script.ts_file
 ]
 

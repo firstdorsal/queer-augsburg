@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT content, saved_at FROM document_versions\n                WHERE document_id = $1\n                ORDER BY saved_at DESC, _id DESC\n                LIMIT 1\n                ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "content",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "document_versions",
+            "name": "content"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "saved_at",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "document_versions",
+            "name": "saved_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "81b6c4233b9004de775ec92826873181c38e6fdc587e89e9aec6fefcd303effd"
+}

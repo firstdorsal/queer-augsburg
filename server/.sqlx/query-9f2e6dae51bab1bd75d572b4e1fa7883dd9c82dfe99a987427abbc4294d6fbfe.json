@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT count(*) AS \"count!\"\n            FROM meetings\n            WHERE status = $1 AND deleted_at IS NULL\n                AND ($2::bigint IS NOT NULL OR $3::bigint IS NULL OR time >= $3)\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count!",
+        "type_info": "Int8",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        {
+          "Custom": {
+            "name": "meeting_status",
+            "kind": {
+              "Enum": [
+                "Planned",
+                "Active"
+              ]
+            }
+          }
+        },
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "9f2e6dae51bab1bd75d572b4e1fa7883dd9c82dfe99a987427abbc4294d6fbfe"
+}

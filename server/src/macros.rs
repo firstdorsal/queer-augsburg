@@ -24,9 +24,7 @@ macro_rules! require_capability {
         let user = match $state.db.get_user(user_id).await {
             Ok(Some(user)) => user,
             Ok(None) => return (StatusCode::NOT_FOUND, "User not found").into_response(),
-            Err(_) => {
-                return (StatusCode::INTERNAL_SERVER_ERROR, "Database error").into_response()
-            }
+            Err(_) => return (StatusCode::INTERNAL_SERVER_ERROR, "Database error").into_response(),
         };
 
         if !user.has_capability(&$capability) {

@@ -13,11 +13,22 @@ test-server:
     stage: test
     image: rust:1
     services:
-        # The version production runs, for server/tests/database.rs.
-        - name: mongo:7.0
-          alias: mongo
+        # The image and initdb arguments production runs (deployment/templates/docker-compose.yml),
+        # for the tests that need a database (server/tests/*.rs). They create a schema per test
+        # (migrator.rs a database per test) and must not be skipped here: they assert CI is unset
+        # when TEST_DATABASE_URL is missing.
+        - name: postgres:18.6-alpine
+          alias: postgres
     variables:
-        TEST_MONGODB_URI: mongodb://mongo:27017
+        # Password auth (the image's default scram-sha-256 for TCP), as in production, so the
+        # roles the tests create log in with their passwords instead of being let in by trust.
+        # The database lives only as long as the job; the password protects nothing.
+        POSTGRES_PASSWORD: ci
+        POSTGRES_INITDB_ARGS: "--locale-provider=builtin --builtin-locale=C.UTF-8 --encoding=UTF8 --data-checksums"
+        TEST_DATABASE_URL: postgres://postgres:ci@postgres/postgres
+        # The query macros compile against this database (migrated below), and
+        # `cargo sqlx prepare --check` compares the result with the committed server/.sqlx/.
+        DATABASE_URL: postgres://postgres:ci@postgres/postgres
     rules:
         - changes:
             - server/**/*
@@ -25,7 +36,22 @@ test-server:
             - .gitlab-ci.yml
     script:
         - cd server
+        - cargo install sqlx-cli --version 0.9.0 --no-default-features --features postgres --locked
+        - sqlx migrate run --source migrations-sql
+        # A stale .sqlx/ fails here, not in the image build (which compiles offline against it).
+        - cargo sqlx prepare --check
+        # Both images compile offline against .sqlx/ (server/Dockerfile: `main`;
+        # server/Dockerfile.migrate: the `mongo-source` binaries). The same here for every
+        # target with and without the feature, so a query missing from the cache fails CI,
+        # not the image build or the cutover.
+        - SQLX_OFFLINE=true cargo check --locked --all-targets
+        - SQLX_OFFLINE=true cargo check --locked --all-targets --features mongo-source
         - cargo test --locked
+        # The migrator and the dump anonymizer of the Postgres cutover exist only with the
+        # feature: the migrate::* unit tests, tests/migrator.rs and tests/anonymize_dump.rs
+        # are compiled out of the run above. Until the feature goes (after the rollback
+        # window), every pipeline runs them against the same database.
+        - cargo test --locked --features mongo-source
         # ts-rs regenerates web/src/apiTypes during the tests; they must be committed.
         - |
             if [ -n "$(git status --porcelain -- ../web/src/apiTypes)" ]; then
@@ -33,6 +59,27 @@ test-server:
                 echo "web/src/apiTypes is out of date: run cargo test in server/ and commit it"
                 exit 1
             fi
+
+# The deployment as production runs it, in the image of qa-pg: pg-init.sql through the image's
+# entrypoint, the schema applied and a later migration run by the role the server connects
+# as, the backup job's dump restored and compared (deployment/tests/postgres.sh), and the
+# operator scripts of the cutover (env-scripts.sh, compare-api.sh). Starts its own server,
+# so no service. postgres.sh fails if this image is not the one the template pins.
+test-deployment:
+    stage: test
+    image:
+        name: postgres:18.6-alpine
+        entrypoint: [""]
+    rules:
+        - changes:
+            - deployment/**/*
+            - server/migrations-sql/**/*
+            - .gitlab-ci.yml
+    script:
+        - apk add --no-cache jq
+        - bash deployment/tests/postgres.sh
+        - bash deployment/tests/env-scripts.sh
+        - bash deployment/tests/compare-api.sh
 
 # Advisories appear without any change here, so this also runs in scheduled pipelines. It
 # only warns: a new advisory must not block an unrelated deploy.
@@ -77,6 +124,8 @@ docker-build-server:
           changes:
             - server/src/**/*
             - server/.cargo/**/*
+            - server/.sqlx/**/*
+            - server/migrations-sql/**/*
             - server/Cargo.toml
             - server/Cargo.lock
             - server/Dockerfile

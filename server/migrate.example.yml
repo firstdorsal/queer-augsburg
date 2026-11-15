@@ -1,0 +1,31 @@
+# migrate-from-mongo configuration (research-postgres §4.4). The cutover runbook
+# (deployment/README.md "The Postgres cutover") writes this file from the count query; by
+# hand: copy, fill in the counts, run as qa_app, the role that owns the schema and applies
+# every later migration (deployment/templates/config/pg-init.sql):
+#
+#     DATABASE_URL=postgres://qa_app:…@qa-pg:5432/queer-augsburg \
+#         migrate-from-mongo migrate --config migrate.yml
+#
+# The expected counts are the owner's count query on the live database, never taken from
+# the dump: a dump that reads fewer or more documents than listed here does not migrate, and
+# a table that ends up with another number of rows does not verify. Every collection must be
+# listed, empty ones as 0. `dump_dir` is the mongodump `--out` directory as the migrator's
+# container sees it (the runbook dumps into a dated directory of the backup volume).
+dump_dir: /backup/cutover-YYYYMMDD
+database: queer-augsburg
+expected_counts:
+    users: 0
+    originalUsers: 0
+    places: 0
+    meetings: 0
+    sent_email_logs: 0
+    email_drafts: 0 # read and counted, never written (a draft lives 30 minutes)
+    documents: 0
+    document_groups: 0
+    document_group_order: 0
+    document_versions: 0
+# Fields of old documents that may be dropped, after a rehearsal reported them as
+# `unknown_field` and the owner decided. Dotted names, `[]` for array elements.
+# ignored_fields:
+#     meetings: [legacy_flag]
+#     users: [member.old_flag]

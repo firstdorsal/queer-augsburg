@@ -1,35 +1,49 @@
-version: "3.8"
+# The database for local development and for `cargo sqlx prepare`. The port comes from the
+# port registry, never from a default. Each block below works pasted into a fresh shell (bash
+# or zsh) in server/:
+#
+#     export QA_PG_PORT=$(port-registry alloc postgres)
+#     docker compose -f dev/docker-compose.yml up -d --wait
+#     export DATABASE_URL=postgres://qa:qa@127.0.0.1:$QA_PG_PORT/qa
+#     export TEST_DATABASE_URL=$DATABASE_URL
+#     cargo sqlx migrate run --source migrations-sql
+#
+# The migration goes before the first `cargo build`, which checks the queries against it.
+#
+# `cargo sqlx` must be sqlx-cli 0.9.0, the version CI uses and `.sqlx/` was prepared with
+# (`sqlx --version`); install exactly that one as CI does:
+#
+#     cargo install sqlx-cli --version 0.9.0 --no-default-features --features postgres --locked
+#
+# Remove it, with its data (an anonymous volume):
+#
+#     QA_PG_PORT=$(port-registry get postgres) docker compose -f dev/docker-compose.yml down -v
+#
+# The image and initdb arguments are the ones production runs
+# (deployment/templates/docker-compose.yml). Logins over TCP need the password, as in CI
+# (.gitlab-ci.yml) and production, so a test that logs in with a wrong one fails here too.
+# The password is no secret: the port is bound to the loopback address only.
+name: queer-augsburg-dev
 services:
-    db:
-        build: .
-        restart: always
+    postgres:
+        image: postgres:18.6-alpine
+        restart: unless-stopped
         environment:
-            MONGO_INITDB_ROOT_USERNAME: root
-            MONGO_INITDB_ROOT_PASSWORD: root
+            POSTGRES_USER: qa
+            POSTGRES_PASSWORD: qa
+            POSTGRES_DB: qa
+            # As production (deployment/templates/docker-compose.yml): bytewise ordering
+            # and Postgres's own case mapping, so ORDER BY and ILIKE behave the same here.
+            POSTGRES_INITDB_ARGS: "--locale-provider=builtin --builtin-locale=C.UTF-8 --encoding=UTF8 --data-checksums"
         ports:
-            - "27017:27017"
+            - "127.0.0.1:${QA_PG_PORT:?set QA_PG_PORT, see the comment at the top}:5432"
         healthcheck:
-            test: |
-                test $$(mongosh --quiet -u root -p root --eval "try { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'localhost' }] }).ok } catch (_) { rs.status().ok }") -eq 1
-            # change above to
-            # test $$(mongosh --quiet -u root -p root --eval "try { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'db' }] }).ok } catch (_) { rs.status().ok }") -eq 1
-            # when using inside docker network (or whatever the name of the db service is)
-            interval: 10s
-            start_period: 10s
-
-    #arangodb:
-    #    image: arangodb:3.10
-    #    container_name: arango
-    #    restart: always
-    #    environment:
-    #        - ARANGO_ROOT_PASSWORD=password # root:password at http://localhost:8529/
-    #    ports:
-    #        - 8529:8529
-    #    command: ""
-    #surreal:
-    #    image: surrealdb/surrealdb
-    #    container_name: surreal
-    #    restart: always
-    #    ports:
-    #        - 8000:8000
-    #    command: start --log trace --user root --pass root
+            # Over TCP, not the socket, as in deployment/templates/docker-compose.yml: on the
+            # first start initdb runs on a server that listens on the socket only, and a socket
+            # check would call that healthy before the port takes connections.
+            test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U qa -d qa"]
+            interval: 5s
+            timeout: 5s
+            retries: 5
+            # The first start runs initdb.
+            start_period: 60s

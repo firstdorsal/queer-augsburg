@@ -1,3 +1,4 @@
+#!/bin/bash
 git fetch origin
 git stash push deployment/config.yml
 git reset --hard origin/main

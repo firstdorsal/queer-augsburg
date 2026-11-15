@@ -221,10 +221,7 @@ fn summarize(meeting: Meeting, ui_origin: &Url) -> Option<MeetingSummary> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        db::published_between_filter,
-        types::{stored_test_meeting, MeetingLocation, OnlineMeeting},
-    };
+    use crate::types::{stored_test_meeting, MeetingLocation, OnlineMeeting};
     use axum::body::to_bytes;
     use chrono::TimeZone;
 
@@ -327,15 +324,8 @@ mod tests {
         assert!(day_range(Some("2026-10-01"), Some("2026-10-20"), today).is_ok());
     }
 
-    #[test]
-    fn only_published_meetings_in_the_range_are_loaded() {
-        let filter = published_between_filter(10, 20);
-        assert_eq!(filter.get_str("status"), Ok("Active"));
-        assert_eq!(filter.get("deleted_at"), Some(&mongodb::bson::Bson::Null));
-        let time = filter.get_document("time").unwrap();
-        assert_eq!(time.get_i64("$gte"), Ok(10));
-        assert_eq!(time.get_i64("$lt"), Ok(20));
-    }
+    // That only published, undeleted meetings in `[from, until)` are loaded is pinned
+    // against the database in tests/db_behaviour.rs (`the_published_window_...`).
 
     #[test]
     fn overview_summarizes_without_private_details() {

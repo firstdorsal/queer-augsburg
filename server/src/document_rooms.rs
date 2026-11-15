@@ -5,7 +5,7 @@
 use crate::document_rules::derive_title;
 use anyhow::Context;
 use axum::body::Bytes;
-use futures::future::BoxFuture;
+use futures_util::future::BoxFuture;
 use serde_json::{json, Value};
 use std::collections::{BTreeSet, HashMap};
 use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};

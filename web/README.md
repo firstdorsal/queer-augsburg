@@ -110,7 +110,9 @@ Security headers live in two files that must be changed together: `server/config
 ```sh
 pnpm test        # type-checks src incl. tests (tsconfig.test.json), then runs vitest
 cd ../server && cargo test   # server tests; also regenerates src/apiTypes via ts-rs
-TEST_MONGODB_URI=mongodb://localhost:<port> cargo test   # plus the tests against a real MongoDB
+TEST_DATABASE_URL=postgres://qa:qa@127.0.0.1:<port>/qa cargo test   # plus the tests against a real Postgres
 ```
+
+The Postgres for `TEST_DATABASE_URL` is `server/dev/docker-compose.yml` (its header has the port and setup).
 
 `pnpm test` and `pnpm build` both run `fix-react-markdown-types`, which deletes `react-markdown/lib/complex-types.ts`: react-markdown 8 ships that TypeScript source file, and it does not compile against the Preact JSX types. Test files are excluded from `pnpm build` because they import the shared fixture from `server/`, which is outside the web Docker build context. CI runs both test suites (`test-web`, `test-server`) before building images.

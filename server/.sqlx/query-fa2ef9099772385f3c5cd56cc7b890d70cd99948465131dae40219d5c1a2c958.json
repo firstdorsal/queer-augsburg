@@ -1,0 +1,26 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT m.email FROM members m JOIN users u ON u._id = m.user_id\n            WHERE m.status = 'Approved'\n            ORDER BY u.seq\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "email",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "members",
+            "name": "email"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "fa2ef9099772385f3c5cd56cc7b890d70cd99948465131dae40219d5c1a2c958"
+}

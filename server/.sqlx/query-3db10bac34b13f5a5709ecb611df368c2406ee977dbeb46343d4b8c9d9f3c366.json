@@ -1,0 +1,65 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT _id, content, editors, saved_at FROM document_versions\n            WHERE document_id = $1\n            ORDER BY saved_at DESC, _id DESC\n            LIMIT $2\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "_id",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "document_versions",
+            "name": "_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "content",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "document_versions",
+            "name": "content"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "editors",
+        "type_info": "TextArray",
+        "origin": {
+          "Table": {
+            "table": "document_versions",
+            "name": "editors"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "saved_at",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "document_versions",
+            "name": "saved_at"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "3db10bac34b13f5a5709ecb611df368c2406ee977dbeb46343d4b8c9d9f3c366"
+}

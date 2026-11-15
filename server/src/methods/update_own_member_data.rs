@@ -7,6 +7,7 @@ use axum::{
 use serde_valid::Validate;
 
 use crate::{
+    db::storable_value,
     extractors::AuthExtractor,
     state::AppState,
     types::{SetOwnMemberDataRequestBody, SubmittedMember},
@@ -42,6 +43,11 @@ pub async fn update_own_member_data(
         return (StatusCode::BAD_REQUEST, e.to_string()).into_response();
     }
 
+    // MongoDB stored a U+0000, Postgres text cannot (db::storable).
+    if !storable_value(&body.member) {
+        return (StatusCode::BAD_REQUEST, NUL_CHARACTER).into_response();
+    }
+
     let email = body.member.email.clone();
 
     let first_time = match state.db.update_member_data(user_id, body.member).await {
@@ -67,6 +73,8 @@ pub async fn update_own_member_data(
 
     (StatusCode::OK, "Ok").into_response()
 }
+
+pub const NUL_CHARACTER: &str = "Text fields cannot contain the character U+0000";
 
 pub fn validate_submitted_member(sm: &SubmittedMember) -> anyhow::Result<()> {
     use anyhow::bail;

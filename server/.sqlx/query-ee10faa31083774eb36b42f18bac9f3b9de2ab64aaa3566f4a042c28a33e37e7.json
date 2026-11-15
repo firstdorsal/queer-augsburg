@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH stamped AS (\n                UPDATE meetings SET deleted_at = $2 WHERE _id = $1 RETURNING _id\n            )\n            INSERT INTO meeting_changes (meeting_id, position, at, by)\n            SELECT stamped._id,\n                COALESCE((SELECT max(position) + 1 FROM meeting_changes WHERE meeting_id = $1), 0),\n                $2, $3\n            FROM stamped\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int8",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "ee10faa31083774eb36b42f18bac9f3b9de2ab64aaa3566f4a042c28a33e37e7"
+}

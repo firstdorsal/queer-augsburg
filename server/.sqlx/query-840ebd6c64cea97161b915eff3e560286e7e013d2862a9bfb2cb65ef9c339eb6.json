@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE document_groups SET document_order = $2 WHERE _id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "TextArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "840ebd6c64cea97161b915eff3e560286e7e013d2862a9bfb2cb65ef9c339eb6"
+}

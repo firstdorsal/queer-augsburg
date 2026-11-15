@@ -1,0 +1,49 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT capabilities AS \"capabilities: Vec<UserCapabilities>\"\n               FROM users WHERE _id = $1 FOR UPDATE",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "capabilities: Vec<UserCapabilities>",
+        "type_info": {
+          "Custom": {
+            "name": "user_capability[]",
+            "kind": {
+              "Array": {
+                "Custom": {
+                  "name": "user_capability",
+                  "kind": {
+                    "Enum": [
+                      "UpdateMeetings",
+                      "GetUsers",
+                      "UpdateMemberStatus",
+                      "CreateMember",
+                      "SendMassEmail",
+                      "UpdateDocuments"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "users",
+            "name": "capabilities"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "ee8d4705a7b962cb90effce3d01f7d89bec4ff77d82c9b71de98ad778a62ae72"
+}

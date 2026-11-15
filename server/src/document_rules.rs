@@ -384,6 +384,49 @@ mod tests {
         assert_eq!(body.groups[1].document_ids, ids(&["d3", "d1", "d2"]));
     }
 
+    /// The order `/dokumente` shows: `DocumentList` renders `groups`, each group's
+    /// `document_ids` and `ungrouped_ids` as they come, and opens the first document. By
+    /// `sort_key`, so Ä sorts with A and case is ignored; equal keys by id, so documents of the
+    /// same title (and groups whose names differ only in case) keep their places from one load
+    /// to the next. In each pair of equal keys the name or title that sorts first byte for byte
+    /// has the later id ("Vorstand" g3 before "vorstand" g2, "Protokoll" d4 before
+    /// "protokoll" d3), so a tie broken by name or title instead of by id fails.
+    #[test]
+    fn documents_and_groups_sort_by_their_key_then_by_id() {
+        let body = arrange_documents(
+            vec![
+                group("g4", "Öffentlichkeit", &[]),
+                group("g3", "Vorstand", &[]),
+                group("g1", "Zahlen", &[]),
+                group("g2", "vorstand", &[]),
+                group("g5", "Orga", &[]),
+            ],
+            &[],
+            vec![
+                document("d5", "Zoo", &["g1"]),
+                document("d4", "Protokoll", &["g1"]),
+                document("d2", "Ärger", &["g1"]),
+                document("d3", "protokoll", &["g1"]),
+                document("d1", "Apfel", &["g1"]),
+                document("d7", "Protokoll", &[]),
+                document("d6", "Ärger", &[]),
+            ],
+        );
+        let groups: Vec<&str> = body.groups.iter().map(|group| group._id.as_str()).collect();
+        assert_eq!(groups, ["g4", "g5", "g2", "g3", "g1"]);
+        let documents: Vec<&str> = body
+            .documents
+            .iter()
+            .map(|document| document._id.as_str())
+            .collect();
+        assert_eq!(documents, ["d1", "d2", "d6", "d3", "d4", "d7", "d5"]);
+        assert_eq!(
+            body.groups[4].document_ids,
+            ids(&["d1", "d2", "d3", "d4", "d5"])
+        );
+        assert_eq!(body.ungrouped_ids, ids(&["d6", "d7"]));
+    }
+
     #[test]
     fn a_document_only_in_a_deleted_group_counts_as_ungrouped() {
         let body = arrange_documents(vec![], &[], vec![document("d", "Doc", &["gone"])]);

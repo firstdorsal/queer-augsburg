@@ -1,3 +1,7 @@
+// The server's only unsafe code is the library's allocator. This forbid does not reach into
+// the library's macros; tests/no_unsafe.rs scans them, within the limits lib.rs names.
+#![forbid(unsafe_code)]
+
 use axum::{
     extract::{ConnectInfo, DefaultBodyLimit},
     http::{header, Method, StatusCode},
@@ -7,9 +11,9 @@ use axum::{
 };
 use backend::capped_allocator::CappedAllocator;
 use backend::config::SERVER_CONFIG;
-use backend::db::{MongoDocumentStore, DB};
+use backend::db::DB;
 use backend::document_rooms::Rooms;
-use backend::interossea::{Interossea, UserAssertion, INTEROSSEA};
+use backend::interossea::{Interossea, INTEROSSEA};
 use backend::meeting_validation::MAX_BATCH_BODY_BYTES;
 use backend::methods::admin_create_member::admin_create_member;
 use backend::methods::confirm_send_email::confirm_send_email;
@@ -36,13 +40,10 @@ use backend::methods::update_meeting::update_meeting;
 use backend::methods::update_member_status::update_member_status;
 use backend::methods::update_own_member_data::update_own_member_data;
 use backend::state::AppState;
-use mongodb::options::ClientOptions;
-use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 use tokio::signal::unix::{signal, SignalKind};
-use tokio::sync::{RwLock, Semaphore};
 use tower_http::cors::{Any, CorsLayer};
 use utoipa::OpenApi;
 use utoipa_scalar::{Scalar, Servable};
@@ -159,7 +160,6 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
     // Reference variables declared with lazy_static because they are initialized on first access
     let _ = &SERVER_CONFIG.db;
     let config = &SERVER_CONFIG;
-    let session_map = Arc::new(RwLock::new(HashMap::<String, UserAssertion>::new()));
 
     if !config.dev.insecure_skip_interossea {
         match INTEROSSEA.set(Interossea::new(&config.interossea).await?) {
@@ -170,17 +170,11 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         };
     }
 
-    let db = DB::new(ClientOptions::parse(&config.db.url).await?).await?;
-    db.create_collections().await?;
+    let db = DB::connect(&config.db.url).await?;
+    db.migrate().await?;
 
-    let db = Arc::new(db);
-    let document_rooms = Rooms::new(Arc::new(MongoDocumentStore(db.clone())));
-    let state = AppState {
-        db,
-        session_map,
-        document_searches: Arc::new(Semaphore::new(2)),
-        document_rooms: document_rooms.clone(),
-    };
+    let state = AppState::new(Arc::new(db));
+    let document_rooms = state.document_rooms.clone();
 
     // Build CORS layer
     let cors = CorsLayer::new()

@@ -8,11 +8,18 @@ COPY Cargo.toml Cargo.lock ./
 COPY .cargo .cargo
 # Stub lib and bin, so that this layer compiles only the locked dependencies and stays cached
 # until they change. New targets in Cargo.toml need a stub here too.
-RUN mkdir src && echo 'fn main() {}' > src/main.rs && touch src/lib.rs \
+RUN mkdir -p src/bin && echo 'fn main() {}' > src/main.rs && touch src/lib.rs \
+    && echo 'fn main() {}' > src/bin/migrate-from-mongo.rs \
+    && echo 'fn main() {}' > src/bin/anonymize-dump.rs \
     && cargo build --release --locked --bin main \
     && rm -rf src
 # build
 COPY --chown=root:root src src
+# The schema is embedded (`sqlx::migrate!`) and the queries are checked against the
+# committed cache: there is no database in the image build.
+COPY --chown=root:root migrations-sql migrations-sql
+COPY --chown=root:root .sqlx .sqlx
+ENV SQLX_OFFLINE=true
 # Cargo compares modification times, and the copied sources can be older than the stubs,
 # which would leave the stub binary in place.
 RUN find src -name '*.rs' -exec touch {} + \

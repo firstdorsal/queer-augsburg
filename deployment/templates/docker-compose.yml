@@ -78,19 +78,28 @@ services:
             context: {{ $config.qa.server.build.path }}
             dockerfile: {{ $config.qa.server.build.dockerfile }}
         {{- else }}
-        image: firstdorsal/queer-augsburg-server
+        # One CI build, named by the tag in .env (set-server-image.sh, README "Server image"),
+        # never `latest`: a pull cannot swap the server, the Mongo and the Postgres build
+        # cannot be confused, and going back is setting the previous tag.
+        image: firstdorsal/queer-augsburg-server:${QA_SERVER_IMAGE_TAG:?set QA_SERVER_IMAGE_TAG in .env, see deployment/README.md}
         {{- end }}
         
         container_name: qa-server
         # Saving open documents takes up to 15 s (ROOMS_SHUTDOWN_TIMEOUT in server/src/main.rs).
         stop_grace_period: 20s
         networks:
-            - qa-db
+            - qa-pg
             - qa-interossea-server
             - {{ $config.reverseProxy.network }}
         restart: always
+        # The server applies the schema migrations at start (DB::migrate), so the database
+        # must answer before it starts; `restart: always` would otherwise loop on a cold start.
+        depends_on:
+            qa-pg:
+                condition: service_healthy
         environment:
-            MONGODB_ROOT_PASSWORD: $MONGODB_ROOT_PASSWORD_QA
+            # Substituted into db.url of qa-server.yml.
+            POSTGRES_APP_PASSWORD: $POSTGRES_APP_PASSWORD_QA
             INTEROSSEA_INTERNAL_URL: {{ $config.interossea.server.internalHostname }}
             MAIL_PASSWORD: $INTEROSSEA_MAIL_PASSWORD
         volumes:
@@ -156,6 +165,52 @@ services:
             MONGODB_REPLICA_SET_NAME: replicaset
 
             MONGODB_PORT_NUMBER: {{ $config.qa.db.port }}
+    # The server's database since the move from MongoDB. qa-db above stays, unconnected, for
+    # the rollback window (deployment/README.md "The Postgres cutover"); only the migrator ever
+    # reaches both. Nothing is published on the host: `docker exec qa-pg psql` is the console.
+    qa-pg:
+        image: postgres:18.6-alpine
+        container_name: qa-pg
+        restart: always
+        # Docker's default /dev/shm of 64 MB is too small for parallel query workers.
+        shm_size: 256m
+        security_opt:
+            - no-new-privileges:true
+        # No `user:` — the entrypoint drops to postgres (uid 70) itself, and the backup job
+        # runs `docker exec` as root, which the shared qa-backup volume (written by the
+        # mongodump jobs as root) requires.
+        networks:
+            - qa-pg
+        volumes:
+            # The postgres:18 image keeps PGDATA in /var/lib/postgresql/18/docker and declares
+            # /var/lib/postgresql as its volume. Mounting .../data as older images did would
+            # leave the data in the container's writable layer, lost on recreate.
+            - qa-pg:/var/lib/postgresql:rw
+            # Run once by the image when the volume is empty: creates the app role.
+            - ./config/pg-init.sql:/docker-entrypoint-initdb.d/10-roles.sql:ro
+        {{- if eq $config.backup.create true }}
+            - qa-backup:/backup/:rw
+        {{- end }}
+        environment:
+            POSTGRES_DB: queer-augsburg
+            POSTGRES_USER: qa_owner
+            POSTGRES_PASSWORD: $POSTGRES_PASSWORD_QA
+            # Read by pg-init.sql; the server connects with it as qa_app.
+            POSTGRES_APP_PASSWORD: $POSTGRES_APP_PASSWORD_QA
+            # Bytewise ordering and Postgres's own Unicode case mapping, independent of the
+            # image's system locale: the order MongoDB had, and what the tests run against
+            # (server/dev/docker-compose.yml and .gitlab-ci.yml set the same arguments).
+            POSTGRES_INITDB_ARGS: "--locale-provider=builtin --builtin-locale=C.UTF-8 --encoding=UTF8 --data-checksums"
+        healthcheck:
+            # Over TCP, not the socket: on the first start the image runs initdb and the init
+            # script on a server that listens on the socket only, and a socket check would
+            # call that healthy before the real server takes connections from the network.
+            test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U qa_owner -d queer-augsburg"]
+            interval: 10s
+            timeout: 5s
+            retries: 5
+            # The first start runs initdb and the init script.
+            start_period: 60s
     {{- if eq $config.interossea.web.create true }}
     qa-interossea-web:
         {{- if eq $config.interossea.web.build.enabled true }}
@@ -303,6 +358,7 @@ services:
         depends_on:
             - qa-backup
             - qa-db
+            - qa-pg
             - qa-interossea-db
     {{- end }}
     {{- if eq $config.reverseProxy.create true }}
@@ -400,6 +456,8 @@ services:
 volumes:
     qa-db:
         name: qa-db
+    qa-pg:
+        name: qa-pg
     qa-interossea-db:
         name: qa-interossea-db
     {{- if eq $config.interossea.server.create true }}
@@ -421,6 +479,8 @@ networks:
         name: qa-interossea-db
     qa-db:
         name: qa-db
+    qa-pg:
+        name: qa-pg
     {{ $config.reverseProxy.network }}:
         name: {{ $config.reverseProxy.network }}
         {{- if eq $config.reverseProxy.create false }}

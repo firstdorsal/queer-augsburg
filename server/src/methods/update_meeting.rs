@@ -6,6 +6,7 @@ use axum::{
 };
 
 use crate::{
+    db::storable_meeting,
     extractors::AuthExtractor,
     meeting_validation::{MeetingValidationError, MAX_TIME_MS, MIN_TIME_MS},
     place_rules::{finish_venue, needs_stored_link, place_to_look_up, VenueError},
@@ -81,11 +82,17 @@ pub async fn update_meeting(
         }
         Err(SaveError::Database(e)) => return database_error("venue lookup", &e),
     };
+    // MongoDB stored a U+0000, Postgres text cannot (db::storable).
+    if !storable_meeting(&meeting) {
+        return (StatusCode::UNPROCESSABLE_ENTITY, NUL_CHARACTER).into_response();
+    }
     if let Err(e) = state.db.update_meeting(&mut meeting, &db_auth).await {
         return database_error("save", &e);
     }
     Json(meeting.without_private_link()).into_response()
 }
+
+pub const NUL_CHARACTER: &str = "Das Treffen enthält ein unzulässiges Zeichen (U+0000).";
 
 #[derive(Debug, thiserror::Error)]
 enum SaveError {

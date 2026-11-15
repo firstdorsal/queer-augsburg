@@ -1,0 +1,45 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT d._id, d.title,\n                COALESCE((SELECT array_agg(m.group_id ORDER BY m.position)\n                          FROM document_group_members m WHERE m.document_id = d._id), '{}')\n                    AS \"group_ids!\"\n            FROM documents d\n            WHERE d.deleted_at IS NULL\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "_id",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "documents",
+            "name": "_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "documents",
+            "name": "title"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "group_ids!",
+        "type_info": "TextArray",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "8843e7b18e0a53fee75668c88a80728f0b0a59ad43c4caa1baf82c95e7ce4aab"
+}

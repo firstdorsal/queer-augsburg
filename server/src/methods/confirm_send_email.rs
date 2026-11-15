@@ -9,7 +9,9 @@ use crate::{
     extractors::AuthExtractor,
     require_capability,
     state::AppState,
-    types::{ConfirmSendEmailRequestBody, ConfirmSendEmailResponseBody, SentEmailLog, UserCapabilities},
+    types::{
+        ConfirmSendEmailRequestBody, ConfirmSendEmailResponseBody, SentEmailLog, UserCapabilities,
+    },
     utils::{generate_id, send_mail_with_attachments},
 };
 
@@ -113,7 +115,11 @@ pub async fn confirm_send_email(
         sender_email: draft.sender_email,
         subject: draft.subject,
         body: draft.body,
-        attachment_names: draft.attachments.iter().map(|a| a.filename.clone()).collect(),
+        attachment_names: draft
+            .attachments
+            .iter()
+            .map(|a| a.filename.clone())
+            .collect(),
         sent_at: chrono::Utc::now().timestamp_millis(),
         successful_count: sent_count,
         failed_count,

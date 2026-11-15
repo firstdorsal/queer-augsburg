@@ -1,0 +1,41 @@
+# The one-shot tools of the Postgres cutover (research-postgres §4): `migrate-from-mongo`
+# and `anonymize-dump`. The image is built by hand on turing for the rehearsals and the
+# cutover, tagged with the commit it was built from (deployment/README.md):
+#
+#     docker build -f Dockerfile.migrate -t qa-migrate:<short sha> .
+#
+# CI does not build the image, but compiles both binaries offline against .sqlx/ as this
+# build does and runs their tests (`--features mongo-source`, job test-server).
+#
+# Same build as `Dockerfile`, with the `mongo-source` feature; the server image stays
+# without it. Both binaries and this file go after the rollback window (task 11).
+FROM clux/muslrust:stable AS build
+USER root
+
+COPY Cargo.toml Cargo.lock ./
+COPY .cargo .cargo
+# Stubs for every target, so this layer compiles only the locked dependencies.
+RUN mkdir -p src/bin && echo 'fn main() {}' > src/main.rs && touch src/lib.rs \
+    && echo 'fn main() {}' > src/bin/migrate-from-mongo.rs \
+    && echo 'fn main() {}' > src/bin/anonymize-dump.rs \
+    && cargo build --release --locked --features mongo-source \
+        --bin migrate-from-mongo --bin anonymize-dump \
+    && rm -rf src
+COPY --chown=root:root src src
+COPY --chown=root:root migrations-sql migrations-sql
+COPY --chown=root:root .sqlx .sqlx
+ENV SQLX_OFFLINE=true
+RUN find src -name '*.rs' -exec touch {} + \
+    && cargo build --release --locked --features mongo-source \
+        --bin migrate-from-mongo --bin anonymize-dump
+RUN strip target/x86_64-unknown-linux-musl/release/migrate-from-mongo \
+    target/x86_64-unknown-linux-musl/release/anonymize-dump
+
+FROM scratch
+WORKDIR /app
+COPY --from=build /volume/target/x86_64-unknown-linux-musl/release/migrate-from-mongo ./
+COPY --from=build /volume/target/x86_64-unknown-linux-musl/release/anonymize-dump ./
+# Runs as root on purpose: the backup volume it reads is written by mongodump as root
+# (deployment/templates/docker-compose.yml), and the anonymized copy must be readable by
+# whoever runs the rehearsal. Nothing listens, nothing is exposed.
+ENTRYPOINT ["/app/migrate-from-mongo"]

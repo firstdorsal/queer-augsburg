@@ -4,7 +4,8 @@ http:
     internalAddress: "[::]:80"
 
 db:
-    url: mongodb://root:$MONGODB_ROOT_PASSWORD@qa-db.localhost:{{ $config.qa.db.port }}
+    # qa_app is created by pg-init.sql; the password comes from the qa-server environment.
+    url: postgres://qa_app:$POSTGRES_APP_PASSWORD@qa-pg:5432/queer-augsburg
 dev:
     insecureSkipInterossea: false
     importOldMeetings: false

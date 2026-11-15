@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO email_drafts (_id, sender_id, sender_email, subject, body, attachments,\n                                      verification_code, created_at, recipient_count, status,\n                                      reply_to)\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Jsonb",
+        "Text",
+        "Int8",
+        "Int4",
+        {
+          "Custom": {
+            "name": "draft_status",
+            "kind": {
+              "Enum": [
+                "Pending",
+                "Processing"
+              ]
+            }
+          }
+        },
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b50bd973cb7276bddca2dfe2e055b9fc1d5e55ba20d966e3f11d1836f8f4a668"
+}

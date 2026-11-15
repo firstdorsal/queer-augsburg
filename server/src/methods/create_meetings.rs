@@ -111,16 +111,7 @@ pub async fn create_meetings(
         .into_response(),
         Err(e) => {
             eprintln!("create_meetings by {user_id} failed: {e}");
-            let (code, message) = match e {
-                CreateMeetingsError::IdLookup(_) | CreateMeetingsError::RolledBack(_) => (
-                    CreateMeetingsErrorCode::Internal,
-                    "Datenbankfehler, es wurde nichts angelegt. Bitte später erneut versuchen.",
-                ),
-                CreateMeetingsError::RollbackFailed { .. } => (
-                    CreateMeetingsErrorCode::PartiallyCreated,
-                    "Datenbankfehler, einige Treffen wurden eventuell trotzdem angelegt. Bitte unter „Geplante Treffen“ prüfen, bevor du es erneut versuchst.",
-                ),
-            };
+            let (code, message) = failure_answer(&e);
             error_response(
                 StatusCode::INTERNAL_SERVER_ERROR,
                 code,
@@ -128,6 +119,24 @@ pub async fn create_meetings(
                 message.to_string(),
             )
         }
+    }
+}
+
+/// What the member is told: "nothing was created" only where that is certain. A COMMIT
+/// whose answer was lost may have created the whole batch, so the member is asked to check
+/// before trying again, or the batch would exist twice.
+fn failure_answer(e: &CreateMeetingsError) -> (CreateMeetingsErrorCode, &'static str) {
+    match e {
+        CreateMeetingsError::IdLookup(_)
+        | CreateMeetingsError::RolledBack(_)
+        | CreateMeetingsError::RollbackFailed { .. } => (
+            CreateMeetingsErrorCode::Internal,
+            "Datenbankfehler, es wurde nichts angelegt. Bitte später erneut versuchen.",
+        ),
+        CreateMeetingsError::CommitUnconfirmed(_) => (
+            CreateMeetingsErrorCode::PartiallyCreated,
+            "Datenbankfehler, einige Treffen wurden eventuell trotzdem angelegt. Bitte unter „Geplante Treffen“ prüfen, bevor du es erneut versuchst.",
+        ),
     }
 }
 
@@ -146,4 +155,33 @@ fn error_response(
         }),
     )
         .into_response()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn io_error() -> Box<sqlx::Error> {
+        Box::new(sqlx::Error::Io(std::io::ErrorKind::UnexpectedEof.into()))
+    }
+
+    #[test]
+    fn only_an_unconfirmed_commit_asks_to_check_before_trying_again() {
+        let certain = [
+            CreateMeetingsError::IdLookup(io_error()),
+            CreateMeetingsError::RolledBack(io_error()),
+            CreateMeetingsError::RollbackFailed {
+                insert: io_error(),
+                rollback: io_error(),
+            },
+        ];
+        for e in &certain {
+            let (code, message) = failure_answer(e);
+            assert_eq!(code, CreateMeetingsErrorCode::Internal, "{e}");
+            assert!(message.contains("nichts angelegt"), "{e}");
+        }
+        let (code, message) = failure_answer(&CreateMeetingsError::CommitUnconfirmed(io_error()));
+        assert_eq!(code, CreateMeetingsErrorCode::PartiallyCreated);
+        assert!(message.contains("eventuell trotzdem angelegt"));
+    }
 }

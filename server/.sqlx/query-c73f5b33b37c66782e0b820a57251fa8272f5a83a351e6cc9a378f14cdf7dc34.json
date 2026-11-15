@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT state, state_version FROM documents WHERE _id = $1 AND deleted_at IS NULL",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "state",
+        "type_info": "Bytea",
+        "origin": {
+          "Table": {
+            "table": "documents",
+            "name": "state"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "state_version",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "documents",
+            "name": "state_version"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "c73f5b33b37c66782e0b820a57251fa8272f5a83a351e6cc9a378f14cdf7dc34"
+}

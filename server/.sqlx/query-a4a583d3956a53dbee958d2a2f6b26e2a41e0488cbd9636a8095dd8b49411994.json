@@ -1,0 +1,389 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT m._id, m.title, m.authority, m.age_restriction, m.time,\n                m.location_name, m.location_lat, m.location_lon, m.place_id,\n                m.online_platform, m.online_url, m.online_members_only, m.place_to_be_announced,\n                m.description, m.price, m.trigger_warning, m.attendance, m.rating, m.accessibility,\n                m.tags_freeform,\n                m.tags_common AS \"tags_common: Vec<CommonMeetingTag>\",\n                m.tags_queer AS \"tags_queer: Vec<QueerMeetingTag>\",\n                m.status AS \"status: MeetingStatus\", m.cancelled, m.deleted_at,\n                (SELECT COALESCE(jsonb_agg(jsonb_build_object('by', c.by, 'at', c.at)\n                                           ORDER BY c.position), '[]'::jsonb)\n                 FROM meeting_changes c WHERE c.meeting_id = m._id)\n                    AS \"changed!: Json<Vec<ChangedMeeting>>\"\n            FROM meetings m\n            WHERE m._id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "_id",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "title",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "title"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "authority",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "authority"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "age_restriction",
+        "type_info": "Int2Array",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "age_restriction"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "time",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "time"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "location_name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "location_name"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "location_lat",
+        "type_info": "Float8",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "location_lat"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "location_lon",
+        "type_info": "Float8",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "location_lon"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "place_id",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "place_id"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "online_platform",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "online_platform"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "online_url",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "online_url"
+          }
+        }
+      },
+      {
+        "ordinal": 11,
+        "name": "online_members_only",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "online_members_only"
+          }
+        }
+      },
+      {
+        "ordinal": 12,
+        "name": "place_to_be_announced",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "place_to_be_announced"
+          }
+        }
+      },
+      {
+        "ordinal": 13,
+        "name": "description",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "description"
+          }
+        }
+      },
+      {
+        "ordinal": 14,
+        "name": "price",
+        "type_info": "Float4Array",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "price"
+          }
+        }
+      },
+      {
+        "ordinal": 15,
+        "name": "trigger_warning",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "trigger_warning"
+          }
+        }
+      },
+      {
+        "ordinal": 16,
+        "name": "attendance",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "attendance"
+          }
+        }
+      },
+      {
+        "ordinal": 17,
+        "name": "rating",
+        "type_info": "Float4",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "rating"
+          }
+        }
+      },
+      {
+        "ordinal": 18,
+        "name": "accessibility",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "accessibility"
+          }
+        }
+      },
+      {
+        "ordinal": 19,
+        "name": "tags_freeform",
+        "type_info": "TextArray",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "tags_freeform"
+          }
+        }
+      },
+      {
+        "ordinal": 20,
+        "name": "tags_common: Vec<CommonMeetingTag>",
+        "type_info": {
+          "Custom": {
+            "name": "common_meeting_tag[]",
+            "kind": {
+              "Array": {
+                "Custom": {
+                  "name": "common_meeting_tag",
+                  "kind": {
+                    "Enum": [
+                      "Kultur",
+                      "Party",
+                      "Orga",
+                      "Sport",
+                      "Education",
+                      "Meet",
+                      "Students",
+                      "Marketing",
+                      "Cinema",
+                      "Talks",
+                      "Open",
+                      "Explores",
+                      "Connect",
+                      "Ostqueer",
+                      "Queermas"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "tags_common"
+          }
+        }
+      },
+      {
+        "ordinal": 21,
+        "name": "tags_queer: Vec<QueerMeetingTag>",
+        "type_info": {
+          "Custom": {
+            "name": "queer_meeting_tag[]",
+            "kind": {
+              "Array": {
+                "Custom": {
+                  "name": "queer_meeting_tag",
+                  "kind": {
+                    "Enum": [
+                      "Everyone",
+                      "Queer",
+                      "Gay",
+                      "Lesbian",
+                      "Trans",
+                      "Bi",
+                      "Asexual",
+                      "Aromantic",
+                      "Inter",
+                      "Poly",
+                      "Pan"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "tags_queer"
+          }
+        }
+      },
+      {
+        "ordinal": 22,
+        "name": "status: MeetingStatus",
+        "type_info": {
+          "Custom": {
+            "name": "meeting_status",
+            "kind": {
+              "Enum": [
+                "Planned",
+                "Active"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "status"
+          }
+        }
+      },
+      {
+        "ordinal": 23,
+        "name": "cancelled",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "cancelled"
+          }
+        }
+      },
+      {
+        "ordinal": 24,
+        "name": "deleted_at",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "meetings",
+            "name": "deleted_at"
+          }
+        }
+      },
+      {
+        "ordinal": 25,
+        "name": "changed!: Json<Vec<ChangedMeeting>>",
+        "type_info": "Jsonb",
+        "origin": "Expression"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      null
+    ]
+  },
+  "hash": "a4a583d3956a53dbee958d2a2f6b26e2a41e0488cbd9636a8095dd8b49411994"
+}

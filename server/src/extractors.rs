@@ -30,7 +30,11 @@ impl FromRequestParts<AppState> for AuthExtractor {
             .get::<ConnectInfo<SocketAddr>>()
             .cloned()
             .ok_or_else(|| {
-                (StatusCode::INTERNAL_SERVER_ERROR, "Could not get client address").into_response()
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Could not get client address",
+                )
+                    .into_response()
             })?;
 
         let user_assertion = if config.dev.insecure_skip_interossea {
@@ -51,7 +55,10 @@ impl FromRequestParts<AppState> for AuthExtractor {
                 if let Some(assertion) = session_map.get(session_cookie.value()).cloned() {
                     // Validate the assertion
                     let interossea = INTEROSSEA.get().ok_or_else(|| {
-                        (StatusCode::INTERNAL_SERVER_ERROR, "Interossea not initialized")
+                        (
+                            StatusCode::INTERNAL_SERVER_ERROR,
+                            "Interossea not initialized",
+                        )
                             .into_response()
                     })?;
 
@@ -80,14 +87,11 @@ impl FromRequestParts<AppState> for AuthExtractor {
 
         let auth = Auth {
             authenticated_user: user_assertion.as_ref().map(|ua| ua.user_id.clone()),
-            token: parts
-                .uri
-                .query()
-                .and_then(|q| {
-                    q.split('&')
-                        .find(|p| p.starts_with("t="))
-                        .map(|p| p[2..].to_string())
-                }),
+            token: parts.uri.query().and_then(|q| {
+                q.split('&')
+                    .find(|p| p.starts_with("t="))
+                    .map(|p| p[2..].to_string())
+            }),
             user_assertion,
         };
 

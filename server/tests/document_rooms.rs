@@ -1,6 +1,8 @@
 //! Live editing against rooms and the yrs protocol, with a store that can fail. The browser client
 //! and the socket itself are covered by the checks before a deploy (see web/README.md).
 
+#![forbid(unsafe_code)]
+
 use axum::body::Bytes;
 use backend::capped_allocator::CappedAllocator;
 use backend::document_rooms::{
@@ -9,7 +11,7 @@ use backend::document_rooms::{
     CLOSE_RESTART, CLOSE_ROOM_FAILED, CLOSE_TOO_LARGE, MAX_CONNECTIONS, MAX_CONNECTIONS_PER_USER,
     MAX_ROOMS, MAX_UPDATE_BYTES, TEXT_ROOT,
 };
-use futures::future::BoxFuture;
+use futures_util::future::BoxFuture;
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
@@ -601,6 +603,23 @@ async fn names_come_from_the_server_and_foreign_clients_are_ignored() {
         .await;
     sam.listen(SETTLE).await;
     assert!(seen_by(&sam)["cursor"].is_null());
+    // Byte for byte as the MongoDB build wrote it (serde_json `preserve_order`): the keys in
+    // the order the server writes them, not sorted.
+    let raw = sam
+        .awareness
+        .iter()
+        .flatten()
+        .filter(|(id, _)| id.get() == 7)
+        .last()
+        .unwrap()
+        .1
+        .json
+        .to_string();
+    let color = seen_by(&sam)["user"]["colorIndex"].clone();
+    assert_eq!(
+        raw,
+        format!(r#"{{"user":{{"name":"alex","colorIndex":{color}}},"cursor":null}}"#)
+    );
 
     // Sam speaks for Alex's client.
     alex.listen(SETTLE).await;

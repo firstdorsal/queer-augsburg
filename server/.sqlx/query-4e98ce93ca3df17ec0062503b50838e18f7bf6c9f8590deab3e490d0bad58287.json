@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO meeting_changes (meeting_id, position, at, by)\n        SELECT id, 0, $2, $3 FROM unnest($1::text[]) AS id\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "TextArray",
+        "Int8",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "4e98ce93ca3df17ec0062503b50838e18f7bf6c9f8590deab3e490d0bad58287"
+}

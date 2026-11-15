@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE documents SET deleted_by = $2, deleted_at = $3\n            WHERE _id = $1 AND deleted_at IS NULL\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fe6ea6dc2df0417c0c87ab0815050413bc352a77e6251f7f3633f08fd977d7d5"
+}

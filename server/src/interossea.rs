@@ -127,7 +127,10 @@ pub async fn create_session_cookie(
     let interossea = match INTEROSSEA.get() {
         Some(i) => i,
         None => {
-            return (StatusCode::INTERNAL_SERVER_ERROR, "Interossea not initialized")
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Interossea not initialized",
+            )
                 .into_response()
         }
     };
@@ -152,10 +155,7 @@ pub async fn create_session_cookie(
 
     (
         StatusCode::OK,
-        [(
-            axum::http::header::SET_COOKIE,
-            session_cookie.to_string(),
-        )],
+        [(axum::http::header::SET_COOKIE, session_cookie.to_string())],
         "OK",
     )
         .into_response()
@@ -244,7 +244,10 @@ mod tests {
         let forged_payload = base64url(claims.to_string().as_bytes());
         let forged = format!("{}.{forged_payload}.{}", parts[0], parts[2]);
         let error = decode_assertion(&forged, &test_key()).err().unwrap();
-        assert_eq!(*error.kind(), jsonwebtoken::errors::ErrorKind::InvalidSignature);
+        assert_eq!(
+            *error.kind(),
+            jsonwebtoken::errors::ErrorKind::InvalidSignature
+        );
     }
 
     #[test]

@@ -14,8 +14,8 @@ COPY crontab /etc/crontabs/crontab
 RUN chmod 0644 /etc/crontabs/crontab \
     && crontab /etc/crontabs/crontab
 
-# Health check every 1.5h.
-HEALTHCHECK --interval=129600s --timeout=10s --retries=3 CMD /usr/bin/env python3 /src/healthcheck.py
+# Health check every 36 h.
+HEALTHCHECK --interval=129600s --timeout=10s --retries=3 CMD /usr/bin/env python3 /app/healthcheck.py
 
 #USER worker
 # Do not change.

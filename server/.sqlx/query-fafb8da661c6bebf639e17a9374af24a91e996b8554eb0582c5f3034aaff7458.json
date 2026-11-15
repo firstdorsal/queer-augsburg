@@ -1,0 +1,64 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT _id, name, lat, lon FROM places WHERE _id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "_id",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "places",
+            "name": "_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "places",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "lat",
+        "type_info": "Float8",
+        "origin": {
+          "Table": {
+            "table": "places",
+            "name": "lat"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "lon",
+        "type_info": "Float8",
+        "origin": {
+          "Table": {
+            "table": "places",
+            "name": "lon"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "fafb8da661c6bebf639e17a9374af24a91e996b8554eb0582c5f3034aaff7458"
+}

@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        INSERT INTO document_group_members (document_id, group_id, position)\n        SELECT $1, wanted.group_id, wanted.position - 1\n        FROM unnest($2::text[]) WITH ORDINALITY AS wanted(group_id, position)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "TextArray"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "a7eab69cdc2380e21ec3c885c42176e5d5226a99bfea151e90399b98f417ead8"
+}

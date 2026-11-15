@@ -1,0 +1,107 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                WITH updated AS (\n                    UPDATE meetings SET\n                        title = $2, authority = $3, age_restriction = $4, time = $5,\n                        location_name = $6, location_lat = $7, location_lon = $8, place_id = $9,\n                        online_platform = $10, online_url = $11, online_members_only = $12,\n                        place_to_be_announced = $13, description = $14, price = $15,\n                        trigger_warning = $16, attendance = $17, rating = $18,\n                        accessibility = $19, tags_freeform = $20, tags_common = $21,\n                        tags_queer = $22, status = $23, cancelled = $24, deleted_at = $25\n                    WHERE _id = $1\n                    RETURNING _id\n                )\n                INSERT INTO meeting_changes (meeting_id, position, at, by)\n                SELECT updated._id, $26, $27, $28 FROM updated\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Int2Array",
+        "Int8",
+        "Text",
+        "Float8",
+        "Float8",
+        "Text",
+        "Text",
+        "Text",
+        "Bool",
+        "Bool",
+        "Text",
+        "Float4Array",
+        "Text",
+        "Int4",
+        "Float4",
+        "Text",
+        "TextArray",
+        {
+          "Custom": {
+            "name": "common_meeting_tag[]",
+            "kind": {
+              "Array": {
+                "Custom": {
+                  "name": "common_meeting_tag",
+                  "kind": {
+                    "Enum": [
+                      "Kultur",
+                      "Party",
+                      "Orga",
+                      "Sport",
+                      "Education",
+                      "Meet",
+                      "Students",
+                      "Marketing",
+                      "Cinema",
+                      "Talks",
+                      "Open",
+                      "Explores",
+                      "Connect",
+                      "Ostqueer",
+                      "Queermas"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "queer_meeting_tag[]",
+            "kind": {
+              "Array": {
+                "Custom": {
+                  "name": "queer_meeting_tag",
+                  "kind": {
+                    "Enum": [
+                      "Everyone",
+                      "Queer",
+                      "Gay",
+                      "Lesbian",
+                      "Trans",
+                      "Bi",
+                      "Asexual",
+                      "Aromantic",
+                      "Inter",
+                      "Poly",
+                      "Pan"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "Custom": {
+            "name": "meeting_status",
+            "kind": {
+              "Enum": [
+                "Planned",
+                "Active"
+              ]
+            }
+          }
+        },
+        "Bool",
+        "Int8",
+        "Int4",
+        "Int8",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "426a34bbb063869088dd0551c10208940178cd80a851f3297f3563811d52863b"
+}

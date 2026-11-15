@@ -6,6 +6,7 @@ use axum::{
 };
 
 use crate::{
+    db::storable_value,
     extractors::AuthExtractor,
     require_capability,
     state::AppState,
@@ -82,6 +83,15 @@ pub async fn send_email_preview(
 
     if total_size > MAX_ATTACHMENT_SIZE {
         return (StatusCode::BAD_REQUEST, "Attachments exceed 10MB limit").into_response();
+    }
+
+    // MongoDB stored a U+0000, Postgres text and jsonb cannot (db::storable).
+    if !storable_value(&request) {
+        return (
+            StatusCode::BAD_REQUEST,
+            "Subject, body, reply-to and attachments cannot contain the character U+0000",
+        )
+            .into_response();
     }
 
     // Get sender info

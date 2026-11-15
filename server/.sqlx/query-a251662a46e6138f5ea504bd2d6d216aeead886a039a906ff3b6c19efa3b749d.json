@@ -1,0 +1,158 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT _id, sender_id, sender_email, subject, body,\n                attachments AS \"attachments: Json<Vec<EmailAttachment>>\",\n                verification_code, created_at, recipient_count, status AS \"status: DraftStatus\",\n                reply_to\n            FROM email_drafts WHERE _id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "_id",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "email_drafts",
+            "name": "_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "sender_id",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "email_drafts",
+            "name": "sender_id"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "sender_email",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "email_drafts",
+            "name": "sender_email"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "subject",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "email_drafts",
+            "name": "subject"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "body",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "email_drafts",
+            "name": "body"
+          }
+        }
+      },
+      {
+        "ordinal": 5,
+        "name": "attachments: Json<Vec<EmailAttachment>>",
+        "type_info": "Jsonb",
+        "origin": {
+          "Table": {
+            "table": "email_drafts",
+            "name": "attachments"
+          }
+        }
+      },
+      {
+        "ordinal": 6,
+        "name": "verification_code",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "email_drafts",
+            "name": "verification_code"
+          }
+        }
+      },
+      {
+        "ordinal": 7,
+        "name": "created_at",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "email_drafts",
+            "name": "created_at"
+          }
+        }
+      },
+      {
+        "ordinal": 8,
+        "name": "recipient_count",
+        "type_info": "Int4",
+        "origin": {
+          "Table": {
+            "table": "email_drafts",
+            "name": "recipient_count"
+          }
+        }
+      },
+      {
+        "ordinal": 9,
+        "name": "status: DraftStatus",
+        "type_info": {
+          "Custom": {
+            "name": "draft_status",
+            "kind": {
+              "Enum": [
+                "Pending",
+                "Processing"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "email_drafts",
+            "name": "status"
+          }
+        }
+      },
+      {
+        "ordinal": 10,
+        "name": "reply_to",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "email_drafts",
+            "name": "reply_to"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "a251662a46e6138f5ea504bd2d6d216aeead886a039a906ff3b6c19efa3b749d"
+}

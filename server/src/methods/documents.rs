@@ -4,7 +4,7 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
-use futures::stream::TryStreamExt;
+use futures_util::stream::TryStreamExt;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::time::Duration;
@@ -28,8 +28,11 @@ use crate::{
     },
 };
 
+/// Searches running at once. Each one streams all documents over a pooled connection
+/// (`DB::searchable_documents`), so this is also how many connections searches may hold.
+pub const CONCURRENT_SEARCHES: usize = 2;
 /// A search reads all documents; when too many wait, the next one is better off with an error.
-const SEARCH_QUEUE_TIMEOUT: Duration = Duration::from_secs(5);
+pub const SEARCH_QUEUE_TIMEOUT: Duration = Duration::from_secs(5);
 
 pub(crate) const UNKNOWN_DOCUMENT: &str = "Dieses Dokument gibt es nicht mehr.";
 pub(crate) const UNKNOWN_GROUP: &str = "Diese Gruppe gibt es nicht mehr.";
@@ -235,9 +238,15 @@ pub async fn search_documents(
     }
 }
 
-async fn run_search(state: &AppState, terms: &[String]) -> anyhow::Result<Vec<WikiDocumentHit>> {
+/// The search behind `/api/search_documents/` once the caller is allowed and the query is
+/// parsed: waits for one of `CONCURRENT_SEARCHES` slots, then matches every live document as
+/// it streams in. Public for `tests/document_search_load.rs`.
+pub async fn run_search(
+    state: &AppState,
+    terms: &[String],
+) -> anyhow::Result<Vec<WikiDocumentHit>> {
     let patterns = compile_terms(terms)?;
-    let _slot = timeout(SEARCH_QUEUE_TIMEOUT, state.document_searches.acquire()).await??;
+    let _slot = timeout(SEARCH_QUEUE_TIMEOUT, state.document_searches().acquire()).await??;
     let mut documents = state.db.searchable_documents().await?;
     let mut hits = Vec::new();
     while let Some(document) = documents.try_next().await? {

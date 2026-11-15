@@ -8,7 +8,9 @@ use axum::{
 use serde_valid::Validate;
 
 use crate::{
+    db::storable_value,
     extractors::AuthExtractor,
+    methods::update_own_member_data::NUL_CHARACTER,
     require_capability,
     state::AppState,
     types::{SubmittedMember, UserCapabilities},
@@ -37,6 +39,14 @@ pub async fn admin_create_member(
     if let Err(e) = submitted_member.validate() {
         return (StatusCode::BAD_REQUEST, format!("Validation error: {}", e)).into_response();
     }
+    // MongoDB stored a U+0000, Postgres text cannot (db::storable).
+    if !storable_value(&submitted_member) {
+        return (
+            StatusCode::BAD_REQUEST,
+            format!("Validation error: {NUL_CHARACTER}"),
+        )
+            .into_response();
+    }
 
     let user_id = generate_id(30);
 
@@ -44,7 +54,11 @@ pub async fn admin_create_member(
         return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
     }
 
-    if let Err(e) = state.db.update_member_data(&user_id, submitted_member).await {
+    if let Err(e) = state
+        .db
+        .update_member_data(&user_id, submitted_member)
+        .await
+    {
         return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()).into_response();
     }
 

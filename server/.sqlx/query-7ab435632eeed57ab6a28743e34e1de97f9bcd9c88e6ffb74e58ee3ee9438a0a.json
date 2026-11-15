@@ -1,0 +1,70 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO places (_id, name, name_key, lat, lon, created_by, created_at)\n            VALUES ($1, $2, $3, $4, $5, $6, $7)\n            ON CONFLICT (name_key) DO NOTHING\n            RETURNING _id, name, lat, lon\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "_id",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "places",
+            "name": "_id"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "name",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "places",
+            "name": "name"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "lat",
+        "type_info": "Float8",
+        "origin": {
+          "Table": {
+            "table": "places",
+            "name": "lat"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "lon",
+        "type_info": "Float8",
+        "origin": {
+          "Table": {
+            "table": "places",
+            "name": "lon"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Float8",
+        "Float8",
+        "Text",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "7ab435632eeed57ab6a28743e34e1de97f9bcd9c88e6ffb74e58ee3ee9438a0a"
+}

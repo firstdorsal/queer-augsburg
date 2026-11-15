@@ -1,0 +1,89 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT admin_notes, end_time_ms, honorary, start_time_ms,\n                status AS \"status: MembershipStatus\"\n            FROM members WHERE user_id = $1\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "admin_notes",
+        "type_info": "Text",
+        "origin": {
+          "Table": {
+            "table": "members",
+            "name": "admin_notes"
+          }
+        }
+      },
+      {
+        "ordinal": 1,
+        "name": "end_time_ms",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "members",
+            "name": "end_time_ms"
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "honorary",
+        "type_info": "Bool",
+        "origin": {
+          "Table": {
+            "table": "members",
+            "name": "honorary"
+          }
+        }
+      },
+      {
+        "ordinal": 3,
+        "name": "start_time_ms",
+        "type_info": "Int8",
+        "origin": {
+          "Table": {
+            "table": "members",
+            "name": "start_time_ms"
+          }
+        }
+      },
+      {
+        "ordinal": 4,
+        "name": "status: MembershipStatus",
+        "type_info": {
+          "Custom": {
+            "name": "membership_status",
+            "kind": {
+              "Enum": [
+                "Approved",
+                "Rejected",
+                "Pending",
+                "Left",
+                "Expelled"
+              ]
+            }
+          }
+        },
+        "origin": {
+          "Table": {
+            "table": "members",
+            "name": "status"
+          }
+        }
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      true,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "1908a0eed89c4da6113bfe8e2c8c71b840205e72951116ceecea6cf11ea0a357"
+}

@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE document_groups SET name = $2, name_key = $3 WHERE _id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "593e66934db31fc451cdacf22c6da7e55de0451ffa0a21eb082dafa26656666b"
+}
